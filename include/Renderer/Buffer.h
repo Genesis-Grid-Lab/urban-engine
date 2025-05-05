@@ -5,6 +5,8 @@
 
 namespace UE {
 
+	struct Vertex;
+
     enum class ShaderDataType{
         None = 0, Float, Float2, Float3, Float4, Mat3, Mat4, Int, Int2, Int3, Int4, Bool
     };
@@ -107,6 +109,7 @@ namespace UE {
 	public:
         VertexBuffer(uint32_t size);
         VertexBuffer(float* vertices, uint32_t size);
+        VertexBuffer(Vertex* vertices, uint32_t size);
 		~VertexBuffer();
 
 		void Bind() const;

@@ -53,8 +53,9 @@ namespace UE {
 		void ProcessInputAndMouse(Timestep ts, bool constrainPitch = true);
 	private:
 		void RecalculateViewMatrix();
-	private:
+	public:
 		glm::vec3 m_Front = glm::vec3(0.0f, 0.0f, -1.0f);
+	private:
 		glm::vec3 m_Up = glm::vec3(0.0f, 1.0f, 0.0f);
 		glm::vec3 m_Right;
 		glm::vec3 m_WorldUp = m_Up;

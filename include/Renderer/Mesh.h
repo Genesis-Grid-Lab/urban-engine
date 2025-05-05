@@ -20,10 +20,16 @@ namespace UE {
         float m_Weights[MAX_BONE_INFLUENCE];
     };
 
+    struct TextureMesh {
+        unsigned int id;
+        std::string type;
+        std::string path;
+    };
+
 
     class Mesh {
     public:
-        Mesh(const std::vector<Vertex>& vertices,const std::vector<uint32_t>& indices,const std::vector<Texture2D>& textures);
+        Mesh(const std::vector<Vertex>& vertices,const std::vector<uint32_t>& indices,const std::vector<TextureMesh>& textures);
 
         void Draw(Ref<Shader> &shader);
 
@@ -31,10 +37,12 @@ namespace UE {
         //mesh data
         std::vector<Vertex> m_Vertices;
         std::vector<uint32_t> m_Indices;
-        std::vector<Texture2D> m_Textures;
-        Ref<VertexArray> m_VertexArray;        
+        std::vector<TextureMesh> m_Textures;
+        Ref<VertexArray> m_VertexArray;   
+        unsigned int VAO;     
     private:        
-
+        unsigned int VBO, EBO;
         void setupMesh();
     };
+    
 }

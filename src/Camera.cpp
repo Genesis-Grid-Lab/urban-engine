@@ -107,6 +107,14 @@ namespace UE {
             // m_Position.y -= velocity;          
         }
 
+		if(Input::IsKeyPressed(Key::LeftShift)){
+            m_MovementSpeed = 10.0f;        
+            // m_Position.y -= velocity;          
+        }
+		else{
+			m_MovementSpeed = Default_SPEED;
+		}
+
 		if(Input::IsMouseButtonPressed(Mouse::ButtonRight)){
 			Input::HideCursor(true);
 

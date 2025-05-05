@@ -1,5 +1,5 @@
 #include "Renderer/Buffer.h"
-
+#include "Renderer/Mesh.h"
 #include <glad/glad.h>
 
 namespace UE {
@@ -17,6 +17,15 @@ namespace UE {
 	}
 
 	VertexBuffer::VertexBuffer(float* vertices, uint32_t size)
+	{
+		
+
+		glCreateBuffers(1, &m_RendererID);
+		glBindBuffer(GL_ARRAY_BUFFER, m_RendererID);
+		glBufferData(GL_ARRAY_BUFFER, size, vertices, GL_STATIC_DRAW);
+	}
+
+	VertexBuffer::VertexBuffer(Vertex* vertices, uint32_t size)
 	{
 		
 
