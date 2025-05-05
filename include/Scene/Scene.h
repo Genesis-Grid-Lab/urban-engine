@@ -7,6 +7,8 @@
 #include "Renderer/Texture.h"
 #include "UE_Assert.h"
 #include <entt.hpp>
+#include "Renderer/Shader.h"
+#include "Renderer/Model.h"
 
 namespace UE {
 
@@ -53,9 +55,13 @@ namespace UE {
         entt::registry m_Registry;
         Ref<Texture2D> m_Screen;
         uint32_t m_ViewportWidth = 0, m_ViewportHeight = 0;
-        Camera m_Cam;
+        Camera2D m_Cam;
         float m_MouseX, m_MouseY;
         friend class Entity;                
         // friend class SceneSerializer;    
+    //temp
+    private:
+        Ref<Shader> TesShader;
+        Ref<Model> TesModel;
     };
 }

@@ -1,10 +1,14 @@
 #pragma once
 
 #include "Core/Config.h"
-#include "UrbanEngine.h"
-
+#include "Events/Event.h"
+#include "Events/ApplicationEvent.h"
+#include "Window.h"
 #include <Timestep.h>
 #include "ImGuiLayer.h"
+#include "UE_Assert.h"
+#include "Layer.h"
+#include "LayerStack.h"
 
 int main(int argc, char** argv);
 
@@ -33,7 +37,7 @@ namespace UE {
     
     class UE_API Application{
     public:
-        Application(const std::string& name = "Application Name", ApplicationCommandLineArgs args = ApplicationCommandLineArgs());
+        Application(const std::string& name = "Application Name", const glm::vec2& size = glm::vec2(0), ApplicationCommandLineArgs args = ApplicationCommandLineArgs());
         virtual ~Application();
     
         void OnEvent(Event& e);

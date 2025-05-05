@@ -8,6 +8,7 @@
 #include "Events/MouseEvent.h"
 #include "Events/KeyEvent.h"
 #include "UrbanEngine.h"
+#include <GLFW/glfw3.h>
 
 namespace UE {
 

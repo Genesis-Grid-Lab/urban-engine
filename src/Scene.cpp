@@ -13,7 +13,7 @@ namespace UE {
 	Entity GlobHovered;
 
     Scene::Scene(uint32_t width, uint32_t height){
-		m_Cam = Camera(0.0f, width, height, 0.0f);
+		m_Cam = Camera2D(0.0f, width, height, 0.0f);
 
 		m_ViewportWidth = width;
 		m_ViewportHeight = height;
@@ -132,7 +132,7 @@ namespace UE {
 
 		// 	auto& transform = entity.template GetComponent<TransformComponent>();
 		// 	Renderer2D::DrawSprite(transform.GetTransform(), comp, (int)entity);
-		// });		
+		// });			
 
 		Renderer2D::EndCamera();
 

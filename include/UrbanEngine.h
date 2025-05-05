@@ -11,6 +11,7 @@
 #include "Core/Application.h"
 #include "Renderer/Renderer.h"
 #include "Renderer/Renderer2D.h"
+#include "Renderer/Renderer3D.h"
 #include "Renderer/RenderCommand.h"
 #include "Renderer/Camera.h"
 #include "Renderer/Texture.h"

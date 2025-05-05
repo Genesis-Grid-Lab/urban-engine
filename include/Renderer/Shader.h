@@ -1,16 +1,17 @@
 #pragma once
 
 #include "Config.h"
-#include <glad/glad.h>
 #include <glm/glm.hpp>
 #include <string>
 #include <fstream>
 #include <sstream>
 #include <iostream>
 
+typedef unsigned int GLenum;
+
 namespace UE {
 
-    class Shader
+    class UE_API Shader
 	{
 	public:
         Shader(const std::string& filepath);

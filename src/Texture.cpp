@@ -90,7 +90,10 @@ namespace UE {
 
 			glTextureSubImage2D(m_RendererID, 0, 0, 0, m_Width, m_Height, dataFormat, GL_UNSIGNED_BYTE, data);
 
-			stbi_image_free(data);
+			stbi_image_free(data);			
+		}
+		else{
+			UE_CORE_WARN("Could not load {0}", path);
 		}
 	}
 
@@ -113,6 +116,8 @@ namespace UE {
 	void Texture2D::Bind(uint32_t slot) const
 	{		
 		UE_CORE_ASSERT(m_RendererID != 0, "Texture RendererID is 0!");
-		glBindTextureUnit(slot, m_RendererID);
+		// glBindTextureUnit(slot, m_RendererID);
+		glActiveTexture(GL_TEXTURE0 + slot);                // Set the active texture slot
+    	glBindTexture(GL_TEXTURE_2D, m_RendererID);         // Bind the texture
 	}
 }

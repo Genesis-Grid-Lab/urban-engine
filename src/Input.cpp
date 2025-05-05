@@ -1,6 +1,6 @@
 #include "Core/Input.h"
 #include "Application.h"
-
+#include "Core/Log.h"
 #include <GLFW/glfw3.h>
 
 namespace UE {
@@ -26,6 +26,19 @@ namespace UE {
         glfwGetCursorPos(window, &xpos, &ypos);
 
         return { (float)xpos, (float)ypos };
+    }
+
+    void Input::HideCursor(bool hide){
+        auto* window = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow());
+        if(hide)            
+            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);                            
+        else
+            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+    }
+
+    void Input::SetCursorPos(float width, float height){
+        auto* window = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow());
+        glfwSetCursorPos(window, width, height);
     }
 
     float Input::GetMouseX()

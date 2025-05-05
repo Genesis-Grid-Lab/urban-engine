@@ -47,8 +47,9 @@ namespace UE {
         {
             return m_RendererID == ((Texture2D&)other).m_RendererID;
         }
-	private:
 		std::string m_Path;
+		std::string type;
+	private:
 		bool m_IsLoaded = false;
 		uint32_t m_Width, m_Height;
 		uint32_t m_RendererID;

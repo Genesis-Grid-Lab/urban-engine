@@ -2,6 +2,7 @@
 #include "UE_Assert.h"
 #include "Log.h"
 #include <glm/gtc/type_ptr.hpp>
+#include <glad/glad.h>
 
 namespace UE {
 

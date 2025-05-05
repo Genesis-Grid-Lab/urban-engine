@@ -6,6 +6,7 @@ add_subdirectory(vendor/glm)
 add_subdirectory(vendor/entt)
 add_subdirectory(vendor/imgui)
 add_subdirectory(vendor/spdlog)
+add_subdirectory(vendor/assimp)
 
 if(UNIX)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
@@ -33,6 +34,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/vendor/glm
     ${CMAKE_CURRENT_SOURCE_DIR}/vendor/glfw/include
     ${CMAKE_CURRENT_SOURCE_DIR}/vendor/stb
+    ${CMAKE_CURRENT_SOURCE_DIR}/vendor/assimp/include
     ${CMAKE_CURRENT_SOURCE_DIR}/vendor/spdlog/include 
     ${CMAKE_CURRENT_SOURCE_DIR}/vendor/imgui
     ${CMAKE_CURRENT_SOURCE_DIR}/vendor/imgui/backends
@@ -48,4 +50,5 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
   spdlog
   imgui
   EnTT     
+  assimp
 )

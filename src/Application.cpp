@@ -1,17 +1,18 @@
 #include "Application.h"
 #include <Renderer/Renderer.h>
+#include <GLFW/glfw3.h>
 
 namespace UE {
 
     Application* Application::s_Instance = nullptr;
 
-    Application::Application(const std::string& name, ApplicationCommandLineArgs args)
+    Application::Application(const std::string& name, const glm::vec2& size, ApplicationCommandLineArgs args)
         :m_CommandLineArgs(args){
 
             UE_CORE_ASSERT(!s_Instance, "Application already exists!");
 
             s_Instance = this;
-            m_Window = CreateScope<Window>(WindowProps(name, SCREEN_WIDTH, SCREEN_HEIGHT));
+            m_Window = CreateScope<Window>(WindowProps(name, size.x, size.y));
             m_Window->SetEventCallback(BIND_EVENT_FN(Application::OnEvent));
 
             UE::Renderer::Init();

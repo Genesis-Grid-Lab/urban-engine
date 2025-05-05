@@ -2,7 +2,8 @@
 
 #include "Core/Config.h"
 #include "Events/Event.h"
-#include <GLFW/glfw3.h>
+
+struct GLFWwindow;
 
 namespace UE {
 

@@ -6,6 +6,7 @@
 #include "Renderer/UniformBuffer.h"
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <glad/glad.h>
 
 namespace UE {
 	unsigned int fsVAO, fsVBO;
