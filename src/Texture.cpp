@@ -4,6 +4,9 @@
 #include <glad/glad.h>
 
 namespace UE {
+	Texture2D::Texture2D(unsigned int id){
+		m_RendererID = id;
+	}
 
 	Texture2D::Texture2D(uint32_t width, uint32_t height)
 		: m_Width(width), m_Height(height)
@@ -116,8 +119,8 @@ namespace UE {
 	void Texture2D::Bind(uint32_t slot) const
 	{		
 		UE_CORE_ASSERT(m_RendererID != 0, "Texture RendererID is 0!");
-		// glBindTextureUnit(slot, m_RendererID);
-		glActiveTexture(GL_TEXTURE0 + slot);                // Set the active texture slot
-    	glBindTexture(GL_TEXTURE_2D, m_RendererID);         // Bind the texture
+		glBindTextureUnit(slot, m_RendererID);
+		// glActiveTexture(GL_TEXTURE0 + slot);                // Set the active texture slot
+    	// glBindTexture(GL_TEXTURE_2D, m_RendererID);         // Bind the texture
 	}
 }

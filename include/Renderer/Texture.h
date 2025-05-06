@@ -27,6 +27,7 @@ namespace UE {
 	class UE_API Texture2D : public Texture
 	{
 	public:
+		Texture2D(unsigned int id);
         Texture2D(uint32_t width, uint32_t height);
 		Texture2D(uint32_t width, uint32_t height, GLenum internalFormat, GLenum dataFormat);
         Texture2D(const std::string& path);

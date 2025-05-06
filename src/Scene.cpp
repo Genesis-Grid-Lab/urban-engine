@@ -95,9 +95,9 @@ namespace UE {
 	}
 
     void Scene::OnUpdateRuntime(Timestep ts){
-		// m_Framebuffer->Bind();
+		m_Framebuffer->Bind();
 		// Clear our entity ID attachment to -1
-		// m_Framebuffer->ClearAttachment(1, -1);
+		m_Framebuffer->ClearAttachment(1, -1);
 		RenderCommand::SetClearColor({0.1f, 0.1f, 0.1f, 1});
     	RenderCommand::Clear();
         
@@ -126,9 +126,7 @@ namespace UE {
 		{
 			auto [transform, sprite] = group.get<TransformComponent, SpriteRendererComponent>(entity);
 			Renderer2D::DrawSprite(transform.GetTransform(), sprite, (int)entity);
-		}
-
-		Renderer2D::DrawQuad({100, 10}, {10, 10}, {1, 0,0, 1});
+		}		
 
 		// ViewEntity<Entity, SpriteRendererComponent>([this] (auto entity, auto& comp){
 
@@ -138,23 +136,23 @@ namespace UE {
 
 		Renderer2D::EndCamera();
 
-		// auto my = m_MouseY;
-		// auto mx = m_MouseX;
+		auto my = m_MouseY;
+		auto mx = m_MouseX;
 
-		// my = m_ViewportHeight - my;	
+		my = m_ViewportHeight - my;	
 
-		// if(m_MouseX >= 0 && m_MouseY >= 0 && m_MouseX < m_ViewportWidth && m_MouseY < m_ViewportHeight){            
-		// 	int pixelData = m_Framebuffer->ReadPixel(1, mx, my);
-		// 	// UE_INFO("Pixel {0}",pixelData);
-		// 	// UE_INFO("mx: {0}, my: {1}" ,Input::GetMouseX(), Input::GetMouseY() );
-		// 	GlobHovered = pixelData == -1 ? Entity() : Entity((entt::entity)pixelData, this);            
-		// }
+		if(m_MouseX >= 0 && m_MouseY >= 0 && m_MouseX < m_ViewportWidth && m_MouseY < m_ViewportHeight){            
+			int pixelData = m_Framebuffer->ReadPixel(1, mx, my);
+			// UE_INFO("Pixel {0}",pixelData);
+			// UE_INFO("mx: {0}, my: {1}" ,Input::GetMouseX(), Input::GetMouseY() );
+			GlobHovered = pixelData == -1 ? Entity() : Entity((entt::entity)pixelData, this);            
+		}
 
-		// m_Framebuffer->Unbind();
+		m_Framebuffer->Unbind();
 
-		// RenderCommand::SetClearColor({0.1f, 0.1f, 0.1f, 1});
-        // RenderCommand::Clear();
-        // DrawScreen(m_Framebuffer);
+		RenderCommand::SetClearColor({0.1f, 0.1f, 0.1f, 1});
+        RenderCommand::Clear();
+        DrawScreen(m_Framebuffer);
 		
     }
 
