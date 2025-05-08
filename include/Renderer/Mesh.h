@@ -31,7 +31,7 @@ namespace UE {
     public:
         Mesh(const std::vector<Vertex>& vertices,const std::vector<uint32_t>& indices,const std::vector<TextureMesh>& textures);
 
-        void Draw(Ref<Shader> &shader);
+        void Draw(const Ref<Shader> &shader);
 
     public:
         //mesh data

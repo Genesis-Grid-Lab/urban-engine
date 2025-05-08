@@ -10,7 +10,7 @@ namespace UE {
     class UE_API Model {
     public:
         Model(const std::string& path);
-        void Draw(Ref<Shader>& shader);
+        void Draw(const Ref<Shader>& shader);
         int GetMeshCount(){ return m_Meshes.size();}
     private:
         std::vector<Ref<Mesh>> m_Meshes;

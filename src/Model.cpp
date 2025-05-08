@@ -52,7 +52,7 @@ namespace UE {
         LoadModel(path);
     }
 
-    void Model::Draw(Ref<Shader>& shader){
+    void Model::Draw(const Ref<Shader>& shader){
         for(auto& mesh : m_Meshes)
             mesh->Draw(shader);        
     }

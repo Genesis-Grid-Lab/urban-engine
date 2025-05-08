@@ -53,39 +53,48 @@ namespace UE {
         
     }
 
-    void Mesh::Draw(Ref<Shader>& shader){
+    void Mesh::Draw(const Ref<Shader>& shader){
 
         // bind appropriate textures
         unsigned int diffuseNr  = 1;
         unsigned int specularNr = 1;
         unsigned int normalNr   = 1;
         unsigned int heightNr   = 1;
-        shader->Bind();
         uint32_t textureUnit = 0;
+        bool hasNormalMap = false;
+        bool hasDiffuseMap = false;
+        shader->Bind();
         
         for(auto& tex : m_Textures){
-            glActiveTexture(GL_TEXTURE0 + textureUnit);
-            // retrieve texture number (the N in diffuse_textureN)
-            string number;
-            string name = m_Textures[textureUnit].type;
-            if(name == "texture_diffuse")
-                number = std::to_string(diffuseNr++);
-            else if(name == "texture_specular")
-                number = std::to_string(specularNr++); // transfer unsigned int to string
-            else if(name == "texture_normal")
-                number = std::to_string(normalNr++); // transfer unsigned int to string
-             else if(name == "texture_height")
-                number = std::to_string(heightNr++); // transfer unsigned int to string
-            shader->SetInt((name + number), textureUnit); 
-            // tex.Bind(textureUnit);
-            glBindTexture(GL_TEXTURE_2D, tex.id);
-            textureUnit++;
-        }            
+            if(!m_Textures.empty()){
+                glActiveTexture(GL_TEXTURE0 + textureUnit);
+                // retrieve texture number (the N in diffuse_textureN)
+                string number;
+                string name = tex.type;
+                if(name == "texture_diffuse"){
+                    number = std::to_string(diffuseNr++);
+                    hasDiffuseMap = true;
+                }
+                else if(name == "texture_specular")
+                    number = std::to_string(specularNr++); // transfer unsigned int to string
+                else if(name == "texture_normal"){
+                    number = std::to_string(normalNr++); // transfer unsigned int to string
+                    hasNormalMap = true;
+                }
+                else if(name == "texture_height")
+                    number = std::to_string(heightNr++); // transfer unsigned int to string
+                shader->SetInt((name + number), textureUnit); 
+                shader->SetInt("u_UseNormalMap", hasNormalMap);
+                shader->SetInt("u_UseDiffuseMap", hasDiffuseMap);
+                // tex.Bind(textureUnit);
+                glBindTexture(GL_TEXTURE_2D, tex.id);
+                textureUnit++;
+            }
+        }             
         
-        m_VertexArray->Bind();
-        RenderCommand::DrawIndexed(m_VertexArray);
-
+        m_VertexArray->Bind();        
         glActiveTexture(GL_TEXTURE0);
+        RenderCommand::DrawIndexed(m_VertexArray);
     }
 
    
