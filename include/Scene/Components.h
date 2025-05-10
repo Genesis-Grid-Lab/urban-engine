@@ -11,6 +11,8 @@
 #include "Renderer/Camera.h"
 #include "Renderer/Texture.h"
 #include "Renderer/Font.h"
+#include "Renderer/Model.h"
+#include "Renderer/Animation/Animation.h"
 
 namespace UE {
     struct IDComponent
@@ -50,6 +52,19 @@ namespace UE {
 				* rotation
 				* glm::scale(glm::mat4(1.0f), Scale);
 		}
+	};
+
+	struct UE_API ModelComponent{
+		Ref<Model> ModelData;
+		Ref<Animation> AnimationData;
+		ModelComponent() = default;
+		ModelComponent(const ModelComponent&) = default;
+	};
+
+	struct UE_API CubeComponent{
+		glm::vec3 Color;
+		CubeComponent() = default;
+		CubeComponent(const CubeComponent&) = default;
 	};
 
 	struct UE_API SpriteRendererComponent

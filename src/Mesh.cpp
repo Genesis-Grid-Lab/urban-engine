@@ -16,40 +16,30 @@ namespace UE {
     void Mesh::setupMesh(){
 
         m_VertexArray = CreateRef<VertexArray>();
-
-        std::vector<float> flatData;
-        for (const auto& v : m_Vertices) {
-            flatData.push_back(v.Position.x);
-            flatData.push_back(v.Position.y);
-            flatData.push_back(v.Position.z);
-            flatData.push_back(v.Normal.x);
-            flatData.push_back(v.Normal.y);
-            flatData.push_back(v.Normal.z);
-            flatData.push_back(v.TexCoords.x);
-            flatData.push_back(v.TexCoords.y);
-            flatData.push_back(v.Tangent.x);
-            flatData.push_back(v.Tangent.y);
-            flatData.push_back(v.Tangent.z);
-            flatData.push_back(v.Bitangent.x);
-            flatData.push_back(v.Bitangent.y);
-            flatData.push_back(v.Bitangent.z);
-        }
-
-        UE_CORE_INFO("FlatData {0}", flatData.size());
         
-        Ref<VertexBuffer> vertexBuffer = CreateRef<VertexBuffer>(flatData.data(), (uint32_t)flatData.size() * sizeof(float));
+        Ref<VertexBuffer> vertexBuffer = CreateRef<VertexBuffer>(m_Vertices.data(), m_Vertices.size() * sizeof(Vertex));
         vertexBuffer->SetLayout({
             {ShaderDataType::Float3, "a_Position"},
             {ShaderDataType::Float3, "a_Normal"},
             {ShaderDataType::Float2, "a_TexCoord"},
             {ShaderDataType::Float3, "a_Tangent"},
-            {ShaderDataType::Float3, "a_Bitangent"}
+            {ShaderDataType::Float3, "a_Bitangent"},
+            {ShaderDataType::Int4, "a_BoneIds"},
+            {ShaderDataType::Float4, "a_Weights"}
         });
 
         Ref<IndexBuffer> indexBuffer = CreateRef<IndexBuffer>(m_Indices.data(), m_Indices.size());
 
         m_VertexArray->AddVertexBuffer(vertexBuffer);
-        m_VertexArray->SetIndexBuffer(indexBuffer);        
+        m_VertexArray->SetIndexBuffer(indexBuffer);  
+#if 0        
+        for (const auto& vertex : m_Vertices) {
+            std::cout << "IDs: " << vertex.m_BoneIDs[0] << ", " << vertex.m_BoneIDs[1] << ", " 
+                      << vertex.m_BoneIDs[2] << ", " << vertex.m_BoneIDs[3] << std::endl;
+            std::cout << "Weights: " << vertex.m_Weights[0] << ", " << vertex.m_Weights[1] << ", " 
+                      << vertex.m_Weights[2] << ", " << vertex.m_Weights[3] << std::endl;
+        }
+#endif    
         
     }
 

@@ -2,6 +2,8 @@
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
 #include <stb_image.h>
+#include "Renderer/AssimpToGlm.h"
+
 //temp
 #include <glad/glad.h>
 using namespace std;
@@ -48,7 +50,7 @@ namespace UE {
         return textureID;
     }
 
-    Model::Model(const std::string& path){
+    Model::Model(const std::string& path, bool gamma):m_GammaCorrection(gamma){
         LoadModel(path);
     }
 
@@ -58,16 +60,17 @@ namespace UE {
     }
 
     void Model::LoadModel(const std::string& path){
+        // read file via ASSIMP
         Assimp::Importer importer;
         const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
-
+        // error checking
         if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {            
             UE_CORE_ERROR("Assimp Error: {0}", importer.GetErrorString());
             return;
         }
-
+        // retrieve the directory path of the filepath
         m_Directory = path.substr(0, path.find_last_of('/'));        
-    
+        // process ASSIMP's root node recursively
         ProcessNode(scene->mRootNode, scene);
     }
 
@@ -82,6 +85,13 @@ namespace UE {
         }
     }
 
+    void Model::SetVertexBoneDataToDefault(Vertex& vertex){
+        for(int i = 0; i < MAX_BONE_INFLUENCE; i++){
+            vertex.m_BoneIDs[i] = -1;
+            vertex.m_Weights[i] = 0.0f;
+        }
+    }
+
     Ref<Mesh> Model::ProcessMesh(aiMesh* mesh, const aiScene* scene){
         Ref<Mesh> tempMesh;
         std::vector<Vertex> vertices;
@@ -90,11 +100,12 @@ namespace UE {
 
         for(unsigned int i = 0; i < mesh->mNumVertices; i++){
             Vertex ivertex;
-            ivertex.Position = {mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z};
-            ivertex.Normal = mesh->HasNormals() ? glm::vec3(mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z) : glm::vec3(0.0f);
+            SetVertexBoneDataToDefault(ivertex);
+            ivertex.Position = AssimpGLMHelpers::GetGLMVec(mesh->mVertices[i]);
+            ivertex.Normal = mesh->HasNormals() ? AssimpGLMHelpers::GetGLMVec(mesh->mNormals[i]) : glm::vec3(0.0f);
             ivertex.TexCoords = mesh->mTextureCoords[0] ? glm::vec2(mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y) : glm::vec2(0.0f);
-            ivertex.Tangent = mesh->mTextureCoords[0] ? glm::vec3(mesh->mTangents[i].x, mesh->mTangents[i].y, mesh->mTangents[i].z) : glm::vec3(0.0f);
-            ivertex.Bitangent = mesh->mTextureCoords[0] ? glm::vec3(mesh->mBitangents[i].x, mesh->mBitangents[i].y, mesh->mBitangents[i].z) : glm::vec3(0.0f);
+            ivertex.Tangent = mesh->mTangents ? glm::vec3(mesh->mTangents[i].x, mesh->mTangents[i].y, mesh->mTangents[i].z) : glm::vec3(0.0f);
+            ivertex.Bitangent = mesh->mBitangents ? glm::vec3(mesh->mBitangents[i].x, mesh->mBitangents[i].y, mesh->mBitangents[i].z) : glm::vec3(0.0f);
             vertices.push_back(ivertex);
         }
 
@@ -129,9 +140,62 @@ namespace UE {
 
         UE_CORE_WARN("Mesh with {0} vertices and {1} indices", vertices.size(), indices.size());
 
+        ExtractBoneWeightForVertices(vertices,mesh,scene);
+
         tempMesh = CreateRef<Mesh>(vertices, indices, textures);
         return tempMesh;
     }
+
+    void Model::SetVertexBoneData(Vertex& vertex, int boneID, float weight){
+        for(int i = 0; i < MAX_BONE_INFLUENCE; i++){
+            if(vertex.m_BoneIDs[i] < 0){
+                vertex.m_Weights[i] = weight;
+				vertex.m_BoneIDs[i] = boneID;
+				break;
+            }
+        }
+    }
+
+    void Model::ExtractBoneWeightForVertices(std::vector<Vertex>& vertices, aiMesh* mesh, const aiScene* scene)
+	{
+		auto& boneInfoMap = m_BoneInfoMap;
+		int& boneCount = m_BoneCounter;
+
+		for (int boneIndex = 0; boneIndex < mesh->mNumBones; ++boneIndex)
+		{
+			int boneID = -1;
+			std::string boneName = mesh->mBones[boneIndex]->mName.C_Str();
+            
+			if (boneInfoMap.find(boneName) == boneInfoMap.end())
+			{
+				BoneInfo newBoneInfo;
+				newBoneInfo.id = boneCount;
+				newBoneInfo.offset = AssimpGLMHelpers::ConvertMatrixToGLMFormat(mesh->mBones[boneIndex]->mOffsetMatrix);
+				boneInfoMap[boneName] = newBoneInfo;
+				boneID = boneCount;
+				boneCount++;
+			}
+			else
+			{
+				boneID = boneInfoMap[boneName].id;
+			}
+			assert(boneID != -1);
+			auto weights = mesh->mBones[boneIndex]->mWeights;
+			int numWeights = mesh->mBones[boneIndex]->mNumWeights;
+
+			for (int weightIndex = 0; weightIndex < numWeights; ++weightIndex)
+			{
+				int vertexId = weights[weightIndex].mVertexId;
+				float weight = weights[weightIndex].mWeight;                
+                if (vertexId >= vertices.size()) {
+                    std::cerr << "Invalid vertex ID in bone weights: " << vertexId << " >= " << vertices.size() << "\n";
+                    continue; // Or throw an error
+                }
+				assert(vertexId <= vertices.size());
+				SetVertexBoneData(vertices[vertexId], boneID, weight);
+			}
+		}
+	}
 
     std::vector<TextureMesh> Model::LoadMaterialTextures(aiMaterial* mat, aiTextureType type, std::string typeName){
         Texture2D whiteTex = Texture2D(1, 1);  
@@ -141,6 +205,10 @@ namespace UE {
         for(unsigned int i = 0; i < mat->GetTextureCount(type); i++){
             aiString str;
             mat->GetTexture(type, i, &str);
+            if(str.length == 0 || str.C_Str() == nullptr) {
+                std::cerr << "Invalid texture path!" << std::endl;
+                continue;
+            }
             // check if texture was loaded before and if so, continue to next iteration: skip loading a new texture
             bool skip = false;
             for(unsigned int j = 0; j < m_TexturesLoaded.size(); j++){

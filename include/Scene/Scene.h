@@ -56,6 +56,7 @@ namespace UE {
         Ref<Texture2D> m_Screen;
         uint32_t m_ViewportWidth = 0, m_ViewportHeight = 0;
         Camera2D m_Cam;
+        Camera3D m_Cam3D;
         float m_MouseX, m_MouseY;
         friend class Entity;                
         // friend class SceneSerializer;    

@@ -9,6 +9,8 @@
 #include <fstream>
 #include <cstdint>
 #include <queue>
+#include <map>
+#include <list>
 
 #include <string>
 #include <sstream>

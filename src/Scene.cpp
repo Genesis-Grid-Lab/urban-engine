@@ -2,6 +2,7 @@
 
 #include "Scene/Components.h"
 #include "Renderer/Renderer2D.h"
+#include "Renderer/Renderer3D.h"
 #include "Renderer/RenderCommand.h"
 #include <glm/glm.hpp>
 #include "UE_Assert.h"
@@ -14,7 +15,7 @@ namespace UE {
 
     Scene::Scene(uint32_t width, uint32_t height){
 		m_Cam = Camera2D(0.0f, width, height, 0.0f);
-
+		m_Cam3D = Camera3D({width, height}, {0,0, 5});
 		m_ViewportWidth = width;
 		m_ViewportHeight = height;
 
@@ -100,6 +101,29 @@ namespace UE {
 		m_Framebuffer->ClearAttachment(1, -1);
 		RenderCommand::SetClearColor({0.1f, 0.1f, 0.1f, 1});
     	RenderCommand::Clear();
+
+		Renderer3D::BeginCamera(m_Cam3D);
+		//temp
+		Renderer3D::RenderLight({5.5f, 5.0f, 0.3f });
+
+		auto modelGroup = m_Registry.group<ModelComponent>(entt::get<TransformComponent>);
+		for (auto entity : modelGroup) {
+			auto [transform, modelComp] = modelGroup.get<TransformComponent, ModelComponent>(entity);
+			
+			if(modelComp.AnimationData){
+				Renderer3D::RunAnimation(modelComp.AnimationData, ts);
+			}
+			Renderer3D::DrawModel(modelComp.ModelData, transform.GetTransform());			
+		}
+
+		auto CubeGroup = m_Registry.group<CubeComponent>(entt::get<TransformComponent>);
+		for (auto entity : CubeGroup) {
+			auto [transform, CubeComp] = CubeGroup.get<TransformComponent, CubeComponent>(entity);
+			
+			Renderer3D::DrawCube(transform.GetTransform(), CubeComp.Color);
+		}
+
+		Renderer3D::EndCamera();
         
 		Renderer2D::BeginCamera(m_Cam);
 		ViewEntity<Entity, UIElement>([this] (auto entity, auto& comp){
@@ -121,10 +145,10 @@ namespace UE {
 			Renderer2D::DrawUI(transform.Translation, comp);		
 		});		
 
-		auto group = m_Registry.group<TransformComponent>(entt::get<SpriteRendererComponent>);
-		for (auto entity : group)
+		auto Spritegroup = m_Registry.group<SpriteRendererComponent>(entt::get<TransformComponent>);
+		for (auto entity : Spritegroup)
 		{
-			auto [transform, sprite] = group.get<TransformComponent, SpriteRendererComponent>(entity);
+			auto [transform, sprite] = Spritegroup.get<TransformComponent, SpriteRendererComponent>(entity);
 			Renderer2D::DrawSprite(transform.GetTransform(), sprite, (int)entity);
 		}		
 
@@ -135,6 +159,8 @@ namespace UE {
 		// });			
 
 		Renderer2D::EndCamera();
+
+		m_Cam3D.ProcessInputAndMouse(ts);
 
 		auto my = m_MouseY;
 		auto mx = m_MouseX;
@@ -157,9 +183,12 @@ namespace UE {
     }
 
 	void Scene::DrawScreen(Ref<Framebuffer>& buffer){
+		Renderer3D::BeginCamera(m_Cam3D);
+		Renderer3D::DrawScreen(buffer);
+		Renderer3D::EndCamera();
 		Renderer2D::BeginCamera(m_Cam);
 		Renderer2D::DrawScreen(buffer);
-		// Renderer2D::EndCamera();
+		Renderer2D::EndCamera();
 	}
 
     void Scene::OnViewportResize(uint32_t width, uint32_t height)
@@ -280,6 +309,16 @@ namespace UE {
 
 	template<>
 	void UE_API Scene::OnComponentAdded<TagComponent>(Entity entity, TagComponent& component)
+	{
+	}
+
+	template<>
+	void UE_API Scene::OnComponentAdded<ModelComponent>(Entity entity, ModelComponent& component)
+	{
+	}
+
+	template<>
+	void UE_API Scene::OnComponentAdded<CubeComponent>(Entity entity, CubeComponent& component)
 	{
 	}
 }

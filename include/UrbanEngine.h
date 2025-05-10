@@ -15,6 +15,8 @@
 #include "Renderer/RenderCommand.h"
 #include "Renderer/Camera.h"
 #include "Renderer/Texture.h"
+#include "Renderer/Animation/Animation.h"
+#include "Renderer/Animation/Animator.h"
 #include "Renderer/Framebuffer.h"
 #include "Renderer/Font.h"
 #include "Scene/Scene.h"
