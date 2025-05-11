@@ -9,6 +9,7 @@
 #include <entt.hpp>
 #include "Renderer/Shader.h"
 #include "Renderer/Model.h"
+#include "Auxiliaries/Physics.h"
 
 namespace UE {
 
@@ -48,6 +49,7 @@ namespace UE {
         // Ref<Framebuffre>& GetBuffer() { return m_Framebuffer;}
         //temp
         Ref<Framebuffer> m_Framebuffer;
+        PhysicsSystem m_Physics3D;
     private:
         template<typename T>
         void UE_API OnComponentAdded(Entity entity, T& component);

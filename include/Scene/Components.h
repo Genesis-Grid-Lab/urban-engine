@@ -13,6 +13,7 @@
 #include "Renderer/Font.h"
 #include "Renderer/Model.h"
 #include "Renderer/Animation/Animation.h"
+#include <PxPhysicsAPI.h>
 
 namespace UE {
     struct IDComponent
@@ -79,6 +80,17 @@ namespace UE {
 			: Color(color) {}
 	};
 
+	//physics 3d
+	struct UE_API RigidbodyComponent{
+		physx::PxRigidDynamic* Body= nullptr;
+
+		RigidbodyComponent() = default;
+		RigidbodyComponent(const RigidbodyComponent&) = default;
+	};
+
+	// struct UE_API BoxColliderComponent{
+
+	// };
 
 
 	///UI

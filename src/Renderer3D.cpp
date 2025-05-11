@@ -2,6 +2,7 @@
 #include "Renderer/Skybox.h"
 #include "Renderer/RenderCommand.h"
 #include "Renderer/Animation/Animator.h"
+#include "Core/Application.h"
 //temp
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -13,8 +14,7 @@ namespace UE {
     static glm::vec3 m_LightPos;      
     static Ref<Model> m_LightModel;   
     static Ref<Skybox> m_Skybox; 
-    static Ref<Mesh> s_CubeMesh;
-    static Ref<Shader> s_ScreenShader;
+    static Ref<Mesh> s_CubeMesh;    
     static Ref<VertexBuffer> ScreenVertexBuffer;
 	static Ref<VertexArray> ScreenVertexArray;
     static Ref<Animator> s_Animator;
@@ -73,7 +73,7 @@ namespace UE {
         return m_Shader;
     }
     void Renderer3D::Init(){
-        s_ScreenShader = CreateRef<Shader>("Data/Shaders/Screen.glsl");
+        // s_ScreenShader = CreateRef<Shader>("Data/Shaders/Screen.glsl");
         m_Shader = CreateRef<Shader>("Data/Shaders/model.glsl");
         m_LightShader = CreateRef<Shader>("Data/Shaders/BasicLight.glsl");
         m_SkyShader = CreateRef<Shader>("Data/Shaders/skybox.glsl");
@@ -122,7 +122,7 @@ namespace UE {
         m_Shader->SetFloat3("u_ViewPos", camera.GetPosition());
         
         m_Shader->SetFloat3("u_LightPos", m_LightPos);             
-
+        m_Shader->SetInt("u_EntityID", -1);
         m_LightShader->Bind();
         m_LightShader->SetMat4("u_View", camera.GetViewMatrix());
         m_LightShader->SetMat4("u_Projection", camera.GetProjectionMatrix());    
@@ -147,10 +147,17 @@ namespace UE {
         m_LightModel->Draw(m_LightShader);
     }
 
-    void Renderer3D::DrawModel(const Ref<Model>& model,const glm::mat4& transform, const glm::vec3& color){
+    void Renderer3D::DrawModel(const Ref<Model>& model,const glm::mat4& transform, const glm::vec3& color, int entityID){
         m_Shader->Bind();
         m_Shader->SetFloat3("u_Color", color);  
-        m_Shader->SetMat4("u_Model", transform);                     
+        m_Shader->SetMat4("u_Model", transform);  
+        for(auto& mesh : model->GetMeshes()){
+            for(auto& vertex : mesh->m_Vertices){
+                vertex.EntityID = entityID;
+            }
+        }        
+
+        m_Shader->SetInt("u_EntityID", entityID);
         model->Draw(m_Shader);
     }
 
@@ -166,10 +173,11 @@ namespace UE {
     }
 
 
-    void Renderer3D::DrawCube(const glm::mat4& transform, const glm::vec3& color){
+    void Renderer3D::DrawCube(const glm::mat4& transform, const glm::vec3& color, int entityID){
         m_Shader->Bind();
         m_Shader->SetMat4("u_Model", transform);
         m_Shader->SetFloat3("u_Color", color); 
+        m_Shader->SetInt("u_EntityID", entityID);
         s_CubeMesh->Draw(m_Shader);
     }
     
@@ -184,12 +192,12 @@ namespace UE {
 		glViewport(0, 0, buffer->GetSpecification().Width, buffer->GetSpecification().Height);	
 	
 		// Bind blit shader
-		s_ScreenShader->Bind();
+		Application::Get().GetScreenShader()->Bind();
 	
 		// Bind source texture
 		// glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, buffer->GetColorAttachmentRendererID());
-		s_ScreenShader->SetInt("screenTexture", 0);
+		Application::Get().GetScreenShader()->SetInt("screenTexture", 0);
 	
 		// Draw fullscreen quad		
 	

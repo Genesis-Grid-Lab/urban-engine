@@ -18,8 +18,10 @@ namespace UE {
     class UE_API Animation{
     public:
         Animation() = default;
-        Animation(const std::string& animationPath, Ref<Model>* model);
+        Animation(const std::string& animationPath, Ref<Model> model = nullptr);
         ~Animation() = default;
+
+        void SetModel(Ref<Model> model);
 
         Bone* FindBone(const std::string& name);
         inline float GetTicksPerSecond() { return m_TicksPerSecond; }
@@ -38,5 +40,8 @@ namespace UE {
         std::vector<Bone> m_Bones;
         AssimpNodeData m_RootNode;
         std::map<std::string, BoneInfo> m_BoneInfoMap;
+
+        const aiAnimation* m_AssimpAnimation = nullptr;        
+        Ref<Model> m_Model;
     };
 }

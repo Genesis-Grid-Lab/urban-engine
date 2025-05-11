@@ -9,6 +9,7 @@
 #include "UE_Assert.h"
 #include "Layer.h"
 #include "LayerStack.h"
+#include "Renderer/Shader.h"
 
 int main(int argc, char** argv);
 
@@ -46,6 +47,8 @@ namespace UE {
         void PushOverlay(Layer* layer);
         void PopLayer(Layer* layer);
         ImGuiLayer* GetImGuiLayer() { return m_ImGuiLayer;}
+
+        Ref<Shader>& GetScreenShader() { return m_ScreenShader;}
         
         void Close();
         
@@ -70,6 +73,7 @@ namespace UE {
         LayerStack m_LayerStack;
         float m_LastFrameTime = 0.0f;
         std::queue<LayerAction> m_LayerActionQueue;
+        Ref<Shader> m_ScreenShader;
     private:
         static Application* s_Instance;
         friend int ::main(int argc, char** argv);

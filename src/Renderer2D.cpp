@@ -1,11 +1,13 @@
 #include "Renderer/Renderer2D.h"
 #include "Config.h"
 #include "Renderer/VertexArray.h"
+#include "Core/Application.h"
 #include "Renderer/Shader.h"
 #include "Renderer/RenderCommand.h"
 #include "Renderer/UniformBuffer.h"
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+//temp
 #include <glad/glad.h>
 
 namespace UE {
@@ -235,12 +237,12 @@ namespace UE {
 		glViewport(0, 0, buffer->GetSpecification().Width, buffer->GetSpecification().Height);	
 	
 		// Bind blit shader
-		s_Data.ScreenShader->Bind();
+		Application::Get().GetScreenShader()->Bind();
 	
 		// Bind source texture
 		// glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, buffer->GetColorAttachmentRendererID());
-		s_Data.ScreenShader->SetInt("screenTexture", 0);
+		Application::Get().GetScreenShader()->SetInt("screenTexture", 0);
 	
 		// Draw fullscreen quad		
 	

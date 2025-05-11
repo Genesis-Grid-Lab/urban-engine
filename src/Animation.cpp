@@ -4,28 +4,45 @@
 
 namespace UE {
 
-    Animation::Animation(const std::string& animationPath, Ref<Model>* model){
+    Animation::Animation(const std::string& animationPath, Ref<Model> model):m_AssimpAnimation(nullptr), m_Model(model){
         Assimp::Importer importer;
 		const aiScene* scene = importer.ReadFile(animationPath, aiProcess_Triangulate);
         if(scene == nullptr){
             UE_CORE_ERROR("Failed to load {}", animationPath);
-        }
-        else{
-            UE_CORE_INFO("Loading {} animation", animationPath);
-        }
-		assert(scene && scene->mRootNode);
-		auto animation = scene->mAnimations[0];
-        for (int i = 0; i < animation->mNumChannels; i++) {
-            auto channel = animation->mChannels[i];
+        }        
+        		
+		m_AssimpAnimation = scene->mAnimations[0];
+        for (int i = 0; i < m_AssimpAnimation->mNumChannels; i++) {
+            auto channel = m_AssimpAnimation->mChannels[i];
             UE_CORE_INFO("Animation Channel: {}", channel->mNodeName.C_Str());
         }  
               
-		m_Duration = animation->mDuration;
-		m_TicksPerSecond = animation->mTicksPerSecond;
-		aiMatrix4x4 globalTransformation = scene->mRootNode->mTransformation;
-		globalTransformation = globalTransformation.Inverse();
+		m_Duration = m_AssimpAnimation->mDuration;
+		m_TicksPerSecond = m_AssimpAnimation->mTicksPerSecond;
+        UE_CORE_INFO("Loaded animation: {} | Duration: {} | TicksPerSecond: {}", animationPath, m_Duration, m_TicksPerSecond);
+		// aiMatrix4x4 globalTransformation = scene->mRootNode->mTransformation;
+		// globalTransformation = globalTransformation.Inverse();
 		ReadHierarchyData(m_RootNode, scene->mRootNode);
-		ReadMissingBones(animation, *model);
+		// ReadMissingBones(animation, *model);        
+        if (m_Model) {
+            SetModel(m_Model); // safe call
+        } else {
+            UE_CORE_WARN("Animation constructed without model. Call SetModel(model) before playing.");
+        }
+    }
+
+    void Animation::SetModel(Ref<Model> model) {
+        if (!m_AssimpAnimation || m_Bones.size() > 0) {
+            UE_CORE_ERROR("Cannot bind model: No animation loaded.");
+            return;
+        }
+        if (!model) {
+            UE_CORE_ERROR("Cannot bind null model.");
+            return;
+        }
+
+        m_Model = model;        
+        ReadMissingBones(m_AssimpAnimation, m_Model);
     }
 
     Bone* Animation::FindBone(const std::string& name)
@@ -41,7 +58,7 @@ namespace UE {
 	}
 
     void Animation::ReadMissingBones(const aiAnimation* animation, Ref<Model>& model)
-	{
+	{        
 		int size = animation->mNumChannels;
 
 		auto& boneInfoMap = model->GetBoneInfoMap();//getting m_BoneInfoMap from Model class

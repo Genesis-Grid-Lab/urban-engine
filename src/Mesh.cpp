@@ -25,7 +25,8 @@ namespace UE {
             {ShaderDataType::Float3, "a_Tangent"},
             {ShaderDataType::Float3, "a_Bitangent"},
             {ShaderDataType::Int4, "a_BoneIds"},
-            {ShaderDataType::Float4, "a_Weights"}
+            {ShaderDataType::Float4, "a_Weights"},
+            {ShaderDataType::Int, "a_EntityID"}
         });
 
         Ref<IndexBuffer> indexBuffer = CreateRef<IndexBuffer>(m_Indices.data(), m_Indices.size());

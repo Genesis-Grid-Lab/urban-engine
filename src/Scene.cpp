@@ -24,6 +24,8 @@ namespace UE {
         fbSpec.Width = width;
         fbSpec.Height = height;
         m_Framebuffer = CreateRef<Framebuffer>(fbSpec);
+
+		m_Physics3D.Init();
 	}
     Scene::~Scene(){}
 
@@ -102,6 +104,8 @@ namespace UE {
 		RenderCommand::SetClearColor({0.1f, 0.1f, 0.1f, 1});
     	RenderCommand::Clear();
 
+		m_Physics3D.Simulate(ts);
+
 		Renderer3D::BeginCamera(m_Cam3D);
 		//temp
 		Renderer3D::RenderLight({5.5f, 5.0f, 0.3f });
@@ -111,16 +115,28 @@ namespace UE {
 			auto [transform, modelComp] = modelGroup.get<TransformComponent, ModelComponent>(entity);
 			
 			if(modelComp.AnimationData){
+				// modelComp.AnimationData->SetModel(modelComp.ModelData);
 				Renderer3D::RunAnimation(modelComp.AnimationData, ts);
 			}
-			Renderer3D::DrawModel(modelComp.ModelData, transform.GetTransform());			
+			
+			Renderer3D::DrawModel(modelComp.ModelData, transform.GetTransform(), glm::vec3(1),(int)entity);			
+		}
+
+		auto rigidBodyGroup = m_Registry.group<RigidbodyComponent>(entt::get<TransformComponent>);
+		for(auto entity : rigidBodyGroup){
+			auto& [transform, rigidBodyComp] = rigidBodyGroup.get<TransformComponent, RigidbodyComponent>(entity);			
+
+			const physx::PxTransform& pxTransform1 = rigidBodyComp.Body->getGlobalPose();
+			transform.Translation = { pxTransform1.p.x, pxTransform1.p.y, pxTransform1.p.z };
+			transform.Rotation = { pxTransform1.q.x, pxTransform1.q.y, pxTransform1.q.z};
+			// , pxTransform.q.w }
 		}
 
 		auto CubeGroup = m_Registry.group<CubeComponent>(entt::get<TransformComponent>);
 		for (auto entity : CubeGroup) {
 			auto [transform, CubeComp] = CubeGroup.get<TransformComponent, CubeComponent>(entity);
 			
-			Renderer3D::DrawCube(transform.GetTransform(), CubeComp.Color);
+			Renderer3D::DrawCube(transform.GetTransform(), CubeComp.Color, (int)entity);
 		}
 
 		Renderer3D::EndCamera();
@@ -319,6 +335,11 @@ namespace UE {
 
 	template<>
 	void UE_API Scene::OnComponentAdded<CubeComponent>(Entity entity, CubeComponent& component)
+	{
+	}
+
+	template<>
+	void UE_API Scene::OnComponentAdded<RigidbodyComponent>(Entity entity, RigidbodyComponent& component)
 	{
 	}
 }

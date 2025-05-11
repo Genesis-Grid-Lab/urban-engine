@@ -1,5 +1,8 @@
 project(UrbanEngine)
 
+set(PHYSX_DIR ${CMAKE_CURRENT_SOURCE_DIR}/vendor/physx)
+set(PHYSX_LIB ${PHYSX_DIR}/libs)
+
 add_subdirectory(vendor/glfw)
 add_subdirectory(vendor/glad)
 add_subdirectory(vendor/glm)
@@ -39,6 +42,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/vendor/imgui
     ${CMAKE_CURRENT_SOURCE_DIR}/vendor/imgui/backends
     ${CMAKE_CURRENT_SOURCE_DIR}/vendor/stb_image
+    ${PHYSX_DIR}/include
 )
 
 
@@ -51,4 +55,17 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
   imgui
   EnTT     
   assimp
+  ${PHYSX_LIB}/PhysX_64.lib
+  ${PHYSX_LIB}/PhysXCommon_64.lib
+  ${PHYSX_LIB}/PhysXFoundation_64.lib
+  ${PHYSX_LIB}/PhysXExtensions_static_64.lib
+  ${PHYSX_LIB}/PhysXPvdSDK_static_64.lib
+)
+
+file(GLOB PHYSX_DLLS "${PHYSX_DIR}/dlls/*")
+# copy dlls
+add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD COMMAND 
+    ${CMAKE_COMMAND} -E copy 
+    ${PHYSX_DLLS}
+    ${EXECUTABLE_OUTPUT_PATH}
 )

@@ -17,6 +17,8 @@ namespace UE {
 
             UE::Renderer::Init();
 
+            m_ScreenShader = CreateRef<Shader>("Data/Shaders/Screen.glsl");
+
     #if UE_DEBUG
             m_ImGuiLayer = new ImGuiLayer();
             PushOverlay(m_ImGuiLayer);
