@@ -47,33 +47,23 @@ namespace UE {
 		bool SwapChainTarget = false;
 	};
 
-    class UE_API Framebuffer
+    class Framebuffer
 	{
 	public:
-        Framebuffer(const FramebufferSpecification& spec);
-		~Framebuffer();
+		virtual ~Framebuffer() = default;
 
-        void Invalidate();
+		virtual void Bind() = 0;
+		virtual void Unbind() = 0;
 
-		void Bind();
-		void Unbind();
+		virtual void Resize(uint32_t width, uint32_t height) = 0;
+		virtual int ReadPixel(uint32_t attachmentIndex, int x, int y) = 0;
 
-		void Resize(uint32_t width, uint32_t height);
-		int ReadPixel(uint32_t attachmentIndex, int x, int y);
+		virtual void ClearAttachment(uint32_t attachmentIndex, int value) = 0;
 
-		void ClearAttachment(uint32_t attachmentIndex, int value);
+		virtual uint32_t GetColorAttachmentRendererID(uint32_t index = 0) const = 0;
 
-		uint32_t GetColorAttachmentRendererID(uint32_t index = 0) const { UE_CORE_ASSERT(index < m_ColorAttachments.size()); return m_ColorAttachments[index]; }
+		virtual const FramebufferSpecification& GetSpecification() const = 0;
 
-		const FramebufferSpecification& GetSpecification() const { return m_Specification; }
-    private:
-		uint32_t m_RendererID = 0;
-		FramebufferSpecification m_Specification;
-
-		std::vector<FramebufferTextureSpecification> m_ColorAttachmentSpecifications;
-		FramebufferTextureSpecification m_DepthAttachmentSpecification = FramebufferTextureFormat::None;
-
-		std::vector<uint32_t> m_ColorAttachments;
-		uint32_t m_DepthAttachment = 0;
+		static Ref<Framebuffer> Create(const FramebufferSpecification& spec);
 	};
 }

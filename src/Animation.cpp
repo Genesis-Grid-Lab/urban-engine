@@ -1,3 +1,4 @@
+#include "uepch.h"
 #include "Renderer/Animation/Animation.h"
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>

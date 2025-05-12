@@ -1,3 +1,4 @@
+#include "uepch.h"
 #include "Renderer/Mesh.h"
 #include "Renderer/RenderCommand.h"
 #include "Core/Log.h"
@@ -15,9 +16,9 @@ namespace UE {
 
     void Mesh::setupMesh(){
 
-        m_VertexArray = CreateRef<VertexArray>();
+        m_VertexArray = VertexArray::Create();
         
-        Ref<VertexBuffer> vertexBuffer = CreateRef<VertexBuffer>(m_Vertices.data(), m_Vertices.size() * sizeof(Vertex));
+        Ref<VertexBuffer> vertexBuffer = VertexBuffer::Create(m_Vertices.data(), m_Vertices.size() * sizeof(Vertex));
         vertexBuffer->SetLayout({
             {ShaderDataType::Float3, "a_Position"},
             {ShaderDataType::Float3, "a_Normal"},
@@ -29,7 +30,7 @@ namespace UE {
             {ShaderDataType::Int, "a_EntityID"}
         });
 
-        Ref<IndexBuffer> indexBuffer = CreateRef<IndexBuffer>(m_Indices.data(), m_Indices.size());
+        Ref<IndexBuffer> indexBuffer = IndexBuffer::Create(m_Indices.data(), m_Indices.size());
 
         m_VertexArray->AddVertexBuffer(vertexBuffer);
         m_VertexArray->SetIndexBuffer(indexBuffer);  

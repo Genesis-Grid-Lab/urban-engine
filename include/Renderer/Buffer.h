@@ -104,40 +104,35 @@ namespace UE {
 		uint32_t m_Stride = 0;
 	};
 
-    class VertexBuffer
+    class UE_API VertexBuffer
 	{
-	public:
-        VertexBuffer(uint32_t size);
-        VertexBuffer(float* vertices, uint32_t size);
-        VertexBuffer(Vertex* vertices, uint32_t size);
-		~VertexBuffer();
+	public:        
+		virtual ~VertexBuffer() = default;
 
-		void Bind() const;
-		void Unbind() const;
+		virtual void Bind() const = 0;
+		virtual void Unbind() const = 0;
 
-		void SetData(const void* data, uint32_t size);
+		virtual void SetData(const void* data, uint32_t size) = 0;
 
-		const BufferLayout& GetLayout() const { return m_Layout; }
-		void SetLayout(const BufferLayout& layout) { m_Layout = layout; }
-    private:
-		uint32_t m_RendererID;
-		BufferLayout m_Layout;
+		virtual const BufferLayout& GetLayout() const = 0;
+		virtual void SetLayout(const BufferLayout& layout) = 0;
+
+		static Ref<VertexBuffer> Create(uint32_t size);
+		static Ref<VertexBuffer> Create(float* vertices, uint32_t size);
+		static Ref<VertexBuffer> Create(Vertex* vertices, uint32_t size);
 	};
 
 	// Currently only supports 32-bit index buffers
-	class IndexBuffer
+	class UE_API IndexBuffer
 	{
-	public:
-        IndexBuffer(uint32_t* indices, uint32_t count);
-		~IndexBuffer();
+	public:        
+		virtual ~IndexBuffer() = default;
 
-		void Bind() const;
-		void Unbind() const;
+		virtual void Bind() const = 0;
+		virtual void Unbind() const = 0;
 
-		uint32_t GetCount() const { return m_Count; }
+		virtual uint32_t GetCount() const = 0;
         
-    private:
-		uint32_t m_RendererID;
-		uint32_t m_Count;
+		static Ref<IndexBuffer> Create(uint32_t* indices, uint32_t count);
 	};
 }

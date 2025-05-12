@@ -1,5 +1,5 @@
+#include "uepch.h"
 #include "Scene/Scene.h"
-
 #include "Scene/Components.h"
 #include "Renderer/Renderer2D.h"
 #include "Renderer/Renderer3D.h"
@@ -7,6 +7,8 @@
 #include <glm/glm.hpp>
 #include "UE_Assert.h"
 #include "Scene/Entity.h"
+//temp
+#include <glad/glad.h>
 
 
 namespace UE {
@@ -23,7 +25,7 @@ namespace UE {
         fbSpec.Attachments = { FramebufferTextureFormat::RGBA8, FramebufferTextureFormat::RED_INTEGER, FramebufferTextureFormat::Depth };
         fbSpec.Width = width;
         fbSpec.Height = height;
-        m_Framebuffer = CreateRef<Framebuffer>(fbSpec);
+        m_Framebuffer = Framebuffer::Create(fbSpec);
 
 		m_Physics3D.Init();
 	}
@@ -105,7 +107,7 @@ namespace UE {
     	RenderCommand::Clear();
 
 		m_Physics3D.Simulate(ts);
-
+		// glEnable(GL_DEPTH_TEST);
 		Renderer3D::BeginCamera(m_Cam3D);
 		//temp
 		Renderer3D::RenderLight({5.5f, 5.0f, 0.3f });
@@ -140,7 +142,7 @@ namespace UE {
 		}
 
 		Renderer3D::EndCamera();
-        
+        // glDisable(GL_DEPTH_TEST);
 		Renderer2D::BeginCamera(m_Cam);
 		ViewEntity<Entity, UIElement>([this] (auto entity, auto& comp){
 
@@ -173,6 +175,7 @@ namespace UE {
 		// 	auto& transform = entity.template GetComponent<TransformComponent>();
 		// 	Renderer2D::DrawSprite(transform.GetTransform(), comp, (int)entity);
 		// });			
+		Renderer2D::DrawQuad({200, 200}, {20, 20}, {0, 1, 0, 1});
 
 		Renderer2D::EndCamera();
 
@@ -198,10 +201,7 @@ namespace UE {
 		
     }
 
-	void Scene::DrawScreen(Ref<Framebuffer>& buffer){
-		Renderer3D::BeginCamera(m_Cam3D);
-		Renderer3D::DrawScreen(buffer);
-		Renderer3D::EndCamera();
+	void Scene::DrawScreen(Ref<Framebuffer>& buffer){		
 		Renderer2D::BeginCamera(m_Cam);
 		Renderer2D::DrawScreen(buffer);
 		Renderer2D::EndCamera();

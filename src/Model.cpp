@@ -1,3 +1,4 @@
+#include "uepch.h"
 #include "Renderer/Model.h"
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
@@ -197,10 +198,7 @@ namespace UE {
 		}
 	}
 
-    std::vector<TextureMesh> Model::LoadMaterialTextures(aiMaterial* mat, aiTextureType type, std::string typeName){
-        Texture2D whiteTex = Texture2D(1, 1);  
-        uint32_t whiteTextureData = 0xffffffff;  
-        whiteTex.SetData(&whiteTextureData, sizeof(uint32_t)); 
+    std::vector<TextureMesh> Model::LoadMaterialTextures(aiMaterial* mat, aiTextureType type, std::string typeName){        
         std::vector<TextureMesh> textures;
         for(unsigned int i = 0; i < mat->GetTextureCount(type); i++){
             aiString str;

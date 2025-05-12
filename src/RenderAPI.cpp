@@ -1,72 +1,23 @@
+#include "uepch.h"
 #include "Renderer/RendererAPI.h"
 #include "Log.h"
-#include "UE_Assert.h"
-#include <glad/glad.h>
+#include "Core/UE_Assert.h"
+#include "Platform/OpenGl/OpenGLRendererAPI.h"
 
 namespace UE {
 
-    void OpenGLMessageCallback(
-		unsigned source,
-		unsigned type,
-		unsigned id,
-		unsigned severity,
-		int length,
-		const char* message,
-		const void* userParam)
+	RendererAPI::API RendererAPI::s_API = RendererAPI::API::OpenGL;
+
+	Scope<RendererAPI> RendererAPI::Create()
 	{
-		switch (severity)
+		switch (s_API)
 		{
-			case GL_DEBUG_SEVERITY_HIGH:         UE_CORE_CRITICAL(message); return;
-			case GL_DEBUG_SEVERITY_MEDIUM:       UE_CORE_ERROR(message); return;
-			case GL_DEBUG_SEVERITY_LOW:          UE_CORE_WARN(message); return;
-			case GL_DEBUG_SEVERITY_NOTIFICATION: UE_CORE_TRACE(message); return;
+			case RendererAPI::API::None:    UE_CORE_ASSERT(false, "RendererAPI::None is currently not supported!"); return nullptr;
+			case RendererAPI::API::OpenGL:  return CreateScope<OpenGLRendererAPI>();
 		}
-		
-		UE_CORE_ASSERT(false, "Unknown severity level!");
+
+		UE_CORE_ASSERT(false, "Unknown RendererAPI!");
+		return nullptr;
 	}
 
-    void RendererAPI::Init()
-	{	
-
-	#ifdef UE_DEBUG
-		glEnable(GL_DEBUG_OUTPUT);
-		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-		glDebugMessageCallback(OpenGLMessageCallback, nullptr);
-		
-		glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_NOTIFICATION, 0, NULL, GL_FALSE);
-	#endif
-
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-		glEnable(GL_DEPTH_TEST);
-		glDisable(GL_CULL_FACE);
-		// glFrontFace(GL_CCW);
-		// glEnable(GL_CULL_FACE);
-		// glCullFace(GL_BACK);
-	}
-
-	void RendererAPI::SetViewport(uint32_t x, uint32_t y, uint32_t width, uint32_t height)
-	{
-		glViewport(x, y, width, height);
-	}
-
-	void RendererAPI::SetClearColor(const glm::vec4& color)
-	{
-		glClearColor(color.r, color.g, color.b, color.a);
-	}
-
-	void RendererAPI::Clear()
-	{
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	}
-
-	void RendererAPI::DrawIndexed(const Ref<VertexArray>& vertexArray, uint32_t indexCount)
-	{
-		// glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-		uint32_t count = indexCount ? indexCount : vertexArray->GetIndexBuffer()->GetCount();
-		glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, nullptr);
-		glBindTexture(GL_TEXTURE_2D, 0);
-	}
-	
 }

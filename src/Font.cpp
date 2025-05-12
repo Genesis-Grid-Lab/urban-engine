@@ -1,6 +1,5 @@
 #include "Renderer/Font.h"
-#include <glad/glad.h>
-
+#include "uepch.h"
 
 namespace UE {
 
@@ -24,7 +23,7 @@ namespace UE {
             rgbaData[i] = (alpha << 24) | (0xFFFFFF); // white with alpha
         }
         
-        m_Texture = CreateRef<Texture2D>(512, 512);
+        m_Texture = Texture2D::Create(512, 512);
         m_Texture->SetData(rgbaData.data(), rgbaData.size() * sizeof(uint32_t));
     }
 }

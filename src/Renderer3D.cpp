@@ -1,3 +1,4 @@
+#include "uepch.h"
 #include "Renderer/Renderer3D.h"
 #include "Renderer/Skybox.h"
 #include "Renderer/RenderCommand.h"
@@ -74,20 +75,20 @@ namespace UE {
     }
     void Renderer3D::Init(){
         // s_ScreenShader = CreateRef<Shader>("Data/Shaders/Screen.glsl");
-        m_Shader = CreateRef<Shader>("Data/Shaders/model.glsl");
-        m_LightShader = CreateRef<Shader>("Data/Shaders/BasicLight.glsl");
-        m_SkyShader = CreateRef<Shader>("Data/Shaders/skybox.glsl");
+        m_Shader = Shader::Create("Data/Shaders/model.glsl");
+        m_LightShader = Shader::Create("Data/Shaders/BasicLight.glsl");
+        m_SkyShader = Shader::Create("Data/Shaders/skybox.glsl");
         m_LightModel = CreateRef<Model>("Resources/cube.fbx");    
         std::vector<std::string> faces = {
             "Resources/skybox/right.jpg", "Resources/skybox/left.jpg", "Resources/skybox/top.jpg",
             "Resources/skybox/bottom.jpg", "Resources/skybox/front.jpg", "Resources/skybox/back.jpg"
         };
         
-        m_Skybox = CreateRef<Skybox>(faces);
+        m_Skybox = Skybox::Create(faces);
 
         s_CubeMesh = GenerateCubeMesh();
 
-        ScreenVertexArray = CreateRef<VertexArray>();
+        ScreenVertexArray = VertexArray::Create();
 
         float quadVertices[] = {
 			// positions   // texCoords
@@ -99,13 +100,13 @@ namespace UE {
 
         uint32_t indices[] = { 0, 1, 2, 2, 3, 0 };
 
-        ScreenVertexBuffer = CreateRef<VertexBuffer>(quadVertices, sizeof(quadVertices));
+        ScreenVertexBuffer = VertexBuffer::Create(quadVertices, sizeof(quadVertices));
 		ScreenVertexBuffer->SetLayout({
 			{ ShaderDataType::Float2, "a_Position" },
 			{ ShaderDataType::Float2, "a_TexCoord" }
 		});
 		
-		const auto& ib = CreateRef<IndexBuffer>(indices, 6);
+		const auto& ib = IndexBuffer::Create(indices, 6);
 		
 		ScreenVertexArray->AddVertexBuffer(ScreenVertexBuffer);
 		ScreenVertexArray->SetIndexBuffer(ib);

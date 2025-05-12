@@ -1,3 +1,4 @@
+#include "uepch.h"
 #include "Application.h"
 #include <Renderer/Renderer.h>
 #include <GLFW/glfw3.h>
@@ -17,7 +18,7 @@ namespace UE {
 
             UE::Renderer::Init();
 
-            m_ScreenShader = CreateRef<Shader>("Data/Shaders/Screen.glsl");
+            m_ScreenShader = Shader::Create("Data/Shaders/Screen.glsl");
 
     #if UE_DEBUG
             m_ImGuiLayer = new ImGuiLayer();

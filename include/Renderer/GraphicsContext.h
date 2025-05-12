@@ -1,16 +1,17 @@
 #pragma once
 
 #include "Config.h"
-#include <glad/glad.h>
 
 namespace UE {
 
     class UE_API GraphicsContext{
     public:
-        GraphicsContext();
+        virtual ~GraphicsContext() = default;
 
-        void Init(GLADloadproc proc);        
+		virtual void Init() = 0;
+		virtual void SwapBuffers() = 0;
 
-    private:
+		static Scope<GraphicsContext> Create(void* window);     
+    
     };
 }

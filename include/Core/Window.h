@@ -2,12 +2,11 @@
 
 #include "Core/Config.h"
 #include "Events/Event.h"
+#include "Renderer/GraphicsContext.h"
 
 struct GLFWwindow;
 
-namespace UE {
-
-    class GraphicsContext;
+namespace UE {    
 
     struct WindowProps{
 
@@ -15,7 +14,7 @@ namespace UE {
         uint32_t m_Width;
         uint32_t m_Height;
     
-        WindowProps(const std::string& title = "Game", 
+        WindowProps(const std::string& title = "Urban engine", 
                               uint32_t width = 1600,
                             uint32_t height = 900)
             : m_Title(title), m_Width(width), m_Height(height){

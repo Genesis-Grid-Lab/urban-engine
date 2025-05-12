@@ -1,34 +1,12 @@
 #pragma once
 #pragma warning(disable : 4996)
-#include <iostream>
-#include <memory>
-#include <utility>
-#include <algorithm>
-#include <functional>
-#include <array>
-#include <fstream>
-#include <cstdint>
-#include <queue>
-#include <map>
-#include <list>
 
-#include <string>
-#include <sstream>
-#include <vector>
-#include <unordered_map>
-#include <unordered_set>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
 #include "PlatformDetection.h"
 
-#ifdef UE_PLATFORM_WINDOWS
-    #ifndef NOMINMAX
-    # define NOMINMAX
-    #endif
-    #include <Windows.h>
-#endif
 
 #ifdef UE_DEBUG
 	#if defined(UE_PLATFORM_WINDOWS)

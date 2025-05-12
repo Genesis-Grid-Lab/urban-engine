@@ -1,3 +1,4 @@
+#include "uepch.h"
 #include "Renderer/Animation/Animator.h"
 #include <assimp/Importer.hpp>
 #include "Renderer/Animation/Bone.h"

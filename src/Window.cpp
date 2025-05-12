@@ -1,21 +1,19 @@
-#include <Renderer/GraphicsContext.h>
+#include "uepch.h"
 #include "Window.h"
-
-#include <stdio.h>
+#include "Renderer/Renderer.h"
 #include "Core/Input.h"
-
+#include "Core/UE_Assert.h"
 #include "Events/ApplicationEvent.h"
 #include "Events/MouseEvent.h"
 #include "Events/KeyEvent.h"
-#include "UrbanEngine.h"
-#include <GLFW/glfw3.h>
+#include <glfw/glfw3.h>
 
 namespace UE {
 
     static uint8_t s_GLFWwindowCount = 0;
 
     static void GLFWErrorCallback(int error, const char* desc){
-        UE_ERROR("GLFW Error ({0}): {1}", error, desc);
+        UE_CORE_ERROR("GLFW Error ({0}): {1}", error, desc);
     }
 
     Window::Window(const WindowProps& props){
@@ -32,7 +30,7 @@ namespace UE {
         m_Data.Width = props.m_Width;
         m_Data.Height = props.m_Height;
 
-        UE_INFO("Creating window {0} ({1}, {2})", props.m_Title, props.m_Width, props.m_Height);
+        UE_CORE_INFO("Creating window {0} ({1}, {2})", props.m_Title, props.m_Width, props.m_Height);
 
         if( s_GLFWwindowCount == 0){
             int success = glfwInit();
@@ -42,17 +40,16 @@ namespace UE {
 
         glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
-        #if defined(G_DEBUG)
+        #if defined(UE_DEBUG)
             if (Renderer::GetAPI() == RendererAPI::API::OpenGL)
                 glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
         #endif
 
         m_Window = glfwCreateWindow((int)props.m_Width, (int)props.m_Height, m_Data.Title.c_str(), nullptr, nullptr);
         ++s_GLFWwindowCount;
-
-        glfwMakeContextCurrent(m_Window);
-        m_Context = CreateScope<UE::GraphicsContext>();
-        m_Context->Init((GLADloadproc)glfwGetProcAddress);
+        
+        m_Context = GraphicsContext::Create(m_Window);
+        m_Context->Init();
 
         glfwSetWindowUserPointer(m_Window, &m_Data);
         SetVSync(true);
@@ -159,7 +156,7 @@ namespace UE {
 
     void Window::OnUpdate(){
         glfwPollEvents();
-        glfwSwapBuffers(m_Window);
+        m_Context->SwapBuffers();
     }
 
     void Window::SetVSync(bool enabled){

@@ -1,24 +1,21 @@
+#include "uepch.h"
 #include "Renderer/UniformBuffer.h"
-#include <glad/glad.h>
+#include "Core/UE_Assert.h"
+#include "Renderer/Renderer.h"
+#include "Platform/OpenGL/OpenGLUniformBuffer.h"
 
 namespace UE {
 
-	UniformBuffer::UniformBuffer(uint32_t size, uint32_t binding)
+	Ref<UniformBuffer> UniformBuffer::Create(uint32_t size, uint32_t binding)
 	{
-		glCreateBuffers(1, &m_RendererID);
-		glNamedBufferData(m_RendererID, size, nullptr, GL_DYNAMIC_DRAW); // TODO: investigate usage hint
-		glBindBufferBase(GL_UNIFORM_BUFFER, binding, m_RendererID);
-	}
+		switch (Renderer::GetAPI())
+		{
+			case RendererAPI::API::None:    UE_CORE_ASSERT(false, "RendererAPI::None is currently not supported!"); return nullptr;
+			case RendererAPI::API::OpenGL:  return CreateRef<OpenGLUniformBuffer>(size, binding);
+		}
 
-	UniformBuffer::~UniformBuffer()
-	{
-		glDeleteBuffers(1, &m_RendererID);
-	}
-
-
-	void UniformBuffer::SetData(const void* data, uint32_t size, uint32_t offset)
-	{
-		glNamedBufferSubData(m_RendererID, offset, size, data);
+		UE_CORE_ASSERT(false, "Unknown RendererAPI!");
+		return nullptr;
 	}
 
 }

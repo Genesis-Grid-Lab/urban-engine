@@ -1,5 +1,5 @@
+#include "uepch.h"
 #include "Renderer/Renderer2D.h"
-#include "Config.h"
 #include "Renderer/VertexArray.h"
 #include "Core/Application.h"
 #include "Renderer/Shader.h"
@@ -70,9 +70,9 @@ namespace UE {
 
     void Renderer2D::Init()
 	{			
-		s_Data.QuadVertexArray = CreateRef<VertexArray>();
+		s_Data.QuadVertexArray = VertexArray::Create();
 
-		s_Data.QuadVertexBuffer = CreateRef<VertexBuffer>(s_Data.MaxVertices * sizeof(QuadVertex));
+		s_Data.QuadVertexBuffer = VertexBuffer::Create(s_Data.MaxVertices * sizeof(QuadVertex));
 		s_Data.QuadVertexBuffer->SetLayout({
 			{ ShaderDataType::Float3, "a_Position"     },
 			{ ShaderDataType::Float4, "a_Color"        },
@@ -101,11 +101,11 @@ namespace UE {
 			offset += 4;
 		}
 
-		Ref<IndexBuffer> quadIB = CreateRef<IndexBuffer>(quadIndices, s_Data.MaxIndices);
+		Ref<IndexBuffer> quadIB = IndexBuffer::Create(quadIndices, s_Data.MaxIndices);
 		s_Data.QuadVertexArray->SetIndexBuffer(quadIB);
 		delete[] quadIndices;
 
-		s_Data.WhiteTexture = CreateRef<Texture2D>(1, 1);
+		s_Data.WhiteTexture = Texture2D::Create(1, 1);
 		uint32_t whiteTextureData = 0xffffffff;
 		s_Data.WhiteTexture->SetData(&whiteTextureData, sizeof(uint32_t));
 
@@ -113,7 +113,7 @@ namespace UE {
 		for (uint32_t i = 0; i < s_Data.MaxTextureSlots; i++)
 			samplers[i] = i;
 
-		s_Data.TextureShader = CreateRef<Shader>("Data/Shaders/Texture.glsl");
+		s_Data.TextureShader = Shader::Create("Data/Shaders/Texture.glsl");
 		// Set first texture slot to 0
 		s_Data.TextureSlots[0] = s_Data.WhiteTexture;
 		
@@ -121,10 +121,10 @@ namespace UE {
 		s_Data.QuadVertexPositions[1] = {  0.5f, -0.5f, 0.0f, 1.0f };
 		s_Data.QuadVertexPositions[2] = {  0.5f,  0.5f, 0.0f, 1.0f };
 		s_Data.QuadVertexPositions[3] = { -0.5f,  0.5f, 0.0f, 1.0f };
-		s_Data.CameraUniformBuffer = CreateRef<UniformBuffer>(sizeof(Renderer2DData::CameraData), 0);		
-		s_Data.ScreenShader = CreateRef<Shader>("Data/Shaders/Screen.glsl");		
+		s_Data.CameraUniformBuffer = UniformBuffer::Create(sizeof(Renderer2DData::CameraData), 0);		
+		s_Data.ScreenShader = Application::Get().GetScreenShader();		
 		
-		ScreenVertexArray = CreateRef<VertexArray>();
+		ScreenVertexArray = VertexArray::Create();
 		
 		float quadVertices[] = {
 			// positions   // texCoords
@@ -136,13 +136,13 @@ namespace UE {
 		
 		uint32_t indices[] = { 0, 1, 2, 2, 3, 0 };			
 		
-		ScreenVertexBuffer = CreateRef<VertexBuffer>(quadVertices, sizeof(quadVertices));
+		ScreenVertexBuffer = VertexBuffer::Create(quadVertices, sizeof(quadVertices));
 		ScreenVertexBuffer->SetLayout({
 			{ ShaderDataType::Float2, "a_Position" },
 			{ ShaderDataType::Float2, "a_TexCoord" }
 		});
 		
-		const auto& ib = CreateRef<IndexBuffer>(indices, 6);
+		const auto& ib = IndexBuffer::Create(indices, 6);
 		
 		ScreenVertexArray->AddVertexBuffer(ScreenVertexBuffer);
 		ScreenVertexArray->SetIndexBuffer(ib);
@@ -240,7 +240,7 @@ namespace UE {
 		Application::Get().GetScreenShader()->Bind();
 	
 		// Bind source texture
-		// glActiveTexture(GL_TEXTURE0);
+		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, buffer->GetColorAttachmentRendererID());
 		Application::Get().GetScreenShader()->SetInt("screenTexture", 0);
 	
