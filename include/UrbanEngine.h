@@ -5,6 +5,7 @@
 #include "Core/UE_Assert.h"
 #include "Core/Window.h"
 #include "Core/LayerStack.h"
+#include "Core/Input.h"
 #include "Core/Layer.h"
 #include "Events/Event.h"
 #include "Events/ApplicationEvent.h"
@@ -14,6 +15,7 @@
 #include "Renderer/Renderer3D.h"
 #include "Renderer/RenderCommand.h"
 #include "Renderer/Camera.h"
+#include "Renderer/EditorCamera.h"
 #include "Renderer/Texture.h"
 #include "Renderer/Animation/Animation.h"
 #include "Renderer/Animation/Animator.h"
@@ -22,3 +24,8 @@
 #include "Scene/Scene.h"
 #include "Scene/Components.h"
 #include "Scene/Entity.h"
+#include "Math/UEMath.h"
+//TO DO: remove
+#include <imgui.h>
+#include <imgui_internal.h>
+#include "ImGuizmo.h"

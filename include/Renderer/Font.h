@@ -6,7 +6,7 @@
 
 namespace UE {
 
-    class UE_API Font{
+    class  Font{
     public:
         Font(const std::string& path, float pixelHeight = 48.0f);
         ~Font() = default;

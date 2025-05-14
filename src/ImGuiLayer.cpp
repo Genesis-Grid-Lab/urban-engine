@@ -7,6 +7,7 @@
 #include "Application.h"
 
 #include <GLFW/glfw3.h>
+#include "ImGuizmo.h"
 
 
 namespace UE {
@@ -78,7 +79,7 @@ namespace UE {
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();  
-        
+        ImGuizmo::BeginFrame();
     }
 
     ImGuiContext* ImGuiLayer::GetContext(){

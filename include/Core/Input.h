@@ -6,7 +6,7 @@
 
 namespace UE {
 
-    class UE_API Input{
+    class  Input{
     public:
         static bool IsKeyPressed(KeyCode key);
     

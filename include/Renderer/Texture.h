@@ -6,7 +6,7 @@ typedef unsigned int GLenum;
 
 namespace UE {
 
-	class UE_API Texture
+	class  Texture
 	{
 	public:
 		virtual ~Texture() = default;
@@ -24,7 +24,7 @@ namespace UE {
 		virtual bool operator==(const Texture& other) const = 0;
 	};
 
-	class UE_API Texture2D : public Texture
+	class  Texture2D : public Texture
 	{
 	public:
 		static Ref<Texture2D> Create(uint32_t width, uint32_t height);

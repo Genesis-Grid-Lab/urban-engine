@@ -15,7 +15,7 @@ namespace UE {
         std::vector<AssimpNodeData> Children;
     };
 
-    class UE_API Animation{
+    class  Animation{
     public:
         Animation() = default;
         Animation(const std::string& animationPath, Ref<Model> model = nullptr);

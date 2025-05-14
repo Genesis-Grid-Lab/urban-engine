@@ -6,7 +6,7 @@
 
 namespace UE {
 
-    class UE_API LayerStack{
+    class  LayerStack{
     public:
         LayerStack() = default;
         ~LayerStack();

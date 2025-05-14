@@ -6,7 +6,7 @@ typedef unsigned int GLenum;
 
 namespace UE {
 
-    class UE_API OpenGLTexture2D : public Texture2D
+    class  OpenGLTexture2D : public Texture2D
 	{
 	public:
 		OpenGLTexture2D(unsigned int id);

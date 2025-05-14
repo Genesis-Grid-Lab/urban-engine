@@ -161,6 +161,16 @@ namespace UE {
 		StartBatch();
 	}
 
+	void Renderer2D::BeginCamera(const EditorCamera& camera)
+	{
+		// FS_PROFILE_FUNCTION();
+
+		s_Data.CameraBuffer.ViewProjection = camera.GetViewProjection();
+		s_Data.CameraUniformBuffer->SetData(&s_Data.CameraBuffer, sizeof(Renderer2DData::CameraData));
+
+		StartBatch();
+	}
+
     void Renderer2D::EndCamera()
 	{		
 		Flush();

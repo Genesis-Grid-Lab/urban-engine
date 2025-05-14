@@ -6,7 +6,7 @@
 
 namespace UE {
 
-    class UE_API Animator{
+    class  Animator{
     public:
         Animator();
         Animator(Ref<Animation> animation);

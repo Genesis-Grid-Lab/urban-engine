@@ -8,7 +8,7 @@
 
 namespace UE {
 
-    class UE_API Model {
+    class  Model {
     public:
         Model(const std::string& path, bool gamma = false);
         void Draw(const Ref<Shader>& shader);

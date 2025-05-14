@@ -16,8 +16,6 @@ namespace UE {
 	Entity GlobHovered;
 
     Scene::Scene(uint32_t width, uint32_t height){
-		m_Cam = Camera2D(0.0f, width, height, 0.0f);
-		m_Cam3D = Camera3D({width, height}, {0,0, 5});
 		m_ViewportWidth = width;
 		m_ViewportHeight = height;
 
@@ -99,7 +97,109 @@ namespace UE {
 		m_Registry.destroy(entity);
 	}
 
-    void Scene::OnUpdateRuntime(Timestep ts){
+    void Scene::OnUpdateRuntime(Timestep ts, int& mouseX, int& mouseY, glm::vec2& viewportSize){
+		// m_Framebuffer->Bind();
+		// // Clear our entity ID attachment to -1
+		// m_Framebuffer->ClearAttachment(1, -1);
+		// RenderCommand::SetClearColor({0.1f, 0.1f, 0.1f, 1});
+    	// RenderCommand::Clear();
+
+		// m_Physics3D.Simulate(ts);
+		// // glEnable(GL_DEPTH_TEST);
+		// Renderer3D::BeginCamera(m_Cam3D);
+		// //temp
+		// Renderer3D::RenderLight({5.5f, 5.0f, 0.3f });
+
+		// auto modelGroup = m_Registry.group<ModelComponent>(entt::get<TransformComponent>);
+		// for (auto entity : modelGroup) {
+		// 	auto [transform, modelComp] = modelGroup.get<TransformComponent, ModelComponent>(entity);
+			
+		// 	if(modelComp.AnimationData){
+		// 		// modelComp.AnimationData->SetModel(modelComp.ModelData);
+		// 		Renderer3D::RunAnimation(modelComp.AnimationData, ts);
+		// 	}
+			
+		// 	Renderer3D::DrawModel(modelComp.ModelData, transform.GetTransform(), glm::vec3(1),(int)entity);			
+		// }
+
+		// auto rigidBodyGroup = m_Registry.group<RigidbodyComponent>(entt::get<TransformComponent>);
+		// for(auto entity : rigidBodyGroup){
+		// 	auto& [transform, rigidBodyComp] = rigidBodyGroup.get<TransformComponent, RigidbodyComponent>(entity);			
+
+		// 	const physx::PxTransform& pxTransform1 = rigidBodyComp.Body->getGlobalPose();
+		// 	transform.Translation = { pxTransform1.p.x, pxTransform1.p.y, pxTransform1.p.z };
+		// 	transform.Rotation = { pxTransform1.q.x, pxTransform1.q.y, pxTransform1.q.z};
+		// 	// , pxTransform.q.w }
+		// }
+
+		// auto CubeGroup = m_Registry.group<CubeComponent>(entt::get<TransformComponent>);
+		// for (auto entity : CubeGroup) {
+		// 	auto [transform, CubeComp] = CubeGroup.get<TransformComponent, CubeComponent>(entity);
+			
+		// 	Renderer3D::DrawCube(transform.GetTransform(), CubeComp.Color, (int)entity);
+		// }
+
+		// Renderer3D::EndCamera();
+        // // glDisable(GL_DEPTH_TEST);
+		// Renderer2D::BeginCamera(m_Cam);
+		// ViewEntity<Entity, UIElement>([this] (auto entity, auto& comp){
+
+		// 	auto& transform = entity.template GetComponent<TransformComponent>();			
+		// 	Renderer2D::DrawUI(transform.GetTransform(), comp);
+		// });
+
+		// auto group1 = m_Registry.group<ButtonComponent>(entt::get<TransformComponent>);
+		// for(auto entity : group1){
+
+		// 	auto [transform, ui] = group1.get<TransformComponent, ButtonComponent>(entity);
+		// 	Renderer2D::DrawUI(transform.GetTransform(), ui, (int)entity);
+		// }
+
+		// ViewEntity<Entity, TextUIComponent>([this] (auto entity, auto& comp){
+
+		// 	auto& transform = entity.template GetComponent<TransformComponent>();	
+		// 	Renderer2D::DrawUI(transform.Translation, comp);		
+		// });		
+
+		// auto Spritegroup = m_Registry.group<SpriteRendererComponent>(entt::get<TransformComponent>);
+		// for (auto entity : Spritegroup)
+		// {
+		// 	auto [transform, sprite] = Spritegroup.get<TransformComponent, SpriteRendererComponent>(entity);
+		// 	Renderer2D::DrawSprite(transform.GetTransform(), sprite, (int)entity);
+		// }		
+
+		// // ViewEntity<Entity, SpriteRendererComponent>([this] (auto entity, auto& comp){
+
+		// // 	auto& transform = entity.template GetComponent<TransformComponent>();
+		// // 	Renderer2D::DrawSprite(transform.GetTransform(), comp, (int)entity);
+		// // });					
+
+		// Renderer2D::EndCamera();		
+
+		// auto my = m_MouseY;
+		// auto mx = m_MouseX;
+
+		// my = m_ViewportHeight - my;			
+
+		// if(mouseX >= 0 && mouseY >= 0 && mouseX < (int)viewportSize.x && mouseY < (int)viewportSize.y){            
+		// 	int pixelData = m_Framebuffer->ReadPixel(1, mouseX, mouseY);
+		// 	// UE_INFO("mx: {0}, my: {1}" ,Input::GetMouseX(), Input::GetMouseY() );
+		// 	if(pixelData < -1 || pixelData >= 1036831949)
+		// 		pixelData = -1;
+		// 	// UE_INFO("Pixel {0}",pixelData);
+		// 	GlobHovered = pixelData == -1 ? Entity() : Entity((entt::entity)pixelData, this);            
+		// }
+
+		// m_Framebuffer->Unbind();
+
+		// RenderCommand::SetClearColor({0.1f, 0.1f, 0.1f, 1});
+        // RenderCommand::Clear();
+        // DrawScreen(m_Framebuffer);
+		
+    }
+
+	void Scene::OnUpdateEditor(Timestep ts, EditorCamera& camera, int& mouseX, int& mouseY, glm::vec2& viewportSize)
+	{
 		m_Framebuffer->Bind();
 		// Clear our entity ID attachment to -1
 		m_Framebuffer->ClearAttachment(1, -1);
@@ -108,7 +208,7 @@ namespace UE {
 
 		m_Physics3D.Simulate(ts);
 		// glEnable(GL_DEPTH_TEST);
-		Renderer3D::BeginCamera(m_Cam3D);
+		Renderer3D::BeginCamera(camera);
 		//temp
 		Renderer3D::RenderLight({5.5f, 5.0f, 0.3f });
 
@@ -143,7 +243,7 @@ namespace UE {
 
 		Renderer3D::EndCamera();
         // glDisable(GL_DEPTH_TEST);
-		Renderer2D::BeginCamera(m_Cam);
+		Renderer2D::BeginCamera(camera);
 		ViewEntity<Entity, UIElement>([this] (auto entity, auto& comp){
 
 			auto& transform = entity.template GetComponent<TransformComponent>();			
@@ -174,22 +274,21 @@ namespace UE {
 
 		// 	auto& transform = entity.template GetComponent<TransformComponent>();
 		// 	Renderer2D::DrawSprite(transform.GetTransform(), comp, (int)entity);
-		// });			
-		Renderer2D::DrawQuad({200, 200}, {20, 20}, {0, 1, 0, 1});
+		// });					
 
-		Renderer2D::EndCamera();
-
-		m_Cam3D.ProcessInputAndMouse(ts);
+		Renderer2D::EndCamera();		
 
 		auto my = m_MouseY;
 		auto mx = m_MouseX;
 
-		my = m_ViewportHeight - my;	
+		my = m_ViewportHeight - my;			
 
-		if(m_MouseX >= 0 && m_MouseY >= 0 && m_MouseX < m_ViewportWidth && m_MouseY < m_ViewportHeight){            
-			int pixelData = m_Framebuffer->ReadPixel(1, mx, my);
-			// UE_INFO("Pixel {0}",pixelData);
+		if(mouseX >= 0 && mouseY >= 0 && mouseX < (int)viewportSize.x && mouseY < (int)viewportSize.y){            
+			int pixelData = m_Framebuffer->ReadPixel(1, mouseX, mouseY);
 			// UE_INFO("mx: {0}, my: {1}" ,Input::GetMouseX(), Input::GetMouseY() );
+			if(pixelData < -1 || pixelData >= 1036831949)
+				pixelData = -1;
+			// UE_INFO("Pixel {0}",pixelData);
 			GlobHovered = pixelData == -1 ? Entity() : Entity((entt::entity)pixelData, this);            
 		}
 
@@ -197,12 +296,11 @@ namespace UE {
 
 		RenderCommand::SetClearColor({0.1f, 0.1f, 0.1f, 1});
         RenderCommand::Clear();
-        DrawScreen(m_Framebuffer);
-		
-    }
+        DrawScreen(m_Framebuffer, camera);
+	}
 
-	void Scene::DrawScreen(Ref<Framebuffer>& buffer){		
-		Renderer2D::BeginCamera(m_Cam);
+	void Scene::DrawScreen(Ref<Framebuffer>& buffer, EditorCamera& camera){		
+		Renderer2D::BeginCamera(camera);
 		Renderer2D::DrawScreen(buffer);
 		Renderer2D::EndCamera();
 	}
@@ -212,13 +310,11 @@ namespace UE {
 		m_ViewportWidth = width;
 		m_ViewportHeight = height;
 
-		// m_Cam.SetProjection(0.0f, width, height, 0.0f);
-
 		m_Framebuffer->Resize(width, height);
 
 	}
 
-	void Scene::OnMouseInput(float mouseX, float mouseY, bool mousePressed, Timestep ts){
+	void Scene::OnMouseInput(float mouseX, float mouseY, bool mousePressed, Timestep ts){		
 		auto group1 = m_Registry.group<ButtonComponent>(entt::get<TransformComponent>);
 		for(auto entity : group1){
 
@@ -287,59 +383,59 @@ namespace UE {
 	}	
 
 	template<typename T>
-	void UE_API Scene::OnComponentAdded(Entity entity, T& component)
+	void  Scene::OnComponentAdded(Entity entity, T& component)
 	{
 		// static_assert(false);
 	}
 
 	template<>
-	void UE_API Scene::OnComponentAdded<IDComponent>(Entity entity, IDComponent& component)
+	void  Scene::OnComponentAdded<IDComponent>(Entity entity, IDComponent& component)
 	{
 	}
 
 	template<>
-	void UE_API Scene::OnComponentAdded<TransformComponent>(Entity entity, TransformComponent& component)
+	void  Scene::OnComponentAdded<TransformComponent>(Entity entity, TransformComponent& component)
 	{
 	}
 
 	template<>
-	void UE_API Scene::OnComponentAdded<SpriteRendererComponent>(Entity entity, SpriteRendererComponent& component)
+	void  Scene::OnComponentAdded<SpriteRendererComponent>(Entity entity, SpriteRendererComponent& component)
 	{
 	}
 
 	template<>
-	void UE_API Scene::OnComponentAdded<UIElement>(Entity entity, UIElement& component)
+	void  Scene::OnComponentAdded<UIElement>(Entity entity, UIElement& component)
 	{
 	}
 
 	template<>
-	void UE_API Scene::OnComponentAdded<ButtonComponent>(Entity entity, ButtonComponent& component)
+	void  Scene::OnComponentAdded<ButtonComponent>(Entity entity, ButtonComponent& component)
 	{
 
 	}
 
 	template<>
-	void UE_API Scene::OnComponentAdded<TextUIComponent>(Entity entity, TextUIComponent& component)
+	void  Scene::OnComponentAdded<TextUIComponent>(Entity entity, TextUIComponent& component)
 	{
 	}
 
 	template<>
-	void UE_API Scene::OnComponentAdded<TagComponent>(Entity entity, TagComponent& component)
+	void  Scene::OnComponentAdded<TagComponent>(Entity entity, TagComponent& component)
 	{
 	}
 
 	template<>
-	void UE_API Scene::OnComponentAdded<ModelComponent>(Entity entity, ModelComponent& component)
+	void  Scene::OnComponentAdded<ModelComponent>(Entity entity, ModelComponent& component)
 	{
 	}
 
 	template<>
-	void UE_API Scene::OnComponentAdded<CubeComponent>(Entity entity, CubeComponent& component)
+	void  Scene::OnComponentAdded<CubeComponent>(Entity entity, CubeComponent& component)
 	{
 	}
 
 	template<>
-	void UE_API Scene::OnComponentAdded<RigidbodyComponent>(Entity entity, RigidbodyComponent& component)
+	void  Scene::OnComponentAdded<RigidbodyComponent>(Entity entity, RigidbodyComponent& component)
 	{
 	}
 }

@@ -4,6 +4,7 @@
 #include "Timestep.h"
 #include "UUID.h"
 #include "Renderer/Camera.h"
+#include "Renderer/EditorCamera.h"
 #include "Renderer/Texture.h"
 #include "UE_Assert.h"
 #include <entt.hpp>
@@ -15,7 +16,7 @@ namespace UE {
 
     class Entity;
 
-    class UE_API Scene{
+    class  Scene{
     public:
         Scene(uint32_t width, uint32_t height);
         ~Scene();
@@ -36,8 +37,9 @@ namespace UE {
             });
         }
 
-        void OnUpdateRuntime(Timestep ts);  
-        void DrawScreen(Ref<Framebuffer>& buffer);          
+        void OnUpdateRuntime(Timestep ts, int& mouseX, int& mouseY, glm::vec2& viewportSize);  
+        void OnUpdateEditor(Timestep ts, EditorCamera& camera, int& mouseX, int& mouseY, glm::vec2& viewportSize);
+        void DrawScreen(Ref<Framebuffer>& buffer, EditorCamera& camera);          
         void OnViewportResize(uint32_t width, uint32_t height);   
         void OnMouseInput(float mouseX, float mouseY, bool mousePressed, Timestep ts);     
 
@@ -45,20 +47,18 @@ namespace UE {
 
         Entity GetHoveredEntity();
 
-        Camera& GetCam() { return m_Cam;}
+        entt::registry& GetRegistry() { return m_Registry;}
         // Ref<Framebuffre>& GetBuffer() { return m_Framebuffer;}
         //temp
         Ref<Framebuffer> m_Framebuffer;
         PhysicsSystem m_Physics3D;
     private:
         template<typename T>
-        void UE_API OnComponentAdded(Entity entity, T& component);
+        void  OnComponentAdded(Entity entity, T& component);
     private:
         entt::registry m_Registry;
         Ref<Texture2D> m_Screen;
         uint32_t m_ViewportWidth = 0, m_ViewportHeight = 0;
-        Camera2D m_Cam;
-        Camera3D m_Cam3D;
         float m_MouseX, m_MouseY;
         friend class Entity;                
         // friend class SceneSerializer;    

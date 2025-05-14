@@ -218,8 +218,23 @@ namespace UE {
 		UE_CORE_ASSERT(attachmentIndex < m_ColorAttachments.size());
 
 		auto& spec = m_ColorAttachmentSpecifications[attachmentIndex];
-		glClearTexImage(m_ColorAttachments[attachmentIndex], 0,
-			Utils::FunShotFBTextureFormatToGL(spec.TextureFormat), GL_INT, &value);
+		GLenum format = Utils::FunShotFBTextureFormatToGL(spec.TextureFormat);
+
+		if (spec.TextureFormat == FramebufferTextureFormat::RED_INTEGER)
+		{
+			// Integer format
+			glClearTexImage(m_ColorAttachments[attachmentIndex], 0, format, GL_INT, &value);
+		}
+		else
+		{
+			// RGBA8 or other normalized formats need float[4] (e.g., black = {0.0f, 0.0f, 0.0f, 1.0f})
+			float clearColor[4] = { 0.0f, 0.0f, 0.0f, 1.0f }; // Change as needed
+			glClearTexImage(m_ColorAttachments[attachmentIndex], 0, GL_RGBA, GL_FLOAT, clearColor);
+		}
+		GLenum err = glGetError();
+		if (err != GL_NO_ERROR) {
+			UE_CORE_ERROR("glClearTexImage error: {0}", err);
+		}
 	}
 
 }

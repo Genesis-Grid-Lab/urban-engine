@@ -2,18 +2,20 @@
 
 #include "Config.h"
 #include "Camera.h"
+#include "EditorCamera.h"
 #include "Texture.h"
 #include "Scene/Components.h"
 #include "Font.h"
 
 namespace UE {
 
-    class UE_API Renderer2D{
+    class  Renderer2D{
     public:
         static void Init();
         static void Shutdown();
 
-        static void BeginCamera(const Camera& camera);        
+        static void BeginCamera(const Camera& camera);  
+		static void BeginCamera(const EditorCamera& camera);      
         static void EndCamera();
         static void Flush();
 

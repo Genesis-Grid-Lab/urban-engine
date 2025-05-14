@@ -4,7 +4,7 @@
 
 namespace UE {
 
-    class UE_API RenderCommand{
+    class  RenderCommand{
     public:
         static void Init(){
             s_RendererAPI->Init();

@@ -55,20 +55,20 @@ namespace UE {
 		}
 	};
 
-	struct UE_API ModelComponent{
+	struct  ModelComponent{
 		Ref<Model> ModelData;
 		Ref<Animation> AnimationData;
 		ModelComponent() = default;
 		ModelComponent(const ModelComponent&) = default;
 	};
 
-	struct UE_API CubeComponent{
+	struct  CubeComponent{
 		glm::vec3 Color;
 		CubeComponent() = default;
 		CubeComponent(const CubeComponent&) = default;
 	};
 
-	struct UE_API SpriteRendererComponent
+	struct  SpriteRendererComponent
 	{
 		glm::vec4 Color{ 1.0f, 1.0f, 1.0f, 1.0f };
 		Ref<Texture2D> Texture;
@@ -81,14 +81,14 @@ namespace UE {
 	};
 
 	//physics 3d
-	struct UE_API RigidbodyComponent{
+	struct  RigidbodyComponent{
 		physx::PxRigidDynamic* Body= nullptr;
 
 		RigidbodyComponent() = default;
 		RigidbodyComponent(const RigidbodyComponent&) = default;
 	};
 
-	// struct UE_API BoxColliderComponent{
+	// struct  BoxColliderComponent{
 
 	// };
 

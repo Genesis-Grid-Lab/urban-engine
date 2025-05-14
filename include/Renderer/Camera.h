@@ -11,9 +11,12 @@ namespace UE {
 	const float Default_SENSITIVITY =  0.1f;
 	const float Default_ZOOM        =  45.0f;
 	
-	class UE_API Camera {
+	class  Camera {
 	public:
 		Camera() = default;
+		Camera(const glm::mat4& projection)
+			: m_ProjectionMatrix(projection) {}
+		virtual ~Camera() = default;
 		void SetPosition(const glm::vec3& position) { m_Position = position; RecalculateViewMatrix(); }
 		void SetRotation(float rotation) { m_Rotation = rotation; RecalculateViewMatrix(); }
 
@@ -23,9 +26,10 @@ namespace UE {
 		const glm::mat4& GetViewMatrix() const { return m_ViewMatrix; }
 		const glm::mat4& GetViewProjectionMatrix() const { return m_ViewProjectionMatrix; }
 	private:
-		virtual void RecalculateViewMatrix() = 0;
+		virtual void RecalculateViewMatrix() {};
+	protected:
+		glm::mat4 m_ProjectionMatrix = glm::mat4(1.0f);
 	private:
-		glm::mat4 m_ProjectionMatrix;
 		glm::mat4 m_ViewMatrix;
 		glm::mat4 m_ViewProjectionMatrix;
 		glm::vec3 m_Position = { 0.0f, 0.0f, 0.0f };
@@ -34,7 +38,7 @@ namespace UE {
 		friend class Camera3D;
 	};
 
-    class UE_API Camera2D : public Camera {
+    class  Camera2D : public Camera {
     public:        
 		Camera2D() = default;
         Camera2D(float left, float right, float bottom, float top);
@@ -43,13 +47,14 @@ namespace UE {
 		void RecalculateViewMatrix();
     };
 
-	class UE_API Camera3D : public Camera {
+	class  Camera3D : public Camera {
 	public:
 		Camera3D() = default;
 		Camera3D(const glm::vec2& size, const glm::vec3& position = glm::vec3(0), const glm::vec3& up = glm::vec3(0.0f, 1.0f, 0.0f),
 				 const float& yaw = -90.0f, const float& pitch = 0.0f);
 		Camera3D(float fov, float aspectRatio, float nearClip, float farClip);
 		void SetProjection(float fov, float aspectRatio, float nearClip, float farClip);
+		void OnViewportResize(const glm::vec2& aspect);
 		void ProcessInputAndMouse(Timestep ts, bool constrainPitch = true);
 	private:
 		void RecalculateViewMatrix();

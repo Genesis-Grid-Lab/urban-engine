@@ -29,15 +29,15 @@
 #if defined(UE_PLATFORM_WINDOWS)
     #ifdef UE_EXPORT    
     #ifdef _MSC_VER
-        #define UE_API __declspec(dllexport)
+        // #define UE_API __declspec(dllexport)
     #else
-        #define UE_API __attribute__((visibility("default")))
+        // #define UE_API __attribute__((visibility("default")))
     #endif
     #endif
 
     #ifdef UE_IMPORT           
     #ifdef _MSC_VER
-        #define UE_API __declspec(dllimport)
+        // #define UE_API __declspec(dllimport)
     #else
         #define UE_API
     #endif
@@ -45,7 +45,7 @@
 #else
     // Linux/macOS: only need to set visibility when exporting
     #ifdef UE_EXPORT
-        #define UE_API __attribute__((visibility("default")))
+        // #define UE_API __attribute__((visibility("default")))
     #else
         #define UE_API
     #endif

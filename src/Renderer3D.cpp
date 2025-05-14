@@ -132,6 +132,23 @@ namespace UE {
         m_Skybox->Draw(m_SkyShader, camera.GetViewMatrix(), camera.GetProjectionMatrix());
     }
 
+    void Renderer3D::BeginCamera(const EditorCamera& camera)
+	{
+		m_Shader->Bind();
+        m_Shader->SetMat4("u_View", camera.GetViewMatrix());
+        m_Shader->SetMat4("u_Projection", camera.GetProjectionMatrix());
+        m_Shader->SetFloat3("u_ViewPos", camera.GetPosition());
+        
+        m_Shader->SetFloat3("u_LightPos", m_LightPos);             
+        m_Shader->SetInt("u_EntityID", -1);
+        m_LightShader->Bind();
+        m_LightShader->SetMat4("u_View", camera.GetViewMatrix());
+        m_LightShader->SetMat4("u_Projection", camera.GetProjectionMatrix());    
+        
+        m_SkyShader->Bind();
+        m_Skybox->Draw(m_SkyShader, camera.GetViewMatrix(), camera.GetProjectionMatrix());
+	}
+
     void Renderer3D::EndCamera(){}
 
     void Renderer3D::RenderLight(const glm::vec3& pos){

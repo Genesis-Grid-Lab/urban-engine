@@ -3,17 +3,19 @@
 #include "Core/Config.h"
 #include "Shader.h"
 #include "Camera.h"
+#include "EditorCamera.h"
 #include "Model.h"
 #include "Animation/Animation.h"
 
 namespace UE {
 
-    class UE_API Renderer3D{
+    class  Renderer3D{
     public:
         static void Init();
         static void Shutdown();
 
         static void BeginCamera(const Camera3D& camera);
+        static void BeginCamera(const EditorCamera& camera);  
         static void EndCamera();
 
         static void RenderLight(const glm::vec3& pos);

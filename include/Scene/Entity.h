@@ -8,7 +8,7 @@
 
 namespace UE {
 
-    class UE_API Entity{
+    class  Entity{
     public:
         Entity() = default;
         Entity(entt::entity handle, Scene* scene);

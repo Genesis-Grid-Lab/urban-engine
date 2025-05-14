@@ -6,7 +6,7 @@
 
 namespace UE {
 
-    class UE_API Renderer{
+    class  Renderer{
     public:
         static void Init();
         static void Shutdown();

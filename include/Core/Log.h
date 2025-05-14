@@ -13,7 +13,7 @@
 
 namespace UE {
 
-    class UE_API Log{
+    class  Log{
     public:
         static void Init();
         

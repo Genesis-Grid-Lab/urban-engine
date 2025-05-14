@@ -104,7 +104,7 @@ namespace UE {
 		uint32_t m_Stride = 0;
 	};
 
-    class UE_API VertexBuffer
+    class  VertexBuffer
 	{
 	public:        
 		virtual ~VertexBuffer() = default;
@@ -123,7 +123,7 @@ namespace UE {
 	};
 
 	// Currently only supports 32-bit index buffers
-	class UE_API IndexBuffer
+	class  IndexBuffer
 	{
 	public:        
 		virtual ~IndexBuffer() = default;

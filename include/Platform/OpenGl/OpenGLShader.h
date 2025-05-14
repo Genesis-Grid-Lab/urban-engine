@@ -6,7 +6,7 @@ typedef unsigned int GLenum;
 
 namespace UE {
 
-    class UE_API OpenGLShader : public Shader
+    class  OpenGLShader : public Shader
 	{
 	public:
         OpenGLShader(const std::string& filepath);

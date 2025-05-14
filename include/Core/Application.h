@@ -36,7 +36,7 @@ namespace UE {
     };
     
     
-    class UE_API Application{
+    class  Application{
     public:
         Application(const std::string& name = "Application Name", const glm::vec2& size = glm::vec2(0), ApplicationCommandLineArgs args = ApplicationCommandLineArgs());
         virtual ~Application();

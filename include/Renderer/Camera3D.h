@@ -11,7 +11,7 @@
 //     // const float Default_SENSITIVITY =  0.1f;
 //     // const float Default_ZOOM        =  45.0f;
 
-//     class UE_API Camera3D {
+//     class  Camera3D {
 //     public:
 //         // constructor with vectors
 //         Camera3D(const glm::vec3& position = glm::vec3(0), const glm::vec3& up = glm::vec3(0.0f, 1.0f, 0.0f),

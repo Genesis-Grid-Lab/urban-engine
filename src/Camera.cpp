@@ -49,6 +49,11 @@ namespace UE {
 		RecalculateViewMatrix();
 	}
 
+	void Camera3D::OnViewportResize(const glm::vec2& aspect){
+		m_Aspect = aspect.x / aspect.y;	
+		RecalculateViewMatrix();
+	}
+
 	void Camera3D::SetProjection(float fov, float aspectRatio, float nearClip, float farClip)
 	{		
 		m_ProjectionMatrix = glm::perspective(glm::radians(fov), aspectRatio, nearClip, farClip);
@@ -75,7 +80,7 @@ namespace UE {
 		 m_Up    = glm::normalize(glm::cross(m_Right, m_Front));
 
 		 m_ViewMatrix = glm::lookAt(m_Position, m_Position + m_Front, m_Up);
-		 m_ProjectionMatrix = glm::perspective(glm::radians(m_Zoom), m_Aspect, 0.1f, 100.0f);
+		 m_ProjectionMatrix = glm::perspective(glm::radians(m_Zoom), m_Aspect, 0.1f, 1000.0f);
 		 m_ViewProjectionMatrix = m_ProjectionMatrix * m_ViewMatrix;
 	}
 
