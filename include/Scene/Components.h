@@ -13,6 +13,7 @@
 #include "Renderer/Font.h"
 #include "Renderer/Model.h"
 #include "Renderer/Animation/Animation.h"
+#include "SceneCamera.h"
 #include <PxPhysicsAPI.h>
 
 namespace UE {
@@ -53,6 +54,16 @@ namespace UE {
 				* rotation
 				* glm::scale(glm::mat4(1.0f), Scale);
 		}
+	};
+
+	struct CameraComponent
+	{
+		SceneCamera Camera;
+		bool Primary = true; // TODO: think about moving to Scene
+		bool FixedAspectRatio = false;
+
+		CameraComponent() = default;
+		CameraComponent(const CameraComponent&) = default;
 	};
 
 	struct  ModelComponent{

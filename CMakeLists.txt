@@ -10,6 +10,27 @@ add_subdirectory(vendor/entt)
 add_subdirectory(vendor/imgui)
 add_subdirectory(vendor/spdlog)
 add_subdirectory(vendor/assimp)
+set(YAML_CPP_BUILD_CONTRIB OFF)
+set(YAML_CPP_BUILD_TOOLS OFF)
+set(YAML_CPP_BUILD_TESTS OFF)
+add_subdirectory(vendor/yaml-cpp)
+
+# gather all source files
+if(WIN32)
+    file(GLOB_RECURSE windowFile ${CMAKE_CURRENT_SOURCE_DIR}/src/Platform/Windows/*.cpp)
+else()
+    file(GLOB_RECURSE windowFile )
+endif(WIN32)
+if(UNIX)
+    file(GLOB_RECURSE linuxFile ${CMAKE_CURRENT_SOURCE_DIR}/src/Platform/Linux/*.cpp)
+else()
+    file(GLOB_RECURSE linuxFile )
+endif(UNIX)
+if(APPLE)
+    file(GLOB_RECURSE macFile ${CMAKE_CURRENT_SOURCE_DIR}/src/Platform/Mac/*.cpp)
+else()
+    file(GLOB_RECURSE macFile )
+endif()
 
 if(UNIX)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
@@ -21,9 +42,17 @@ file(GLOB_RECURSE headers ${CMAKE_CURRENT_SOURCE_DIR}/include/*.h)
 file(GLOB ImGuizmo ${CMAKE_CURRENT_SOURCE_DIR}/vendor/ImGuizmo/ImGuizmo.cpp)
 file(GLOB ImGuizmoH ${CMAKE_CURRENT_SOURCE_DIR}/vendor/ImGuizmo/ImGuizmo.h)
 
+file(GLOB CoreFiles ${CMAKE_CURRENT_SOURCE_DIR}/src/Core/*.cpp)
+file(GLOB RendererFiles ${CMAKE_CURRENT_SOURCE_DIR}/src/Renderer/*.cpp)
+file(GLOB SceneFiles ${CMAKE_CURRENT_SOURCE_DIR}/src/Scene/*.cpp)
+
 file(GLOB_RECURSE openGLFile ${CMAKE_CURRENT_SOURCE_DIR}/src/Platform/OpenGL/*.cpp)
 
-add_library(${PROJECT_NAME} ${source} ${headers} ${openGLFile} ${ImGuizmoH} ${ImGuizmo} ${CMAKE_CURRENT_SOURCE_DIR}/vendor/stb_image/stb_image.cpp ${CMAKE_CURRENT_SOURCE_DIR}/vendor/stb_image/stb_truetype.cpp )
+add_library(${PROJECT_NAME} ${source} ${CoreFiles} ${RendererFiles} ${SceneFiles} ${headers} 
+            ${windowFile} ${linuxFile} ${macFile} 
+            ${openGLFile} 
+            ${ImGuizmoH} ${ImGuizmo} 
+            ${CMAKE_CURRENT_SOURCE_DIR}/vendor/stb_image/stb_image.cpp ${CMAKE_CURRENT_SOURCE_DIR}/vendor/stb_image/stb_truetype.cpp )
 
 target_precompile_headers(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include/uepch.h)
 
@@ -50,6 +79,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/vendor/imgui/backends
     ${CMAKE_CURRENT_SOURCE_DIR}/vendor/stb_image
     ${CMAKE_CURRENT_SOURCE_DIR}/vendor/ImGuizmo
+    ${CMAKE_CURRENT_SOURCE_DIR}/vendor/yaml-cpp
     ${PHYSX_DIR}/include
 )
 
@@ -63,6 +93,7 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
   imgui
   EnTT     
   assimp
+  yaml-cpp
   ${PHYSX_LIB}/PhysX_64.lib
   ${PHYSX_LIB}/PhysXCommon_64.lib
   ${PHYSX_LIB}/PhysXFoundation_64.lib

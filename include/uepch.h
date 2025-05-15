@@ -17,10 +17,3 @@
 #include <vector>
 #include <unordered_map>
 #include <unordered_set>
-
-#ifdef UE_PLATFORM_WINDOWS
-    #ifndef NOMINMAX
-    # define NOMINMAX
-    #endif
-    #include <Windows.h>
-#endif

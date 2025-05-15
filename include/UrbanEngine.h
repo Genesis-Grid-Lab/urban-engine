@@ -22,9 +22,11 @@
 #include "Renderer/Framebuffer.h"
 #include "Renderer/Font.h"
 #include "Scene/Scene.h"
+#include "Scene/SceneSerializer.h"
 #include "Scene/Components.h"
 #include "Scene/Entity.h"
 #include "Math/UEMath.h"
+#include "Auxiliaries/PlatformUtils.h"
 //TO DO: remove
 #include <imgui.h>
 #include <imgui_internal.h>

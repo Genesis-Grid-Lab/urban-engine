@@ -18,6 +18,7 @@ namespace UE {
 
     class  Scene{
     public:
+        Scene();
         Scene(uint32_t width, uint32_t height);
         ~Scene();
 
@@ -56,12 +57,14 @@ namespace UE {
         template<typename T>
         void  OnComponentAdded(Entity entity, T& component);
     private:
+        void ReadPixelEntity(int& mouseX, int& mouseY, glm::vec2& viewportSize);
+    private:
         entt::registry m_Registry;
         Ref<Texture2D> m_Screen;
         uint32_t m_ViewportWidth = 0, m_ViewportHeight = 0;
         float m_MouseX, m_MouseY;
         friend class Entity;                
-        // friend class SceneSerializer;    
+        friend class SceneSerializer;    
     //temp
     private:
         Ref<Shader> TesShader;

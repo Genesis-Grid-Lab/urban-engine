@@ -14,7 +14,7 @@ namespace UE {
         static void Init();
         static void Shutdown();
 
-        static void BeginCamera(const Camera3D& camera);
+        static void BeginCamera(const Camera& camera);
         static void BeginCamera(const EditorCamera& camera);  
         static void EndCamera();
 
