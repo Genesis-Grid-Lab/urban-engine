@@ -5,87 +5,8 @@
 #include "Scene/Components.h"
 #include "Core/UE_Assert.h"
 #include <fstream>
+#include "Auxiliaries/YamlConvert.h"
 
-#include <yaml-cpp/yaml.h>
-
-namespace YAML {
-
-	template<>
-	struct convert<glm::vec2>
-	{
-		static Node encode(const glm::vec2& rhs)
-		{
-			Node node;
-			node.push_back(rhs.x);
-			node.push_back(rhs.y);
-			node.SetStyle(EmitterStyle::Flow);
-			return node;
-		}
-
-		static bool decode(const Node& node, glm::vec2& rhs)
-		{
-			if (!node.IsSequence() || node.size() != 2)
-				return false;
-
-			rhs.x = node[0].as<float>();
-			rhs.y = node[1].as<float>();
-			return true;
-		}
-	};
-
-	template<>
-	struct convert<glm::vec3>
-	{
-		static Node encode(const glm::vec3& rhs)
-		{
-			Node node;
-			node.push_back(rhs.x);
-			node.push_back(rhs.y);
-			node.push_back(rhs.z);
-			node.SetStyle(EmitterStyle::Flow);
-			return node;
-		}
-
-		static bool decode(const Node& node, glm::vec3& rhs)
-		{
-			if (!node.IsSequence() || node.size() != 3)
-				return false;
-
-			rhs.x = node[0].as<float>();
-			rhs.y = node[1].as<float>();
-			rhs.z = node[2].as<float>();
-			return true;
-		}
-	};
-
-	template<>
-	struct convert<glm::vec4>
-	{
-		static Node encode(const glm::vec4& rhs)
-		{
-			Node node;
-			node.push_back(rhs.x);
-			node.push_back(rhs.y);
-			node.push_back(rhs.z);
-			node.push_back(rhs.w);
-			node.SetStyle(EmitterStyle::Flow);
-			return node;
-		}
-
-		static bool decode(const Node& node, glm::vec4& rhs)
-		{
-			if (!node.IsSequence() || node.size() != 4)
-				return false;
-
-			rhs.x = node[0].as<float>();
-			rhs.y = node[1].as<float>();
-			rhs.z = node[2].as<float>();
-			rhs.w = node[3].as<float>();
-			return true;
-		}
-	};
-
-}
 namespace UE {
 
 	YAML::Emitter& operator<<(YAML::Emitter& out, const glm::vec2& v)
@@ -109,28 +30,28 @@ namespace UE {
 		return out;
 	}
 
-	// static std::string RigidBody2DBodyTypeToString(Rigidbody2DComponent::BodyType bodyType)
-	// {
-	// 	switch (bodyType)
-	// 	{
-	// 		case Rigidbody2DComponent::BodyType::Static:    return "Static";
-	// 		case Rigidbody2DComponent::BodyType::Dynamic:   return "Dynamic";
-	// 		case Rigidbody2DComponent::BodyType::Kinematic: return "Kinematic";
-	// 	}
+	static std::string RigidBody3DBodyTypeToString(JPH::EMotionType bodyType)
+	{
+		switch (bodyType)
+		{
+			case JPH::EMotionType::Static:    return "Static";
+			case JPH::EMotionType::Dynamic:   return "Dynamic";
+			case JPH::EMotionType::Kinematic: return "Kinematic";
+		}
 
-	// 	FS_CORE_ASSERT(false, "Unknown body type");
-	// 	return {};
-	// }
+		UE_CORE_ASSERT(false, "Unknown body type");
+		return {};
+	}
 
-	// static Rigidbody2DComponent::BodyType RigidBody2DBodyTypeFromString(const std::string& bodyTypeString)
-	// {
-	// 	if (bodyTypeString == "Static")    return Rigidbody2DComponent::BodyType::Static;
-	// 	if (bodyTypeString == "Dynamic")   return Rigidbody2DComponent::BodyType::Dynamic;
-	// 	if (bodyTypeString == "Kinematic") return Rigidbody2DComponent::BodyType::Kinematic;
+	static JPH::EMotionType RigidBody3DBodyTypeFromString(const std::string& bodyTypeString)
+	{
+		if (bodyTypeString == "Static")    return JPH::EMotionType::Static;
+		if (bodyTypeString == "Dynamic")   return JPH::EMotionType::Dynamic;
+		if (bodyTypeString == "Kinematic") return JPH::EMotionType::Kinematic;
 	
-	// 	FS_CORE_ASSERT(false, "Unknown body type");
-	// 	return Rigidbody2DComponent::BodyType::Static;
-	// }
+		UE_CORE_ASSERT(false, "Unknown body type");
+		return JPH::EMotionType::Static;
+	}
 
 	SceneSerializer::SceneSerializer(const Ref<Scene>& scene)
 		: m_Scene(scene)
@@ -179,30 +100,46 @@ namespace UE {
 			out << YAML::EndMap; // TransformComponent
 		}
 
-		// if (entity.HasComponent<CameraComponent>())
-		// {
-		// 	out << YAML::Key << "CameraComponent";
-		// 	out << YAML::BeginMap; // CameraComponent
+		if (entity.HasComponent<CameraComponent>())
+		{
+			out << YAML::Key << "CameraComponent";
+			out << YAML::BeginMap; // CameraComponent
 
-		// 	auto& cameraComponent = entity.GetComponent<CameraComponent>();
-		// 	auto& camera = cameraComponent.Camera;
+			auto& cameraComponent = entity.GetComponent<CameraComponent>();
+			auto& camera = cameraComponent.Camera;
 
-		// 	out << YAML::Key << "Camera" << YAML::Value;
-		// 	out << YAML::BeginMap; // Camera
-		// 	out << YAML::Key << "ProjectionType" << YAML::Value << (int)camera.GetProjectionType();
-		// 	out << YAML::Key << "PerspectiveFOV" << YAML::Value << camera.GetPerspectiveVerticalFOV();
-		// 	out << YAML::Key << "PerspectiveNear" << YAML::Value << camera.GetPerspectiveNearClip();
-		// 	out << YAML::Key << "PerspectiveFar" << YAML::Value << camera.GetPerspectiveFarClip();
-		// 	out << YAML::Key << "OrthographicSize" << YAML::Value << camera.GetOrthographicSize();
-		// 	out << YAML::Key << "OrthographicNear" << YAML::Value << camera.GetOrthographicNearClip();
-		// 	out << YAML::Key << "OrthographicFar" << YAML::Value << camera.GetOrthographicFarClip();
-		// 	out << YAML::EndMap; // Camera
+			out << YAML::Key << "Camera" << YAML::Value;
+			out << YAML::BeginMap; // Camera
+			out << YAML::Key << "ProjectionType" << YAML::Value << (int)camera.GetProjectionType();
+			out << YAML::Key << "PerspectiveFOV" << YAML::Value << camera.GetPerspectiveVerticalFOV();
+			out << YAML::Key << "PerspectiveNear" << YAML::Value << camera.GetPerspectiveNearClip();
+			out << YAML::Key << "PerspectiveFar" << YAML::Value << camera.GetPerspectiveFarClip();
+			out << YAML::Key << "OrthographicSize" << YAML::Value << camera.GetOrthographicSize();
+			out << YAML::Key << "OrthographicNear" << YAML::Value << camera.GetOrthographicNearClip();
+			out << YAML::Key << "OrthographicFar" << YAML::Value << camera.GetOrthographicFarClip();
+			out << YAML::EndMap; // Camera
 
-		// 	out << YAML::Key << "Primary" << YAML::Value << cameraComponent.Primary;
-		// 	out << YAML::Key << "FixedAspectRatio" << YAML::Value << cameraComponent.FixedAspectRatio;
+			out << YAML::Key << "Primary" << YAML::Value << cameraComponent.Primary;
+			out << YAML::Key << "FixedAspectRatio" << YAML::Value << cameraComponent.FixedAspectRatio;
 
-		// 	out << YAML::EndMap; // CameraComponent
-		// }
+			out << YAML::EndMap; // CameraComponent
+		}
+
+		if (entity.HasComponent<ModelComponent>())
+		{
+			out << YAML::Key << "ModelComponent";
+			out << YAML::BeginMap; // ModelComponent
+
+			auto& modelComponent = entity.GetComponent<ModelComponent>();
+			auto& model = modelComponent.ModelData;
+
+			out << YAML::Key << "Model" << YAML::Value;
+			out << YAML::BeginMap; // Model
+			out << YAML::Key << "Path" << YAML::Value << model->m_Path;
+			out << YAML::EndMap; // Model
+
+			out << YAML::EndMap; // ModelComponent
+		}
 
 		if (entity.HasComponent<SpriteRendererComponent>())
 		{
@@ -213,6 +150,31 @@ namespace UE {
 			out << YAML::Key << "Color" << YAML::Value << spriteRendererComponent.Color;
 
 			out << YAML::EndMap; // SpriteRendererComponent
+		}
+
+		if(entity.HasComponent<RigidbodyComponent>()){
+
+			auto& bodyComp = entity.GetComponent<RigidbodyComponent>();
+			out << YAML::Key << "RigidbodyComponent";
+			out << YAML::BeginMap; // RigidbodyComponent
+			out << YAML::Key << "Type" << YAML::Value << RigidBody3DBodyTypeToString(bodyComp.Type);
+			out << YAML::Key << "Layer" << YAML::Value << bodyComp.Layer;
+			out << YAML::Key << "Velocity" << YAML::Value << bodyComp.Velocity;
+			out << YAML::EndMap; // RigidbodyComponent
+		}
+
+		if(entity.HasComponent<BoxShapeComponent>()){
+			out << YAML::Key << "BoxShapeComponent";
+			out << YAML::BeginMap; // BoxShapeComponent
+			
+			out << YAML::EndMap; // BoxShapeComponent
+		}
+
+		if(entity.HasComponent<SphereShapeComponent>()){
+			out << YAML::Key << "SphereShapeComponent";
+			out << YAML::BeginMap; // SphereShapeComponent
+			
+			out << YAML::EndMap; // SphereShapeComponent
 		}
 
 		// if (entity.HasComponent<Rigidbody2DComponent>())
@@ -325,25 +287,35 @@ namespace UE {
 					src.Color = cubeComponent["Color"].as<glm::vec3>();					
 				}
 
-				// auto cameraComponent = entity["CameraComponent"];
-				// if (cameraComponent)
-				// {
-				// 	auto& cc = deserializedEntity.AddComponent<CameraComponent>();
+				auto cameraComponent = entity["CameraComponent"];
+				if (cameraComponent)
+				{
+					auto& cc = deserializedEntity.AddComponent<CameraComponent>();
 
-				// 	auto& cameraProps = cameraComponent["Camera"];
-				// 	cc.Camera.SetProjectionType((SceneCamera::ProjectionType)cameraProps["ProjectionType"].as<int>());
+					auto& cameraProps = cameraComponent["Camera"];
+					cc.Camera.SetProjectionType((SceneCamera::ProjectionType)cameraProps["ProjectionType"].as<int>());
 
-				// 	cc.Camera.SetPerspectiveVerticalFOV(cameraProps["PerspectiveFOV"].as<float>());
-				// 	cc.Camera.SetPerspectiveNearClip(cameraProps["PerspectiveNear"].as<float>());
-				// 	cc.Camera.SetPerspectiveFarClip(cameraProps["PerspectiveFar"].as<float>());
+					cc.Camera.SetPerspectiveVerticalFOV(cameraProps["PerspectiveFOV"].as<float>());
+					cc.Camera.SetPerspectiveNearClip(cameraProps["PerspectiveNear"].as<float>());
+					cc.Camera.SetPerspectiveFarClip(cameraProps["PerspectiveFar"].as<float>());
 
-				// 	cc.Camera.SetOrthographicSize(cameraProps["OrthographicSize"].as<float>());
-				// 	cc.Camera.SetOrthographicNearClip(cameraProps["OrthographicNear"].as<float>());
-				// 	cc.Camera.SetOrthographicFarClip(cameraProps["OrthographicFar"].as<float>());
+					cc.Camera.SetOrthographicSize(cameraProps["OrthographicSize"].as<float>());
+					cc.Camera.SetOrthographicNearClip(cameraProps["OrthographicNear"].as<float>());
+					cc.Camera.SetOrthographicFarClip(cameraProps["OrthographicFar"].as<float>());
 
-				// 	cc.Primary = cameraComponent["Primary"].as<bool>();
-				// 	cc.FixedAspectRatio = cameraComponent["FixedAspectRatio"].as<bool>();
-				// }
+					cc.Primary = cameraComponent["Primary"].as<bool>();
+					cc.FixedAspectRatio = cameraComponent["FixedAspectRatio"].as<bool>();
+				}
+
+				auto modelComponent = entity["ModelComponent"];
+				if (modelComponent)
+				{
+					auto& mc = deserializedEntity.AddComponent<ModelComponent>();
+					auto& modelProps = modelComponent["Model"];
+					Ref<Model> tempModel = CreateRef<Model>(modelProps["Path"].as<std::string>());
+					mc.ModelData = tempModel;
+					
+				}
 
 				auto spriteRendererComponent = entity["SpriteRendererComponent"];
 				if (spriteRendererComponent)
@@ -352,25 +324,24 @@ namespace UE {
 					src.Color = spriteRendererComponent["Color"].as<glm::vec4>();
 				}
 
-				// auto rigidbody2DComponent = entity["Rigidbody2DComponent"];
-				// if (rigidbody2DComponent)
-				// {
-				// 	auto& rb2d = deserializedEntity.AddComponent<Rigidbody2DComponent>();
-				// 	rb2d.Type = RigidBody2DBodyTypeFromString(rigidbody2DComponent["BodyType"].as<std::string>());
-				// 	rb2d.FixedRotation = rigidbody2DComponent["FixedRotation"].as<bool>();
-				// }
+				auto rigidBodyComp = entity["RigidbodyComponent"];
+				if(rigidBodyComp){
+					auto& src = deserializedEntity.AddComponent<RigidbodyComponent>();
+					src.Type = RigidBody3DBodyTypeFromString(rigidBodyComp["Type"].as<std::string>());
+					src.Layer = rigidBodyComp["Layer"].as<unsigned int>();
+					src.Velocity = rigidBodyComp["Velocity"].as<glm::vec3>();
+				}
 
-				// auto boxCollider2DComponent = entity["BoxCollider2DComponent"];
-				// if (boxCollider2DComponent)
-				// {
-				// 	auto& bc2d = deserializedEntity.AddComponent<BoxCollider2DComponent>();
-				// 	bc2d.Offset = boxCollider2DComponent["Offset"].as<glm::vec2>();
-				// 	bc2d.Size = boxCollider2DComponent["Size"].as<glm::vec2>();
-				// 	bc2d.Density = boxCollider2DComponent["Density"].as<float>();
-				// 	bc2d.Friction = boxCollider2DComponent["Friction"].as<float>();
-				// 	bc2d.Restitution = boxCollider2DComponent["Restitution"].as<float>();
-				// 	bc2d.RestitutionThreshold = boxCollider2DComponent["RestitutionThreshold"].as<float>();
-				// }
+				auto boxShapeComp = entity["BoxShapeComponent"];
+				if(boxShapeComp){
+					auto& src = deserializedEntity.AddComponent<BoxShapeComponent>();					
+				}
+
+				auto sphereShapeComp = entity["SphereShapeComponent"];
+				if(sphereShapeComp){
+					auto& src = deserializedEntity.AddComponent<SphereShapeComponent>();					
+				}
+				
 			}
 		}
 

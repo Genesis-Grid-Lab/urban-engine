@@ -51,7 +51,7 @@ namespace UE {
         return textureID;
     }
 
-    Model::Model(const std::string& path, bool gamma):m_GammaCorrection(gamma){
+    Model::Model(const std::string& path, bool gamma):m_GammaCorrection(gamma),m_Path(path){
         LoadModel(path);
     }
 

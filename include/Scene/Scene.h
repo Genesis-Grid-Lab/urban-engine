@@ -38,6 +38,10 @@ namespace UE {
             });
         }
 
+        void OnRuntimeStart();
+		void OnRuntimeStop();
+        void PhysicsUpdate(float dt);
+
         void OnUpdateRuntime(Timestep ts, int& mouseX, int& mouseY, glm::vec2& viewportSize);  
         void OnUpdateEditor(Timestep ts, EditorCamera& camera, int& mouseX, int& mouseY, glm::vec2& viewportSize);
         void DrawScreen(Ref<Framebuffer>& buffer, EditorCamera& camera);          
@@ -52,7 +56,7 @@ namespace UE {
         // Ref<Framebuffre>& GetBuffer() { return m_Framebuffer;}
         //temp
         Ref<Framebuffer> m_Framebuffer;
-        PhysicsSystem m_Physics3D;
+        PhysicsEngine m_Physics3D;
     private:
         template<typename T>
         void  OnComponentAdded(Entity entity, T& component);

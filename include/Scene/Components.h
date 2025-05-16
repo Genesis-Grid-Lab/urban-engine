@@ -14,7 +14,7 @@
 #include "Renderer/Model.h"
 #include "Renderer/Animation/Animation.h"
 #include "SceneCamera.h"
-#include <PxPhysicsAPI.h>
+#include "Auxiliaries/Physics.h"
 
 namespace UE {
     struct IDComponent
@@ -53,6 +53,12 @@ namespace UE {
 			return glm::translate(glm::mat4(1.0f), Translation)
 				* rotation
 				* glm::scale(glm::mat4(1.0f), Scale);
+		}
+
+		float GetRadius() const
+		{
+			// Assuming you're transforming a unit sphere
+			return glm::compMax(Scale); // max(Scale.x, Scale.y, Scale.z)
 		}
 	};
 
@@ -93,15 +99,33 @@ namespace UE {
 
 	//physics 3d
 	struct  RigidbodyComponent{
-		physx::PxRigidDynamic* Body= nullptr;
+		JPH::BodyID ID;
+		JPH::Ref<JPH::Shape> Shape;		
+		JPH::EMotionType Type;
+		JPH::ObjectLayer Layer;
+		// JPH::Ref<JPH::BodyCreationSettings> Setting;
+		glm::vec3 Velocity = glm::vec3(0);
+		bool Activate;
 
 		RigidbodyComponent() = default;
 		RigidbodyComponent(const RigidbodyComponent&) = default;
 	};
 
-	// struct  BoxColliderComponent{
+	struct  BoxShapeComponent{
+		
+		JPH::Ref<JPH::BoxShape> Shape;
+		// Ref<JPH::BoxShapeSettings> Setting;s
+		BoxShapeComponent() = default;
+		BoxShapeComponent(const BoxShapeComponent&) = default;		
+	};
 
-	// };
+	struct  SphereShapeComponent{
+		
+		JPH::Ref<JPH::SphereShape> Shape;
+		// Ref<JPH::SphereShapeSettings> Setting;s
+		SphereShapeComponent() = default;
+		SphereShapeComponent(const SphereShapeComponent&) = default;		
+	};
 
 
 	///UI

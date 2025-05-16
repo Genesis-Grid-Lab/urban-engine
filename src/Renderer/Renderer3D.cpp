@@ -15,10 +15,62 @@ namespace UE {
     static glm::vec3 m_LightPos;      
     static Ref<Model> m_LightModel;   
     static Ref<Skybox> m_Skybox; 
-    static Ref<Mesh> s_CubeMesh;    
+    static Ref<Mesh> s_CubeMesh; 
+    static Ref<Mesh> s_SphereMesh;   
     static Ref<VertexBuffer> ScreenVertexBuffer;
 	static Ref<VertexArray> ScreenVertexArray;
     static Ref<Animator> s_Animator;
+
+    Ref<Mesh> GenerateSphereMesh(uint32_t sectorCount = 36, uint32_t stackCount = 18) {
+        std::vector<Vertex> vertices;
+        std::vector<uint32_t> indices;
+
+        float x, y, z, xy;                              // vertex position
+        float nx, ny, nz, lengthInv = 1.0f;             // vertex normal
+        float s, t;                                     // vertex texCoord
+
+        float sectorStep = 2 * glm::pi<float>() / sectorCount;
+        float stackStep = glm::pi<float>() / stackCount;
+        float sectorAngle, stackAngle;
+
+        for (uint32_t i = 0; i <= stackCount; ++i) {
+            stackAngle = glm::pi<float>() / 2 - i * stackStep; // from pi/2 to -pi/2
+            xy = cos(stackAngle);                              // r * cos(u)
+            z = sin(stackAngle);                               // r * sin(u)
+
+            for (uint32_t j = 0; j <= sectorCount; ++j) {
+                sectorAngle = j * sectorStep;
+
+                x = xy * cos(sectorAngle);                     // x = r * cos(u) * cos(v)
+                y = xy * sin(sectorAngle);                     // y = r * cos(u) * sin(v)
+                nx = x; ny = y; nz = z;
+
+                Vertex v;
+                v.Position = glm::vec3(x, y, z);
+                v.Normal = glm::normalize(glm::vec3(nx, ny, nz));
+                v.TexCoords = glm::vec2((float)j / sectorCount, (float)i / stackCount);
+                v.Tangent = glm::vec3(1, 0, 0);    // placeholder
+                v.Bitangent = glm::vec3(0, 1, 0);  // placeholder
+                vertices.push_back(v);
+            }
+        }
+
+        // index generation
+        for (uint32_t i = 0; i < stackCount; ++i) {
+            uint32_t k1 = i * (sectorCount + 1);     // beginning of current stack
+            uint32_t k2 = k1 + sectorCount + 1;      // beginning of next stack
+
+            for (uint32_t j = 0; j < sectorCount; ++j, ++k1, ++k2) {
+                if (i != 0)
+                    indices.insert(indices.end(), { k1, k2, k1 + 1 });
+                if (i != (stackCount - 1))
+                    indices.insert(indices.end(), { k1 + 1, k2, k2 + 1 });
+            }
+        }
+
+        std::vector<TextureMesh> noTextures;
+        return CreateRef<Mesh>(vertices, indices, noTextures);
+    }
 
     Ref<Mesh> GenerateCubeMesh() {
         std::vector<Vertex> vertices;
@@ -87,6 +139,7 @@ namespace UE {
         m_Skybox = Skybox::Create(faces);
 
         s_CubeMesh = GenerateCubeMesh();
+        s_SphereMesh = GenerateSphereMesh();
 
         ScreenVertexArray = VertexArray::Create();
 
@@ -120,7 +173,7 @@ namespace UE {
         m_Shader->Bind();
         m_Shader->SetMat4("u_View", camera.GetViewMatrix());
         m_Shader->SetMat4("u_Projection", camera.GetProjectionMatrix());
-        m_Shader->SetFloat3("u_ViewPos", camera.GetPosition());
+        m_Shader->SetFloat3("u_ViewPos", camera.GetPosition());        
         
         m_Shader->SetFloat3("u_LightPos", m_LightPos);                     
         m_LightShader->Bind();
@@ -129,6 +182,21 @@ namespace UE {
         
         m_SkyShader->Bind();
         m_Skybox->Draw(m_SkyShader, camera.GetViewMatrix(), camera.GetProjectionMatrix());
+    }
+
+    void Renderer3D::BeginCamera(const Camera& camera, const glm::mat4& transform, const glm::vec3& pos){
+        m_Shader->Bind();
+        m_Shader->SetMat4("u_View", glm::inverse(transform));
+        m_Shader->SetMat4("u_Projection", camera.GetProjectionMatrix());
+        m_Shader->SetFloat3("u_ViewPos", pos);        
+        
+        m_Shader->SetFloat3("u_LightPos", m_LightPos);                     
+        m_LightShader->Bind();
+        m_LightShader->SetMat4("u_View", glm::inverse(transform));
+        m_LightShader->SetMat4("u_Projection", camera.GetProjectionMatrix());    
+        
+        m_SkyShader->Bind();
+        m_Skybox->Draw(m_SkyShader, glm::inverse(transform), camera.GetProjectionMatrix());
     }
 
     void Renderer3D::BeginCamera(const EditorCamera& camera)
@@ -164,10 +232,11 @@ namespace UE {
         m_LightModel->Draw(m_LightShader);
     }
 
-    void Renderer3D::DrawModel(const Ref<Model>& model,const glm::mat4& transform, const glm::vec3& color, int entityID){
+    void Renderer3D::DrawModel(const Ref<Model>& model,const glm::mat4& transform, const glm::vec3& color, const float transparancy, int entityID){
         m_Shader->Bind();
         m_Shader->SetFloat3("u_Color", color);  
         m_Shader->SetMat4("u_Model", transform);  
+        m_Shader->SetFloat("u_Transparancy", 1.0f);
         for(auto& mesh : model->GetMeshes()){
             for(auto& vertex : mesh->m_Vertices){
                 vertex.EntityID = entityID;
@@ -178,30 +247,52 @@ namespace UE {
         model->Draw(m_Shader);
     }
 
-    void Renderer3D::DrawModel(const Ref<Model>& model,const glm::vec3& position,const glm::vec3& size, const glm::vec3& color){
+    void Renderer3D::DrawModel(const Ref<Model>& model,const glm::vec3& position,const glm::vec3& size, const glm::vec3& color, const float transparancy){
         
         glm::mat4 imodel = glm::mat4(1.0f);
         imodel = glm::translate(imodel, position);
         imodel = glm::rotate(imodel, glm::radians(0.0f), glm::vec3(0, 1, 0));
         imodel = glm::scale(imodel, size);
 
-        DrawModel(model, imodel, color);
+        DrawModel(model, imodel, color, transparancy);
 
     }
 
 
-    void Renderer3D::DrawCube(const glm::mat4& transform, const glm::vec3& color, int entityID){
+    void Renderer3D::DrawCube(const glm::mat4& transform, const glm::vec3& color, const float transparancy, int entityID){
         m_Shader->Bind();
         m_Shader->SetMat4("u_Model", transform);
         m_Shader->SetFloat3("u_Color", color); 
         m_Shader->SetInt("u_EntityID", entityID);
+        m_Shader->SetFloat("u_Transparancy", transparancy);
         s_CubeMesh->Draw(m_Shader);
     }
     
-    void Renderer3D::DrawCube(const glm::vec3& position, const glm::vec3& size, const glm::vec3& color) {
+    void Renderer3D::DrawCube(const glm::vec3& position, const glm::vec3& size, const glm::vec3& color, const float transparancy) {
         glm::mat4 transform = glm::translate(glm::mat4(1.0f), position)
                             * glm::scale(glm::mat4(1.0f), size);
-        DrawCube(transform, color);
+        DrawCube(transform, color, transparancy);
+    }
+
+    void Renderer3D::DrawSphere(const glm::mat4& transform, const glm::vec3& color, float transparancy, int entityID) {
+        m_Shader->Bind();
+        m_Shader->SetMat4("u_Model", transform);
+        m_Shader->SetFloat3("u_Color", color); 
+        m_Shader->SetInt("u_EntityID", entityID);
+        m_Shader->SetFloat("u_Transparancy", transparancy);
+        s_SphereMesh->Draw(m_Shader);
+    }
+
+    void Renderer3D::DrawSphere(const glm::vec3& position, const glm::vec3& scale, const glm::vec3& color, float transparancy) {
+        glm::mat4 transform = glm::translate(glm::mat4(1.0f), position)
+                            * glm::scale(glm::mat4(1.0f), scale);
+        DrawSphere(transform, color, transparancy);
+    }
+
+    void Renderer3D::DrawSphere(const glm::vec3& position, float radius, const glm::vec3& color, float transparancy, int entityID) {
+        glm::mat4 transform = glm::translate(glm::mat4(1.0f), position)
+                            * glm::scale(glm::mat4(1.0f), glm::vec3(radius));
+        DrawSphere(transform, color, transparancy, entityID);
     }
 
     void Renderer3D::DrawScreen(Ref<Framebuffer>& buffer){

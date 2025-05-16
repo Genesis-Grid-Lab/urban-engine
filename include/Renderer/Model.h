@@ -16,6 +16,8 @@ namespace UE {
         auto& GetBoneInfoMap() { return m_BoneInfoMap; }
 	    int& GetBoneCount() { return m_BoneCounter; }
         std::vector<Ref<Mesh>>& GetMeshes() { return m_Meshes;}
+        //TO DO: Change
+        std::string m_Path;
     private:
         void LoadModel(const std::string& path);
         void ProcessNode(aiNode* node, const aiScene* scene);
