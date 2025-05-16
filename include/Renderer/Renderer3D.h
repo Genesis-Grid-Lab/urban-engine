@@ -30,6 +30,10 @@ namespace UE {
         static void DrawSphere(const glm::vec3& position, const glm::vec3& scale, const glm::vec3& color = glm::vec3(1), float transparancy = 1.0f);
         static void DrawSphere(const glm::vec3& position, float radius, const glm::vec3& color = glm::vec3(1), float transparancy = 1.0f, int entityID = -1);
 
+        static void DrawWireCube(const glm::vec3& position, const glm::vec3& size, const glm::vec3& color = glm::vec3(1), const float transparancy = 1.0f);
+        static void DrawWireSphere(const glm::vec3& position, const glm::vec3& scale, const glm::vec3& color = glm::vec3(1), float transparancy = 1.0f);
+        
+
         static void DrawScreen(Ref<Framebuffer>& buffer);
 
         static void RunAnimation(Ref<Animation> animation, float ts);

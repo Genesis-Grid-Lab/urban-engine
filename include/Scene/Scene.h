@@ -57,6 +57,8 @@ namespace UE {
         //temp
         Ref<Framebuffer> m_Framebuffer;
         PhysicsEngine m_Physics3D;
+        bool ShowBoxes = false;
+        bool ShowCams = true;
     private:
         template<typename T>
         void  OnComponentAdded(Entity entity, T& component);

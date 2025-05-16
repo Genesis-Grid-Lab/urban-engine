@@ -264,13 +264,13 @@ namespace UE {
         m_Shader->SetMat4("u_Model", transform);
         m_Shader->SetFloat3("u_Color", color); 
         m_Shader->SetInt("u_EntityID", entityID);
-        m_Shader->SetFloat("u_Transparancy", transparancy);
+        m_Shader->SetFloat("u_Transparancy", transparancy);        
         s_CubeMesh->Draw(m_Shader);
     }
     
     void Renderer3D::DrawCube(const glm::vec3& position, const glm::vec3& size, const glm::vec3& color, const float transparancy) {
         glm::mat4 transform = glm::translate(glm::mat4(1.0f), position)
-                            * glm::scale(glm::mat4(1.0f), size);
+                            * glm::scale(glm::mat4(1.0f), size);        
         DrawCube(transform, color, transparancy);
     }
 
@@ -293,6 +293,18 @@ namespace UE {
         glm::mat4 transform = glm::translate(glm::mat4(1.0f), position)
                             * glm::scale(glm::mat4(1.0f), glm::vec3(radius));
         DrawSphere(transform, color, transparancy, entityID);
+    }
+
+    void Renderer3D::DrawWireCube(const glm::vec3& position, const glm::vec3& size, const glm::vec3& color, const float transparancy){
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        DrawCube(position, size, color, transparancy);
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    }
+
+    void Renderer3D::DrawWireSphere(const glm::vec3& position, const glm::vec3& scale, const glm::vec3& color, float transparancy){
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        DrawSphere(position, scale, color, transparancy);
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     }
 
     void Renderer3D::DrawScreen(Ref<Framebuffer>& buffer){

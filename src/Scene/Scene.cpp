@@ -128,19 +128,21 @@ namespace UE {
 		for (auto entity : boxShapeGroup) {
 			auto [transform, boxComp] = boxShapeGroup.get<TransformComponent, BoxShapeComponent>(entity);
 
-			JPH::BoxShapeSettings Settings{
-			    {transform.Scale.x, transform.Scale.y, transform.Scale.z}
-			};
+			if(!boxComp.Settings){
+				boxComp.Settings =  new JPH::BoxShapeSettings{
+					{transform.Scale.x, transform.Scale.y, transform.Scale.z}
+				};
+			}			
 
-			JPH::ShapeSettings::ShapeResult shape_result = Settings.Create();
+			JPH::ShapeSettings::ShapeResult shape_result = boxComp.Settings->Create();
 
-			boxComp.Shape =  new JPH::BoxShape(Settings, shape_result);  
+			boxComp.Shape =  new JPH::BoxShape(*boxComp.Settings, shape_result);  
 
 			if (shape_result.HasError())
 			{
 				UE_CORE_WARN("Error creating shape: {}",
 							shape_result.GetError());
-			}					
+			}							
 			
 		}
 
@@ -148,13 +150,15 @@ namespace UE {
 		for (auto entity : sphereShapeGroup) {
 			auto [transform, sphereComp] = sphereShapeGroup.get<TransformComponent, SphereShapeComponent>(entity);
 
-			JPH::SphereShapeSettings Settings{
-			    transform.GetRadius()
-			};
+			if(!sphereComp.Settings){
+				sphereComp.Settings = new JPH::SphereShapeSettings{
+					transform.GetRadius()
+				};
+			}
 
-			JPH::ShapeSettings::ShapeResult shape_result = Settings.Create();
+			JPH::ShapeSettings::ShapeResult shape_result = sphereComp.Settings->Create();
 
-			sphereComp.Shape =  new JPH::SphereShape(Settings, shape_result);  
+			sphereComp.Shape =  new JPH::SphereShape(*sphereComp.Settings, shape_result);  
 
 			if (shape_result.HasError())
 			{
@@ -183,17 +187,20 @@ namespace UE {
 				return;
 			}
 
-			const JPH::BodyCreationSettings BodySettings(
-				physComp.Shape,
-				//JPH::RVec3(0.0_r, -1.0_r, 0.0_r),
-				JPH::RVec3(transform.Translation.x, transform.Translation.y, transform.Translation.z),
-				JPH::Quat::sIdentity(),
-				physComp.Type,
-				physComp.Layer);			
+			if(!physComp.Setting){
+				physComp.Setting = new JPH::BodyCreationSettings(
+					physComp.Shape,
+					//JPH::RVec3(0.0_r, -1.0_r, 0.0_r),
+					JPH::RVec3(transform.Translation.x, transform.Translation.y, transform.Translation.z),
+					JPH::Quat::sIdentity(),
+					physComp.Type,
+					physComp.Layer);			
+			}
+
 
 			// Create the actual rigid body
 			JPH::Body *body = body_interface.CreateBody(
-				BodySettings); // Note that if we run out of bodies this can return
+				*physComp.Setting); // Note that if we run out of bodies this can return
 								// nullptr
 			if (body == nullptr)
 			{
@@ -231,9 +238,8 @@ namespace UE {
 			const JPH::BodyInterface &body_interface{
 				m_Physics3D._physics_system->GetBodyInterface()};
 			if (!body_interface.IsActive(physComp.ID))
-			{
-				UE_CORE_INFO("Ball is not active");
-				// return false;
+			{				
+				return;
 			}
 
 			// Output current position and velocity of the sphere
@@ -415,20 +421,23 @@ namespace UE {
 		for (auto entity : CameraGroup) {
 			auto [transform, CamComp] = CameraGroup.get<TransformComponent, CameraComponent>(entity);
 			
-			Renderer3D::DrawCube(transform.GetTransform(), {1,0,0}, 1.0f, (int)entity);
+			if(ShowCams)
+				Renderer3D::DrawCube(transform.GetTransform(), {1,0,0}, 1.0f, (int)entity);
 		}
 
 		 auto boxShapeGroup = m_Registry.group<BoxShapeComponent>(entt::get<TransformComponent>);
 		for (auto entity : boxShapeGroup) {
 			auto [transform, boxComp] = boxShapeGroup.get<TransformComponent, BoxShapeComponent>(entity);
 
-			JPH::BoxShapeSettings Settings{
-			    {transform.Scale.x, transform.Scale.y, transform.Scale.z}
-			};
+			if(!boxComp.Settings){
+				boxComp.Settings =  new JPH::BoxShapeSettings{
+					{transform.Scale.x * 0.5f, transform.Scale.y * 0.5f, transform.Scale.z * 0.5f}
+				};
+			}	
 
-			JPH::ShapeSettings::ShapeResult shape_result = Settings.Create();
+			JPH::ShapeSettings::ShapeResult shape_result = boxComp.Settings->Create();
 
-			boxComp.Shape =  new JPH::BoxShape(Settings, shape_result);  
+			boxComp.Shape =  new JPH::BoxShape(*boxComp.Settings, shape_result);  
 
 			if (shape_result.HasError())
 			{
@@ -438,9 +447,10 @@ namespace UE {
 			
 			auto& box = boxComp.Shape->GetLocalBounds();
 
-			Renderer3D::DrawCube({transform.Translation.x, transform.Translation.y, transform.Translation.z}, 
+			if(ShowBoxes)
+				Renderer3D::DrawWireCube({transform.Translation.x, transform.Translation.y, transform.Translation.z}, 
 				{box.GetSize().GetX(), box.GetSize().GetY(), box.GetSize().GetZ()}, 
-				{0,1,0}, 0.5f);
+				{0,1,0}, 0.5f);			
 			
 		}
 
@@ -448,13 +458,15 @@ namespace UE {
 		for (auto entity : sphereShapeGroup) {
 			auto [transform, sphereComp] = sphereShapeGroup.get<TransformComponent, SphereShapeComponent>(entity);
 
-			JPH::SphereShapeSettings Settings{
-			    transform.GetRadius()
-			};
+			if(!sphereComp.Settings){
+				sphereComp.Settings = new JPH::SphereShapeSettings{
+					transform.GetRadius()
+				};
+			}
 
-			JPH::ShapeSettings::ShapeResult shape_result = Settings.Create();
+			JPH::ShapeSettings::ShapeResult shape_result = sphereComp.Settings->Create();
 
-			sphereComp.Shape =  new JPH::SphereShape(Settings, shape_result);  
+			sphereComp.Shape =  new JPH::SphereShape(*sphereComp.Settings, shape_result);  
 
 			if (shape_result.HasError())
 			{
@@ -464,7 +476,8 @@ namespace UE {
 			
 			auto& box = sphereComp.Shape->GetLocalBounds();
 
-			Renderer3D::DrawSphere({transform.Translation.x, transform.Translation.y, transform.Translation.z}, 
+			if(ShowBoxes)
+				Renderer3D::DrawWireSphere({transform.Translation.x, transform.Translation.y, transform.Translation.z}, 
 				{box.GetSize().GetX(), box.GetSize().GetY(), box.GetSize().GetZ()}, 
 				{0,0,1}, 0.5f);			
 			

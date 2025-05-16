@@ -58,7 +58,7 @@ namespace UE {
 		float GetRadius() const
 		{
 			// Assuming you're transforming a unit sphere
-			return glm::compMax(Scale); // max(Scale.x, Scale.y, Scale.z)
+			return glm::compMax(Scale) * 0.5f; // max(Scale.x, Scale.y, Scale.z)
 		}
 	};
 
@@ -103,7 +103,7 @@ namespace UE {
 		JPH::Ref<JPH::Shape> Shape;		
 		JPH::EMotionType Type;
 		JPH::ObjectLayer Layer;
-		// JPH::Ref<JPH::BodyCreationSettings> Setting;
+		JPH::BodyCreationSettings* Setting;
 		glm::vec3 Velocity = glm::vec3(0);
 		bool Activate;
 
@@ -114,7 +114,7 @@ namespace UE {
 	struct  BoxShapeComponent{
 		
 		JPH::Ref<JPH::BoxShape> Shape;
-		// Ref<JPH::BoxShapeSettings> Setting;s
+		JPH::BoxShapeSettings* Settings;
 		BoxShapeComponent() = default;
 		BoxShapeComponent(const BoxShapeComponent&) = default;		
 	};
@@ -122,7 +122,7 @@ namespace UE {
 	struct  SphereShapeComponent{
 		
 		JPH::Ref<JPH::SphereShape> Shape;
-		// Ref<JPH::SphereShapeSettings> Setting;s
+		JPH::SphereShapeSettings* Settings;
 		SphereShapeComponent() = default;
 		SphereShapeComponent(const SphereShapeComponent&) = default;		
 	};

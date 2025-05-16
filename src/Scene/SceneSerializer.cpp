@@ -28,30 +28,7 @@ namespace UE {
 		out << YAML::Flow;
 		out << YAML::BeginSeq << v.x << v.y << v.z << v.w << YAML::EndSeq;
 		return out;
-	}
-
-	static std::string RigidBody3DBodyTypeToString(JPH::EMotionType bodyType)
-	{
-		switch (bodyType)
-		{
-			case JPH::EMotionType::Static:    return "Static";
-			case JPH::EMotionType::Dynamic:   return "Dynamic";
-			case JPH::EMotionType::Kinematic: return "Kinematic";
-		}
-
-		UE_CORE_ASSERT(false, "Unknown body type");
-		return {};
-	}
-
-	static JPH::EMotionType RigidBody3DBodyTypeFromString(const std::string& bodyTypeString)
-	{
-		if (bodyTypeString == "Static")    return JPH::EMotionType::Static;
-		if (bodyTypeString == "Dynamic")   return JPH::EMotionType::Dynamic;
-		if (bodyTypeString == "Kinematic") return JPH::EMotionType::Kinematic;
-	
-		UE_CORE_ASSERT(false, "Unknown body type");
-		return JPH::EMotionType::Static;
-	}
+	}	
 
 	SceneSerializer::SceneSerializer(const Ref<Scene>& scene)
 		: m_Scene(scene)
