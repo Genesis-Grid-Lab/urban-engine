@@ -1,17 +1,10 @@
 #pragma once
 
 #include "Config.h"
-#include "Timestep.h"
-#include "UUID.h"
-#include "Renderer/Camera.h"
-#include "Renderer/EditorCamera.h"
-#include "Renderer/Texture.h"
-#include "UE_Assert.h"
+#include "Core/Timestep.h"
+#include "Core/UUID.h"
 #include <entt.hpp>
-#include "Renderer/Shader.h"
-#include "Renderer/Model.h"
-#include "Auxiliaries/Physics.h"
-
+#include "Renderer/Framebuffer.h"
 namespace UE {
 
     class Entity;
@@ -40,40 +33,28 @@ namespace UE {
 
         void OnRuntimeStart();
 		void OnRuntimeStop();
-        void PhysicsUpdate(float dt);
+        // void PhysicsUpdate(float dt);
 
-        void OnUpdateRuntime(Timestep ts, int& mouseX, int& mouseY, glm::vec2& viewportSize);  
-        void OnUpdateEditor(Timestep ts, EditorCamera& camera, int& mouseX, int& mouseY, glm::vec2& viewportSize);
-        void DrawScreen(Ref<Framebuffer>& buffer, EditorCamera& camera);          
-        void OnViewportResize(uint32_t width, uint32_t height);   
-        void OnMouseInput(float mouseX, float mouseY, bool mousePressed, Timestep ts);     
+        void OnUpdateRuntime(Timestep ts);  
+        void OnUpdateEditor(Timestep ts);
 
         void DuplicateEntity(Entity entity);
-
-        Entity GetHoveredEntity();
-
-        entt::registry& GetRegistry() { return m_Registry;}
-        // Ref<Framebuffre>& GetBuffer() { return m_Framebuffer;}
-        //temp
-        Ref<Framebuffer> m_Framebuffer;
-        PhysicsEngine m_Physics3D;
+       
         bool ShowBoxes = false;
         bool ShowCams = true;
+        bool ShowBoxesPlay = false;
+        Scope<Framebuffer> m_Buffer;
     private:
         template<typename T>
         void  OnComponentAdded(Entity entity, T& component);
     private:
-        void ReadPixelEntity(int& mouseX, int& mouseY, glm::vec2& viewportSize);
+        // void ReadPixelEntity(int& mouseX, int& mouseY, glm::vec2& viewportSize);
     private:
         entt::registry m_Registry;
-        Ref<Texture2D> m_Screen;
+        Camera3D camera = {0};
         uint32_t m_ViewportWidth = 0, m_ViewportHeight = 0;
         float m_MouseX, m_MouseY;
         friend class Entity;                
-        friend class SceneSerializer;    
-    //temp
-    private:
-        Ref<Shader> TesShader;
-        Ref<Model> TesModel;
+        // friend class SceneSerializer;    
     };
 }

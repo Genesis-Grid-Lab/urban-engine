@@ -1,34 +1,25 @@
 #include "uepch.h"
-#include "Application.h"
-#include <Renderer/Renderer.h>
-#include <GLFW/glfw3.h>
+#include "Core/Application.h"
 
 namespace UE {
 
     Application* Application::s_Instance = nullptr;
 
-    Application::Application(const std::string& name, const glm::vec2& size, ApplicationCommandLineArgs args)
-        :m_CommandLineArgs(args){
+    Application::Application(const std::string& name, int width, int height){
+        UE_CORE_ASSERT(!s_Instance, "Application already exists!");
 
-            UE_CORE_ASSERT(!s_Instance, "Application already exists!");
+        s_Instance = this;
 
-            s_Instance = this;
-            m_Window = CreateScope<Window>(WindowProps(name, size.x, size.y));
-            m_Window->SetEventCallback(BIND_EVENT_FN(Application::OnEvent));
+        m_Window = CreateScope<Window>();
 
-            UE::Renderer::Init();
+        m_Window->Init(width, height, name.c_str());
 
-            m_ScreenShader = Shader::Create("Data/Shaders/Screen.glsl");
-
-    #if UE_DEBUG
-            m_ImGuiLayer = new ImGuiLayer();
-            PushOverlay(m_ImGuiLayer);
-    #endif
-
-        }
+        m_ImGuiLayer = new ImGuiLayer();
+        PushOverlay(m_ImGuiLayer);
+    }
 
     Application::~Application(){
-        UE::Renderer::Shutdown();
+
     }
 
     void Application::PushLayer(Layer* layer)
@@ -44,49 +35,38 @@ namespace UE {
     }
 
     void Application::PopLayer(Layer* layer) {
+        //layer on dettach
         m_LayerStack.PopLayer(layer);
+    }
+
+    void Application::PopOverlay(Layer* layer) {
+        m_LayerStack.PopOverlay(layer);
     }
 
     void Application::Close(){
         m_Running = false;
     }
 
-    void Application::OnEvent(Event& e){
-
-        EventDispatcher dispatcher(e);
-        dispatcher.Dispatch<WindowCloseEvent>(BIND_EVENT_FN(Application::OnWindowClose));
-        dispatcher.Dispatch<WindowResizeEvent>(BIND_EVENT_FN(Application::OnWindowResize));
-
-        for (auto it = m_LayerStack.rbegin(); it != m_LayerStack.rend(); ++it)
-        {
-            if (e.Handled) 
-                break;
-            (*it)->OnEvent(e);
-        }
-    }
 
     void Application::Run(){
 
-        while(m_Running){
-            float time = (float)glfwGetTime();
-            Timestep timestep = time - m_LastFrameTime;
-            m_LastFrameTime = time;
-                
+        while(m_Running && !m_Window->ShouldClose()){
+            // float time = (float)glfwGetTime();
+            Timestep timestep;
+             
+            BeginDrawing();
             if(!m_Minimized){
                 for(Layer* layer : m_LayerStack)
                     layer->OnUpdate(timestep);
-
-    #if UE_DEBUG                
+                 
                 m_ImGuiLayer->Begin();
 
                     for(Layer* layer : m_LayerStack)
                         layer->OnImGuiRender();
 
-                m_ImGuiLayer->End();
-    #endif            
-            }
-
-            m_Window->OnUpdate();
+                m_ImGuiLayer->End();           
+            }     
+            EndDrawing();       
 
             while (!m_LayerActionQueue.empty()) {
                 LayerAction action = m_LayerActionQueue.front();
@@ -100,25 +80,5 @@ namespace UE {
                 }
             }
         }
-    }
-
-    bool Application::OnWindowClose(WindowCloseEvent& e){
-
-        m_Running = false;
-        return true;
-    }
-
-    bool Application::OnWindowResize(WindowResizeEvent& e){
-
-        if(e.GetWidth() == 0 || e.GetHeight() == 0){
-            m_Minimized = true;
-            return false;
-        }
-
-        m_Minimized = false;
-
-        UE::Renderer::OnWindowResize(e.GetWidth(), e.GetHeight());
-
-        return false;
     }
 }

@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Application.h"
+#include "Core/Application.h"
 
-extern UE::Application* UE::CreateApplication(ApplicationCommandLineArgs args);
+extern UE::Application* UE::CreateApplication();
 
 int main(int argc, char** argv){
     
@@ -10,7 +10,7 @@ int main(int argc, char** argv){
 
     UE_CORE_INFO("Loading Application");
 
-    auto app = UE::CreateApplication({ argc, argv });
+    auto app = UE::CreateApplication();
 
     app->Run();
 

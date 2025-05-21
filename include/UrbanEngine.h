@@ -1,33 +1,11 @@
 #pragma once
 
-#include "Core/Config.h"
-#include "Core/Log.h"
-#include "Core/UE_Assert.h"
-#include "Core/Window.h"
-#include "Core/LayerStack.h"
-#include "Core/Input.h"
-#include "Core/Layer.h"
-#include "Events/Event.h"
-#include "Events/ApplicationEvent.h"
 #include "Core/Application.h"
-#include "Renderer/Renderer.h"
-#include "Renderer/Renderer2D.h"
-#include "Renderer/Renderer3D.h"
-#include "Renderer/RenderCommand.h"
-#include "Renderer/Camera.h"
-#include "Renderer/EditorCamera.h"
-#include "Renderer/Texture.h"
-#include "Renderer/Animation/Animation.h"
-#include "Renderer/Animation/Animator.h"
-#include "Renderer/Framebuffer.h"
-#include "Renderer/Font.h"
+#include "Core/Layer.h"
+#include "Core/Timestep.h"
+#include "Core/Log.h"
 #include "Scene/Scene.h"
-#include "Scene/SceneSerializer.h"
-#include "Scene/Components.h"
 #include "Scene/Entity.h"
-#include "Math/UEMath.h"
-#include "Auxiliaries/PlatformUtils.h"
-//TO DO: remove
+#include <raylib.h>
+//temp
 #include <imgui.h>
-#include <imgui_internal.h>
-#include "ImGuizmo.h"
