@@ -9,13 +9,14 @@ namespace UE {
         Framebuffer(int width, int height);
         ~Framebuffer();
 
-        void Resize();
+        void Resize(int width, int height);
         void Unbind();
         void Bind();
 
         RenderTexture &GetTexture() { return m_ViewTexture;}
-    private:
+        //temp
         int m_Width, m_Height;
+    private:
         RenderTexture m_ViewTexture;
     };
 }

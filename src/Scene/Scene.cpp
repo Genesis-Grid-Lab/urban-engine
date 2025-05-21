@@ -120,8 +120,7 @@ namespace UE {
     void Scene::OnUpdateRuntime(Timestep ts){
     }
 
-    void Scene::OnUpdateEditor(Timestep ts){
-		m_Buffer->Resize();
+    void Scene::OnUpdateEditor(Timestep ts){		
 		m_Buffer->Bind();
         ClearBackground(RAYWHITE);
 

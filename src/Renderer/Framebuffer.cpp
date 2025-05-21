@@ -13,10 +13,10 @@ namespace UE {
         UnloadRenderTexture(m_ViewTexture);
     }
 
-    void Framebuffer::Resize(){
+    void Framebuffer::Resize(int width, int height){
         if(IsWindowResized()){
             UnloadRenderTexture(m_ViewTexture);
-            m_ViewTexture = LoadRenderTexture(GetScreenWidth(), GetScreenHeight());
+            m_ViewTexture = LoadRenderTexture(width, height);
         }
     }
 

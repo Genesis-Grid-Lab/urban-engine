@@ -39,6 +39,8 @@ namespace UE {
         void OnUpdateEditor(Timestep ts);
 
         void DuplicateEntity(Entity entity);
+
+        entt::registry& GetRegistry() { return m_Registry;}
        
         bool ShowBoxes = false;
         bool ShowCams = true;
