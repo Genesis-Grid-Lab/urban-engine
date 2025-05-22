@@ -53,10 +53,12 @@ namespace UE {
         // void ReadPixelEntity(int& mouseX, int& mouseY, glm::vec2& viewportSize);
     private:
         entt::registry m_Registry;
-        Camera3D camera = {0};
         uint32_t m_ViewportWidth = 0, m_ViewportHeight = 0;
         float m_MouseX, m_MouseY;
         friend class Entity;                
         // friend class SceneSerializer;    
+    public:
+        //temp
+        Camera3D camera = {0};
     };
 }
