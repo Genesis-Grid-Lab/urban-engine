@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Renderer/Skybox.h"
 #include "Core/Config.h"
 #include "Core/UUID.h"
 
@@ -47,5 +48,12 @@ namespace UE {
 		ModelComponent() = default;
 		ModelComponent(ModelComponent&) = default;
 	};
+
+	struct SkyboxComponent{
+		Skyboxlib Skybox;
+		
+        SkyboxComponent() = default;
+        SkyboxComponent(SkyboxComponent&) = default;
+    };
 
 }

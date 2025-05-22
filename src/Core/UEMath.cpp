@@ -1,6 +1,7 @@
 #include "uepch.h"
 #include "Core/UEMath.h"
 #include "raymath.h"
+#include "Scene/Components.h"
 
 namespace UE::Math {
     // Decomposes a transformation matrix into translation, rotation (in radians), and scale.

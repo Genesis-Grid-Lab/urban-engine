@@ -28,6 +28,9 @@ namespace UE {
 	}
     Scene::~Scene(){
 		// m_Physics3D.CleanUp();
+		ViewEntity<Entity, SkyboxComponent>([this](auto entiy, auto& comp){
+			UnloadSkybox(&comp.Skybox);			
+		});
 	}
 
     template<typename Component>
@@ -127,7 +130,12 @@ namespace UE {
         UpdateCamera(&camera, CAMERA_FREE);
          if (IsKeyPressed('Z')) camera.target = Vector3{ 0.0f, 0.0f, 0.0f };
 
-        BeginMode3D(camera);                  
+        BeginMode3D(camera);  
+		
+		ViewEntity<Entity, SkyboxComponent>([this](auto entiy, auto& comp){
+			SkyboxUpdate(&comp.Skybox);
+			DrawSkyboxModel(&comp.Skybox);
+		});
 
         ViewEntity<Entity, PlaneComponent>([this] (auto entity, auto& comp){
 
@@ -135,7 +143,20 @@ namespace UE {
 			DrawPlane(transform.Translation, comp.Size, comp.color);	
 		});	
 
+		ViewEntity<Entity, ModelComponent>([this] (auto entity, auto& comp){
+
+			auto& transform = entity.template GetComponent<TransformComponent>();	
+			// DrawModel(comp.mModel,transform.Translation , 1.0f, WHITE);
+			// BoundingBox box = GetModelBoundingBox(comp.mModel);
+			// DrawBoundingBox(box, RED);
+			DrawMesh(comp.mModel.meshes[0], LoadMaterialDefault(), MatrixIdentity());
+		});	
+		// DrawCube(Vector3Zero(), 1, 1, 1, RED);
+
         EndMode3D();
+		ViewEntity<Entity, SkyboxComponent>([this](auto entiy, auto& comp){
+			DrawSkyboxTexture(&comp.Skybox);			
+		});
 		m_Buffer->Unbind();
     }
 
@@ -172,6 +193,15 @@ namespace UE {
 
     template<>
 	void  Scene::OnComponentAdded<PlaneComponent>(Entity entity, PlaneComponent& component)
+	{
+	}
+
+	template<>
+	void  Scene::OnComponentAdded<SkyboxComponent>(Entity entity, SkyboxComponent& component)
+	{
+	}
+	template<>
+	void  Scene::OnComponentAdded<ModelComponent>(Entity entity, ModelComponent& component)
 	{
 	}
 	

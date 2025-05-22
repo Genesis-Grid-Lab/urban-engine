@@ -1,8 +1,10 @@
 #pragma once
 
 #include <Core/Config.h>
-#include <raylib.h>
-#include "Scene/Components.h"
+namespace UE {
+
+    struct TransformComponent;
+}
 
 namespace UE::Math {
 

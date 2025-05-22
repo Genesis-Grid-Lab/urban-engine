@@ -12,7 +12,10 @@ add_subdirectory(vendor/spdlog)
 # add_subdirectory(vendor/yaml-cpp)
 # set(USE_STATIC_MSVC_RUNTIME_LIBRARY ON)
 # add_subdirectory(vendor/JoltPhysics/build)
-add_subdirectory(vendor/raylib)
+add_subdirectory(vendor/raylib2)
+set(ASSIMP_BUILD_TESTS OFF)
+set(ASSIMP_INSTALL OFF)
+add_subdirectory(vendor/assimp)
 
 # gather all source files
 if(WIN32)
@@ -70,8 +73,9 @@ target_include_directories(${PROJECT_NAME} PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/vendor/ImGuizmo
     ${CMAKE_CURRENT_SOURCE_DIR}/vendor/yaml-cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/vendor/JoltPhysics
-    ${CMAKE_CURRENT_SOURCE_DIR}/vendor/raylib/src  
+    ${CMAKE_CURRENT_SOURCE_DIR}/vendor/raylib2/src  
     ${CMAKE_CURRENT_SOURCE_DIR}/vendor/rImGui  
+    ${CMAKE_CURRENT_SOURCE_DIR}/vendor/assimp/include
     
 )
 
@@ -83,7 +87,8 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
 #   glm
   spdlog
   imgui
-  EnTT       
+  EnTT   
+  assimp    
 #   yaml-cpp
 #   Jolt
 )

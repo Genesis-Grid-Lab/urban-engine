@@ -7,6 +7,7 @@
 #include "core/UEMath.h"
 #include "Scene/Scene.h"
 #include "Scene/Entity.h"
+#include "Renderer/Model.h"
 #include <raylib.h>
 //temp
 #include <imgui.h>
