@@ -25,6 +25,7 @@
 #include "Scene/SceneSerializer.h"
 #include "Scene/Components.h"
 #include "Scene/Entity.h"
+#include "Scene/ScriptableEntity.h"
 #include "Math/UEMath.h"
 #include "Auxiliaries/PlatformUtils.h"
 //TO DO: remove

@@ -33,6 +33,7 @@ namespace UE {
 			m_CurrentTime += tocksPerSecond * dt;
 			m_CurrentTime = fmod(m_CurrentTime, m_CurrentAnimation->GetDuration());
 			CalculateBoneTransform(&m_CurrentAnimation->GetRootNode(), glm::mat4(1.0f));
+            // UE_CORE_INFO("[UpdateAnimation]: Updating {0}", m_CurrentTime);
 		}
         
 	}

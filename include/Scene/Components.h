@@ -72,6 +72,23 @@ namespace UE {
 		CameraComponent(const CameraComponent&) = default;
 	};
 
+	class ScriptableEntity;
+
+	struct NativeScriptComponent
+	{
+		ScriptableEntity* Instance = nullptr;
+
+		ScriptableEntity*(*InstantiateScript)();
+		void (*DestroyScript)(NativeScriptComponent*);
+
+		template<typename T>
+		void Bind()
+		{
+			InstantiateScript = []() { return static_cast<ScriptableEntity*>(new T()); };
+			DestroyScript = [](NativeScriptComponent* nsc) { delete nsc->Instance; nsc->Instance = nullptr; };
+		}
+	};
+
 	struct  ModelComponent{
 		Ref<Model> ModelData;
 		Ref<Animation> AnimationData;
@@ -104,11 +121,27 @@ namespace UE {
 		JPH::EMotionType Type;
 		JPH::ObjectLayer Layer;
 		JPH::BodyCreationSettings* Setting;
+		JPH::Body* Body;
 		glm::vec3 Velocity = glm::vec3(0);
 		bool Activate;
 
 		RigidbodyComponent() = default;
 		RigidbodyComponent(const RigidbodyComponent&) = default;
+	};
+
+	struct CharacterComponent{
+		JPH::BodyID ID;
+		JPH::Ref<JPH::Shape> Shape;	
+		JPH::Character* Character;
+		JPH::CharacterSettings* Setting;
+		JPH::EMotionType Type;
+		JPH::ObjectLayer Layer;
+		JPH::Body* Body;
+		glm::vec3 Velocity = glm::vec3(0);
+		bool Activate;
+
+		CharacterComponent() = default;
+		CharacterComponent(const CharacterComponent&) = default;
 	};
 
 	struct  BoxShapeComponent{

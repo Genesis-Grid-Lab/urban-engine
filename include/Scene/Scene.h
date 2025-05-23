@@ -59,6 +59,7 @@ namespace UE {
         PhysicsEngine m_Physics3D;
         bool ShowBoxes = false;
         bool ShowCams = true;
+        bool ShowBoxesPlay = false;
     private:
         template<typename T>
         void  OnComponentAdded(Entity entity, T& component);
@@ -71,9 +72,5 @@ namespace UE {
         float m_MouseX, m_MouseY;
         friend class Entity;                
         friend class SceneSerializer;    
-    //temp
-    private:
-        Ref<Shader> TesShader;
-        Ref<Model> TesModel;
     };
 }

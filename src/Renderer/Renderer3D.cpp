@@ -10,6 +10,7 @@
 
 namespace UE {
     static Ref<Shader> m_Shader;    
+    static Ref<Shader> m_ShaderSimple;    
     static Ref<Shader> m_LightShader;
     static Ref<Shader> m_SkyShader;
     static glm::vec3 m_LightPos;      
@@ -128,6 +129,7 @@ namespace UE {
     void Renderer3D::Init(){
         // s_ScreenShader = CreateRef<Shader>("Data/Shaders/Screen.glsl");
         m_Shader = Shader::Create("Data/Shaders/model.glsl");
+        m_ShaderSimple = Shader::Create("Data/Shaders/Simplemodel.glsl");
         m_LightShader = Shader::Create("Data/Shaders/BasicLight.glsl");
         m_SkyShader = Shader::Create("Data/Shaders/skybox.glsl");
         m_LightModel = CreateRef<Model>("Resources/cube.fbx");    
@@ -178,8 +180,15 @@ namespace UE {
         m_Shader->SetFloat3("u_LightPos", m_LightPos);                     
         m_LightShader->Bind();
         m_LightShader->SetMat4("u_View", camera.GetViewMatrix());
-        m_LightShader->SetMat4("u_Projection", camera.GetProjectionMatrix());    
+        m_LightShader->SetMat4("u_Projection", camera.GetProjectionMatrix()); 
+           
+        m_ShaderSimple->Bind();
+        m_ShaderSimple->SetMat4("u_View", camera.GetViewMatrix());
+        m_ShaderSimple->SetMat4("u_Projection", camera.GetProjectionMatrix());
+        m_ShaderSimple->SetFloat3("u_ViewPos", camera.GetPosition());        
         
+        m_ShaderSimple->SetFloat3("u_LightPos", m_LightPos); 
+
         m_SkyShader->Bind();
         m_Skybox->Draw(m_SkyShader, camera.GetViewMatrix(), camera.GetProjectionMatrix());
     }
@@ -193,7 +202,14 @@ namespace UE {
         m_Shader->SetFloat3("u_LightPos", m_LightPos);                     
         m_LightShader->Bind();
         m_LightShader->SetMat4("u_View", glm::inverse(transform));
-        m_LightShader->SetMat4("u_Projection", camera.GetProjectionMatrix());    
+        m_LightShader->SetMat4("u_Projection", camera.GetProjectionMatrix());   
+        
+        m_ShaderSimple->Bind();
+        m_ShaderSimple->SetMat4("u_View", glm::inverse(transform));
+        m_ShaderSimple->SetMat4("u_Projection", camera.GetProjectionMatrix());
+        m_ShaderSimple->SetFloat3("u_ViewPos", pos);        
+        
+        m_ShaderSimple->SetFloat3("u_LightPos", m_LightPos);
         
         m_SkyShader->Bind();
         m_Skybox->Draw(m_SkyShader, glm::inverse(transform), camera.GetProjectionMatrix());
@@ -210,7 +226,15 @@ namespace UE {
         m_Shader->SetInt("u_EntityID", -1);
         m_LightShader->Bind();
         m_LightShader->SetMat4("u_View", camera.GetViewMatrix());
-        m_LightShader->SetMat4("u_Projection", camera.GetProjectionMatrix());    
+        m_LightShader->SetMat4("u_Projection", camera.GetProjectionMatrix());  
+        
+        m_ShaderSimple->Bind();
+        m_ShaderSimple->SetMat4("u_View", camera.GetViewMatrix());
+        m_ShaderSimple->SetMat4("u_Projection", camera.GetProjectionMatrix());
+        m_ShaderSimple->SetFloat3("u_ViewPos", camera.GetPosition());
+        
+        m_ShaderSimple->SetFloat3("u_LightPos", m_LightPos);             
+        m_ShaderSimple->SetInt("u_EntityID", -1);
         
         m_SkyShader->Bind();
         m_Skybox->Draw(m_SkyShader, camera.GetViewMatrix(), camera.GetProjectionMatrix());
@@ -245,6 +269,7 @@ namespace UE {
 
         m_Shader->SetInt("u_EntityID", entityID);
         model->Draw(m_Shader);
+        m_Shader->Unbind();
     }
 
     void Renderer3D::DrawModel(const Ref<Model>& model,const glm::vec3& position,const glm::vec3& size, const glm::vec3& color, const float transparancy){
@@ -260,12 +285,13 @@ namespace UE {
 
 
     void Renderer3D::DrawCube(const glm::mat4& transform, const glm::vec3& color, const float transparancy, int entityID){
-        m_Shader->Bind();
-        m_Shader->SetMat4("u_Model", transform);
-        m_Shader->SetFloat3("u_Color", color); 
-        m_Shader->SetInt("u_EntityID", entityID);
-        m_Shader->SetFloat("u_Transparancy", transparancy);        
-        s_CubeMesh->Draw(m_Shader);
+        m_ShaderSimple->Bind();
+        m_ShaderSimple->SetMat4("u_Model", transform);
+        m_ShaderSimple->SetFloat3("u_Color", color); 
+        m_ShaderSimple->SetInt("u_EntityID", entityID);
+        m_ShaderSimple->SetFloat("u_Transparancy", transparancy);        
+        s_CubeMesh->Draw(m_ShaderSimple);
+        m_ShaderSimple->Unbind();
     }
     
     void Renderer3D::DrawCube(const glm::vec3& position, const glm::vec3& size, const glm::vec3& color, const float transparancy) {
@@ -275,12 +301,13 @@ namespace UE {
     }
 
     void Renderer3D::DrawSphere(const glm::mat4& transform, const glm::vec3& color, float transparancy, int entityID) {
-        m_Shader->Bind();
-        m_Shader->SetMat4("u_Model", transform);
-        m_Shader->SetFloat3("u_Color", color); 
-        m_Shader->SetInt("u_EntityID", entityID);
-        m_Shader->SetFloat("u_Transparancy", transparancy);
-        s_SphereMesh->Draw(m_Shader);
+        m_ShaderSimple->Bind();
+        m_ShaderSimple->SetMat4("u_Model", transform);
+        m_ShaderSimple->SetFloat3("u_Color", color); 
+        m_ShaderSimple->SetInt("u_EntityID", entityID);
+        m_ShaderSimple->SetFloat("u_Transparancy", transparancy);
+        s_SphereMesh->Draw(m_ShaderSimple);
+        m_ShaderSimple->Unbind();
     }
 
     void Renderer3D::DrawSphere(const glm::vec3& position, const glm::vec3& scale, const glm::vec3& color, float transparancy) {
@@ -326,8 +353,10 @@ namespace UE {
     }
 
     void Renderer3D::RunAnimation(Ref<Animation> animation, float ts){
+        m_Shader->Bind();
         if(s_Animator->GetCurrentAnimation() != animation){
             s_Animator->PlayAnimation(animation);
+            UE_CORE_INFO("[renderer3d]: Running");
         }
 
         s_Animator->UpdateAnimation(ts);
@@ -338,5 +367,7 @@ namespace UE {
             std::string uniformName = "u_FinalBonesMatrices[" + std::to_string(i) + "]";
             m_Shader->SetMat4(uniformName, finalBones[i]);
         }
+
+        m_Shader->Unbind();
     }
 }

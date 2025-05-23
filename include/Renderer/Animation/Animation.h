@@ -31,6 +31,9 @@ namespace UE {
         { 
             return m_BoneInfoMap;
         }
+
+        //TO DO: change
+        std::string m_Path;
     private:
         void ReadMissingBones(const aiAnimation* animation, Ref<Model>& model);
         void ReadHierarchyData(AssimpNodeData& dest, const aiNode* src);

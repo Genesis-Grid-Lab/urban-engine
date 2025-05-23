@@ -8,6 +8,7 @@
 #include <glm/glm.hpp>
 #include "UE_Assert.h"
 #include "Scene/Entity.h"
+#include "Scene/ScriptableEntity.h"
 #include "Core/Log.h"
 //temp
 #include <glad/glad.h>
@@ -63,6 +64,10 @@ namespace UE {
 	{
 		Ref<Scene> newScene = CreateRef<Scene>(other->m_ViewportWidth, other->m_ViewportHeight);
 
+		newScene->ShowBoxes = other->ShowBoxes;
+		newScene->ShowBoxesPlay = other->ShowBoxesPlay;
+		newScene->ShowCams = other->ShowCams;
+		// newScene->m_Physics3D. = other->m_Physics3D;
 		auto& srcSceneRegistry = other->m_Registry;
 		auto& dstSceneRegistry = newScene->m_Registry;
 		std::unordered_map<UUID, entt::entity> enttMap;
@@ -86,6 +91,8 @@ namespace UE {
 		CopyComponent<RigidbodyComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);		
 		CopyComponent<BoxShapeComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);		
 		CopyComponent<SphereShapeComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);	
+		CopyComponent<NativeScriptComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);	
+		CopyComponent<CharacterComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);	
 
 		return newScene;
 	}
@@ -199,24 +206,100 @@ namespace UE {
 
 
 			// Create the actual rigid body
-			JPH::Body *body = body_interface.CreateBody(
-				*physComp.Setting); // Note that if we run out of bodies this can return
-								// nullptr
-			if (body == nullptr)
+			if(!physComp.Body){
+				physComp.Body = body_interface.CreateBody(
+					*physComp.Setting); // Note that if we run out of bodies this can return
+									// nullptr
+			}
+
+			if (physComp.Body == nullptr)
 			{
 				UE_CORE_WARN("Error creating floor body interface. There might be too "
 							"many bodies.");
 			}
 
+			// physComp.Body->SetFriction(0.5);
+
 			// Add it to the world
-			body_interface.AddBody(body->GetID(), (JPH::EActivation)physComp.Activate);
+			body_interface.AddBody(physComp.Body->GetID(), (JPH::EActivation)physComp.Activate);
 
-			physComp.ID = body->GetID();
+			physComp.ID = physComp.Body->GetID();
 
-			body_interface.SetLinearVelocity(
-				physComp.ID,
-				JPH::Vec3(physComp.Velocity.x, physComp.Velocity.y, physComp.Velocity.z));
-			body_interface.SetRestitution(physComp.ID, 0.8F);
+			// body_interface.SetLinearVelocity(
+			// 	physComp.ID,
+			// 	JPH::Vec3(0.0f, 0.0f, 0.0f));
+			// body_interface.SetRestitution(physComp.ID, 0.8F);
+
+			body_interface.ActivateBody(physComp.ID);
+		}
+
+		auto physCharGroup = m_Registry.group<CharacterComponent>(entt::get<TransformComponent>);
+		for (auto entity : physCharGroup) {
+			auto [transform, physComp] = physCharGroup.get<TransformComponent, CharacterComponent>(entity);																	
+	
+			// Create the settings for the body itself. Note that here you can also set
+			// other properties like the restitution / friction.	
+			if(m_Registry.all_of<BoxShapeComponent>(entity)){
+				auto& boxComp = m_Registry.get<BoxShapeComponent>(entity);
+				physComp.Shape = boxComp.Shape;
+			}
+			else if(m_Registry.all_of<SphereShapeComponent>(entity)){
+				auto& boxComp = m_Registry.get<SphereShapeComponent>(entity);
+				physComp.Shape = boxComp.Shape;
+			}
+			else{
+				UE_CORE_WARN("No Shape in RgidBodyComponent");
+				return;
+			}
+
+			if(!physComp.Setting){
+				physComp.Setting = new JPH::CharacterSettings();
+					// physComp.Shape,
+					// //JPH::RVec3(0.0_r, -1.0_r, 0.0_r),
+					// JPH::RVec3(transform.Translation.x, transform.Translation.y, transform.Translation.z),
+					// JPH::Quat::sIdentity(),
+					// physComp.Type,
+					// physComp.Layer);		
+					
+				physComp.Setting->mLayer = physComp.Layer;
+				physComp.Setting->mShape = physComp.Shape;
+				//
+			}
+
+			if(!physComp.Character){
+				// physComp.Character = new JPH::Character(*physComp.Setting, 
+				// 	JPH::Vec3{transform.Translation.x, transform.Translation.y, transform.Translation.z},
+				// 	JPH::Quat::sIdentity(), 0, m_Physics3D._physics_system);
+			}
+
+
+			// Create the actual rigid body
+			// if(!physComp.Body){
+			// 	physComp.Body = body_interface.CreateBody(
+			// 		*physComp.Setting); // Note that if we run out of bodies this can return
+			// 						// nullptr
+			// }
+
+			// if (physComp.Body == nullptr)
+			// {
+			// 	UE_CORE_WARN("Error creating floor body interface. There might be too "
+			// 				"many bodies.");
+			// }
+
+			// physComp.Body->SetFriction(0.5);
+
+			// Add it to the world
+			// body_interface.AddBody(physComp.Character->GetID(), (JPH::EActivation)physComp.Activate);
+
+			// physComp.ID = physComp.Character->GetID();
+			physComp.Character->AddToPhysicsSystem();			
+
+			// body_interface.SetLinearVelocity(
+			// 	physComp.ID,
+			// 	JPH::Vec3(0.0f, 0.0f, 0.0f));
+			// body_interface.SetRestitution(physComp.ID, 0.8F);
+
+			// body_interface.ActivateBody(physComp.ID);
 		}
 
 		m_Physics3D.StartSimulation();
@@ -285,6 +368,25 @@ namespace UE {
 		RenderCommand::SetClearColor({0.1f, 0.1f, 0.1f, 1});
     	RenderCommand::Clear();
 
+		// Update scripts
+		{
+			m_Registry.view<NativeScriptComponent>().each([=](auto entity, auto& nsc)
+			{
+				JPH::BodyInterface &body_interface = m_Physics3D._physics_system->GetBodyInterface();
+				// TODO: Move to Scene::OnScenePlay
+				if (!nsc.Instance)
+				{
+					nsc.Instance = nsc.InstantiateScript();
+					nsc.Instance->m_Entity = Entity{ entity, this };
+					nsc.Instance->m_Scene = this;
+					nsc.Instance->m_BodyInterface = &body_interface;
+					nsc.Instance->OnCreate();
+				}
+
+				nsc.Instance->OnUpdate(ts);
+			});
+		}
+
 		PhysicsUpdate(ts);
 
 		// Render 3D
@@ -323,7 +425,7 @@ namespace UE {
 				
 				if(modelComp.AnimationData){
 					// modelComp.AnimationData->SetModel(modelComp.ModelData);
-					Renderer3D::RunAnimation(modelComp.AnimationData, ts);
+					// Renderer3D::RunAnimation(modelComp.AnimationData, ts);
 				}
 				
 				Renderer3D::DrawModel(modelComp.ModelData, transform.GetTransform(), glm::vec3(1.0f),(int)entity);			
@@ -334,6 +436,32 @@ namespace UE {
 				auto [transform, CubeComp] = CubeGroup.get<TransformComponent, CubeComponent>(entity);
 				
 				Renderer3D::DrawCube(transform.GetTransform(), CubeComp.Color, (int)entity);
+			}
+
+			auto boxShapeGroup = m_Registry.group<BoxShapeComponent>(entt::get<TransformComponent>);
+			for (auto entity : boxShapeGroup) {
+				auto [transform, boxComp] = boxShapeGroup.get<TransformComponent, BoxShapeComponent>(entity);				
+				
+				auto& box = boxComp.Shape->GetLocalBounds();
+
+				if(ShowBoxesPlay)
+					Renderer3D::DrawWireCube({transform.Translation.x, transform.Translation.y, transform.Translation.z}, 
+					{box.GetSize().GetX(), box.GetSize().GetY(), box.GetSize().GetZ()}, 
+					{0,1,0}, 0.5f);			
+				
+			}
+
+			auto sphereShapeGroup = m_Registry.group<SphereShapeComponent>(entt::get<TransformComponent>);
+			for (auto entity : sphereShapeGroup) {
+				auto [transform, sphereComp] = sphereShapeGroup.get<TransformComponent, SphereShapeComponent>(entity);				
+				
+				auto& box = sphereComp.Shape->GetLocalBounds();
+
+				if(ShowBoxesPlay)
+					Renderer3D::DrawWireSphere({transform.Translation.x, transform.Translation.y, transform.Translation.z}, 
+					{box.GetSize().GetX(), box.GetSize().GetY(), box.GetSize().GetZ()}, 
+					{0,0,1}, 0.5f);			
+				
 			}
 			
 
@@ -404,7 +532,7 @@ namespace UE {
 			
 			if(modelComp.AnimationData){
 				// modelComp.AnimationData->SetModel(modelComp.ModelData);
-				Renderer3D::RunAnimation(modelComp.AnimationData, ts);
+				// Renderer3D::RunAnimation(modelComp.AnimationData, ts);
 			}
 			
 			Renderer3D::DrawModel(modelComp.ModelData, transform.GetTransform(), glm::vec3(1),(int)entity);			
@@ -686,6 +814,16 @@ namespace UE {
 
 	template<>
 	void  Scene::OnComponentAdded<SphereShapeComponent>(Entity entity, SphereShapeComponent& component)
+	{
+	}
+
+	template<>
+	void Scene::OnComponentAdded<NativeScriptComponent>(Entity entity, NativeScriptComponent& component)
+	{
+	}
+
+	template<>
+	void Scene::OnComponentAdded<CharacterComponent>(Entity entity, CharacterComponent& component)
 	{
 	}
 

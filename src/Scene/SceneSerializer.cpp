@@ -101,7 +101,7 @@ namespace UE {
 
 			out << YAML::EndMap; // CameraComponent
 		}
-
+		
 		if (entity.HasComponent<ModelComponent>())
 		{
 			out << YAML::Key << "ModelComponent";
@@ -109,11 +109,19 @@ namespace UE {
 
 			auto& modelComponent = entity.GetComponent<ModelComponent>();
 			auto& model = modelComponent.ModelData;
+			auto& modelAnimation = modelComponent.AnimationData;
 
 			out << YAML::Key << "Model" << YAML::Value;
 			out << YAML::BeginMap; // Model
 			out << YAML::Key << "Path" << YAML::Value << model->m_Path;
 			out << YAML::EndMap; // Model
+
+			if(modelAnimation){
+				out << YAML::Key << "ModelAnimation" << YAML::Value;
+				out << YAML::BeginMap; // ModelAnimation
+				out << YAML::Key << "Path" << YAML::Value << modelAnimation->m_Path;
+				out << YAML::EndMap; // ModelAnimation
+			}
 
 			out << YAML::EndMap; // ModelComponent
 		}
@@ -154,33 +162,12 @@ namespace UE {
 			out << YAML::EndMap; // SphereShapeComponent
 		}
 
-		// if (entity.HasComponent<Rigidbody2DComponent>())
-		// {
-		// 	out << YAML::Key << "Rigidbody2DComponent";
-		// 	out << YAML::BeginMap; // Rigidbody2DComponent
-
-		// 	auto& rb2dComponent = entity.GetComponent<Rigidbody2DComponent>();
-		// 	out << YAML::Key << "BodyType" << YAML::Value << RigidBody2DBodyTypeToString(rb2dComponent.Type);
-		// 	out << YAML::Key << "FixedRotation" << YAML::Value << rb2dComponent.FixedRotation;
-
-		// 	out << YAML::EndMap; // Rigidbody2DComponent
-		// }
-
-		// if (entity.HasComponent<BoxCollider2DComponent>())
-		// {
-		// 	out << YAML::Key << "BoxCollider2DComponent";
-		// 	out << YAML::BeginMap; // BoxCollider2DComponent
-
-		// 	auto& bc2dComponent = entity.GetComponent<BoxCollider2DComponent>();
-		// 	out << YAML::Key << "Offset" << YAML::Value << bc2dComponent.Offset;
-		// 	out << YAML::Key << "Size" << YAML::Value << bc2dComponent.Size;
-		// 	out << YAML::Key << "Density" << YAML::Value << bc2dComponent.Density;
-		// 	out << YAML::Key << "Friction" << YAML::Value << bc2dComponent.Friction;
-		// 	out << YAML::Key << "Restitution" << YAML::Value << bc2dComponent.Restitution;
-		// 	out << YAML::Key << "RestitutionThreshold" << YAML::Value << bc2dComponent.RestitutionThreshold;
-
-		// 	out << YAML::EndMap; // BoxCollider2DComponent
-		// }
+		if(entity.HasComponent<NativeScriptComponent>()){
+			out << YAML::Key << "NativeScriptComponent";
+			out << YAML::BeginMap; // NativeScriptComponent
+			out << YAML::Key << "PATH HERE";
+			out << YAML::EndMap; // NativeScriptComponent
+		}
 
 		out << YAML::EndMap; // Entity
 	}
@@ -196,14 +183,14 @@ namespace UE {
 			Entity entity = { entityID, m_Scene.get() };
 			if (!entity)
 				return;
-
+			
 			SerializeEntity(out, entity);
 		});
 		out << YAML::EndSeq;
 		out << YAML::EndMap;
 
 		std::ofstream fout(filepath);
-		fout << out.c_str();
+		fout << out.c_str();		
 	}
 
 	void SceneSerializer::SerializeRuntime(const std::string& filepath)
@@ -289,8 +276,15 @@ namespace UE {
 				{
 					auto& mc = deserializedEntity.AddComponent<ModelComponent>();
 					auto& modelProps = modelComponent["Model"];
+					auto& modelAnimProps = modelComponent["ModelAnimation"];
 					Ref<Model> tempModel = CreateRef<Model>(modelProps["Path"].as<std::string>());
+					Ref<Animation> tempModelAnim;
 					mc.ModelData = tempModel;
+					if(modelAnimProps)
+					{
+						tempModelAnim = CreateRef<Animation>(modelAnimProps["Path"].as<std::string>(), tempModel);						
+						mc.AnimationData = tempModelAnim;
+					}
 					
 				}
 

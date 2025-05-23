@@ -5,7 +5,7 @@
 
 namespace UE {
 
-    Animation::Animation(const std::string& animationPath, Ref<Model> model):m_AssimpAnimation(nullptr), m_Model(model){
+    Animation::Animation(const std::string& animationPath, Ref<Model> model):m_AssimpAnimation(nullptr), m_Model(model),m_Path(animationPath){
         Assimp::Importer importer;
 		const aiScene* scene = importer.ReadFile(animationPath, aiProcess_Triangulate);
         if(scene == nullptr){

@@ -21,6 +21,7 @@ set(YAML_BUILD_SHARED_LIBS OFF)
 add_subdirectory(vendor/yaml-cpp)
 set(USE_STATIC_MSVC_RUNTIME_LIBRARY ON)
 add_subdirectory(vendor/JoltPhysics/build)
+add_subdirectory(vendor/ImGuiFileDialog)
 
 # gather all source files
 if(WIN32)
@@ -88,6 +89,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/vendor/ImGuizmo
     ${CMAKE_CURRENT_SOURCE_DIR}/vendor/yaml-cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/vendor/JoltPhysics
+    ${CMAKE_CURRENT_SOURCE_DIR}/vendor/ImGuiFileDialog
     ${PHYSX_DIR}/include
     
 )
@@ -100,6 +102,7 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
   glm
   spdlog
   imgui
+  ImGuiFileDialog
   EnTT     
   assimp
   yaml-cpp
