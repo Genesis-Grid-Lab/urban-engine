@@ -116,12 +116,12 @@ namespace UE {
 			out << YAML::Key << "Path" << YAML::Value << model->m_Path;
 			out << YAML::EndMap; // Model
 
-			if(modelAnimation){
-				out << YAML::Key << "ModelAnimation" << YAML::Value;
-				out << YAML::BeginMap; // ModelAnimation
-				out << YAML::Key << "Path" << YAML::Value << modelAnimation->m_Path;
-				out << YAML::EndMap; // ModelAnimation
-			}
+			// if(modelAnimation){
+			// 	out << YAML::Key << "ModelAnimation" << YAML::Value;
+			// 	out << YAML::BeginMap; // ModelAnimation
+			// 	// out << YAML::Key << "Path" << YAML::Value << modelAnimation->m_Path;
+			// 	out << YAML::EndMap; // ModelAnimation
+			// }
 
 			out << YAML::EndMap; // ModelComponent
 		}
@@ -282,8 +282,8 @@ namespace UE {
 					mc.ModelData = tempModel;
 					if(modelAnimProps)
 					{
-						tempModelAnim = CreateRef<Animation>(modelAnimProps["Path"].as<std::string>(), tempModel);						
-						mc.AnimationData = tempModelAnim;
+						// tempModelAnim = CreateRef<Animation>(modelAnimProps["Path"].as<std::string>(), tempModel);						
+						// mc.AnimationData = tempModelAnim;
 					}
 					
 				}

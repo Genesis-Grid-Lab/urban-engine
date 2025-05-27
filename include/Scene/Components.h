@@ -91,7 +91,7 @@ namespace UE {
 
 	struct  ModelComponent{
 		Ref<Model> ModelData;
-		Ref<Animation> AnimationData;
+		std::map<std::string, Ref<Animation>> AnimationData;
 		ModelComponent() = default;
 		ModelComponent(const ModelComponent&) = default;
 	};

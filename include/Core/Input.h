@@ -14,6 +14,7 @@ namespace UE {
         static glm::vec2 GetMousePosition();
         static void HideCursor(bool hide);
         static void SetCursorPos(float width, float height);
+        static glm::vec2 GetMouseDelta();
         static float GetMouseX();
         static float GetMouseY();
     };

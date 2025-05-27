@@ -3,11 +3,12 @@
 #include "Renderer/Camera.h"
 
 namespace UE {
+	enum class CameraMode { FirstPerson = 0, ThirdPerson = 1, TopDown = 2};
 
 	class SceneCamera : public Camera
 	{
 	public:
-		enum class ProjectionType { Perspective = 0, Orthographic = 1 };
+		enum class ProjectionType { Perspective = 0, Orthographic = 1 };		
 	public:
 		SceneCamera();
 		virtual ~SceneCamera() = default;
@@ -33,8 +34,29 @@ namespace UE {
 
 		ProjectionType GetProjectionType() const { return m_ProjectionType; }
 		void SetProjectionType(ProjectionType type) { m_ProjectionType = type; RecalculateProjection(); }
+
+		void SetMode(CameraMode mode) { m_Mode = mode; RecalculateView(); }
+		void SetTarget(const glm::vec3& target) { m_Target = target; RecalculateView(); }
+		void SetOffset(const glm::vec3& offset) { m_Offset = offset; RecalculateView(); }
+
+		glm::vec3 GetForwardDirection() const {
+			return glm::normalize(glm::vec3(-m_ViewMatrix[0][2], -m_ViewMatrix[1][2], -m_ViewMatrix[2][2]));
+		}
+
+		glm::vec3 GetRightDirection() const {
+			return glm::normalize(glm::vec3(m_ViewMatrix[0][0], m_ViewMatrix[1][0], m_ViewMatrix[2][0]));
+		}
+
+		glm::vec3 GetUpDirection() const {
+			return glm::normalize(glm::cross(GetRightDirection(), GetForwardDirection()));
+		}
+
+		float GetVerticalFOV() const { return m_PerspectiveFOV; }
+		float GetAspectRatio() const { return m_AspectRatio; }
+
 	private:
 		void RecalculateProjection();
+		void RecalculateView();
 	private:
 		ProjectionType m_ProjectionType = ProjectionType::Perspective;
 
@@ -45,6 +67,11 @@ namespace UE {
 		float m_OrthographicNear = -1.0f, m_OrthographicFar = 1.0f;
 
 		float m_AspectRatio = 0.0f;
+
+		CameraMode m_Mode = CameraMode::ThirdPerson;
+
+		glm::vec3 m_Target = glm::vec3(0.0f); // Entity to follow
+		glm::vec3 m_Offset = glm::vec3(0.0f, 2.0f, 5.0f); // Third person offset
 	};
 
 }

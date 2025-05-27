@@ -4,6 +4,7 @@
 #include "Renderer/RenderCommand.h"
 #include "Renderer/Animation/Animator.h"
 #include "Core/Application.h"
+
 //temp
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -21,6 +22,9 @@ namespace UE {
     static Ref<VertexBuffer> ScreenVertexBuffer;
 	static Ref<VertexArray> ScreenVertexArray;
     static Ref<Animator> s_Animator;
+
+    //TODO: remove
+    static GLuint lineVAO = 0, lineVBO = 0;
 
     Ref<Mesh> GenerateSphereMesh(uint32_t sectorCount = 36, uint32_t stackCount = 18) {
         std::vector<Vertex> vertices;
@@ -167,6 +171,15 @@ namespace UE {
 		ScreenVertexArray->SetIndexBuffer(ib);
 
         s_Animator = CreateRef<Animator>();
+
+        glGenVertexArrays(1, &lineVAO);
+		glGenBuffers(1, &lineVBO);
+		glBindVertexArray(lineVAO);
+		glBindBuffer(GL_ARRAY_BUFFER, lineVBO);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * 2, nullptr, GL_DYNAMIC_DRAW);
+		glEnableVertexAttribArray(0);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)0);
+		glBindVertexArray(0);
     }
 
     void Renderer3D::Shutdown(){}
@@ -193,11 +206,17 @@ namespace UE {
         m_Skybox->Draw(m_SkyShader, camera.GetViewMatrix(), camera.GetProjectionMatrix());
     }
 
-    void Renderer3D::BeginCamera(const Camera& camera, const glm::mat4& transform, const glm::vec3& pos){
+    void Renderer3D::BeginCamera(const Camera& camera, const TransformComponent& tc){
+
+        glm::mat4 transform = glm::translate(glm::mat4(1.0f), tc.Translation);
+        transform = glm::rotate(transform, tc.Rotation.x, glm::vec3(1, 0, 0)); // Pitch
+        transform = glm::rotate(transform, tc.Rotation.y, glm::vec3(0, 1, 0)); // Yaw
+        transform = glm::rotate(transform, tc.Rotation.z, glm::vec3(0, 0, 1)); // Roll
+
         m_Shader->Bind();
         m_Shader->SetMat4("u_View", glm::inverse(transform));
         m_Shader->SetMat4("u_Projection", camera.GetProjectionMatrix());
-        m_Shader->SetFloat3("u_ViewPos", pos);        
+        m_Shader->SetFloat3("u_ViewPos", tc.Translation);        
         
         m_Shader->SetFloat3("u_LightPos", m_LightPos);                     
         m_LightShader->Bind();
@@ -207,7 +226,7 @@ namespace UE {
         m_ShaderSimple->Bind();
         m_ShaderSimple->SetMat4("u_View", glm::inverse(transform));
         m_ShaderSimple->SetMat4("u_Projection", camera.GetProjectionMatrix());
-        m_ShaderSimple->SetFloat3("u_ViewPos", pos);        
+        m_ShaderSimple->SetFloat3("u_ViewPos", tc.Translation);        
         
         m_ShaderSimple->SetFloat3("u_LightPos", m_LightPos);
         
@@ -272,6 +291,12 @@ namespace UE {
         m_Shader->Unbind();
     }
 
+    void Renderer3D::SetEntity(int entityID){
+        m_Shader->Bind();
+        m_Shader->SetInt("u_EntityID", entityID);
+        m_Shader->Unbind();
+    }
+
     void Renderer3D::DrawModel(const Ref<Model>& model,const glm::vec3& position,const glm::vec3& size, const glm::vec3& color, const float transparancy){
         
         glm::mat4 imodel = glm::mat4(1.0f);
@@ -283,7 +308,6 @@ namespace UE {
 
     }
 
-
     void Renderer3D::DrawCube(const glm::mat4& transform, const glm::vec3& color, const float transparancy, int entityID){
         m_ShaderSimple->Bind();
         m_ShaderSimple->SetMat4("u_Model", transform);
@@ -292,6 +316,10 @@ namespace UE {
         m_ShaderSimple->SetFloat("u_Transparancy", transparancy);        
         s_CubeMesh->Draw(m_ShaderSimple);
         m_ShaderSimple->Unbind();
+    }
+
+    Ref<Mesh> Renderer3D::GetCubeMesh(){
+        return s_CubeMesh;
     }
     
     void Renderer3D::DrawCube(const glm::vec3& position, const glm::vec3& size, const glm::vec3& color, const float transparancy) {
@@ -332,6 +360,72 @@ namespace UE {
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         DrawSphere(position, scale, color, transparancy);
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    }
+
+    void Renderer3D::DrawLine(const glm::vec3& p0, const glm::vec3& p1, const glm::vec4& color) {
+		glm::vec3 points[2] = { p0, p1 };
+		glBindBuffer(GL_ARRAY_BUFFER, lineVBO);
+		glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(points), points);
+
+		glBindVertexArray(lineVAO);		
+		
+		m_ShaderSimple->Bind();		
+        // m_ShaderSimple->SetMat4("u_Model", glm::mat4(1.0f));
+		m_ShaderSimple->SetFloat4("u_Color", color);
+
+		glDrawArrays(GL_LINES, 0, 2);
+        glBindVertexArray(0);
+	}
+
+    void Renderer3D::DrawCameraFrustum(const UE::SceneCamera& cam)
+    {
+        using namespace UE;
+
+        glm::vec3 pos = cam.GetPosition();
+        glm::vec3 forward = cam.GetForwardDirection();
+        glm::vec3 right = cam.GetRightDirection();
+        glm::vec3 up = cam.GetUpDirection();
+
+        float nearD = cam.GetPerspectiveNearClip();
+        float farD = cam.GetPerspectiveFarClip();
+        float fov = cam.GetVerticalFOV();
+        float ar = cam.GetAspectRatio();
+
+        float nearH = 2.0f * tan(fov / 2.0f) * nearD;
+        float nearW = nearH * ar;
+        float farH = 2.0f * tan(fov / 2.0f) * farD;
+        float farW = farH * ar;
+
+        glm::vec3 nc = pos + forward * nearD;
+        glm::vec3 fc = pos + forward * farD;
+
+        glm::vec3 ntl = nc + (up * nearH / 2.0f) - (right * nearW / 2.0f);
+        glm::vec3 ntr = nc + (up * nearH / 2.0f) + (right * nearW / 2.0f);
+        glm::vec3 nbl = nc - (up * nearH / 2.0f) - (right * nearW / 2.0f);
+        glm::vec3 nbr = nc - (up * nearH / 2.0f) + (right * nearW / 2.0f);
+
+        glm::vec3 ftl = fc + (up * farH / 2.0f) - (right * farW / 2.0f);
+        glm::vec3 ftr = fc + (up * farH / 2.0f) + (right * farW / 2.0f);
+        glm::vec3 fbl = fc - (up * farH / 2.0f) - (right * farW / 2.0f);
+        glm::vec3 fbr = fc - (up * farH / 2.0f) + (right * farW / 2.0f);
+
+        // glm::mat4 vp = cam.GetViewProjection();
+        glm::vec4 color = {1, 1, 0, 1}; // Yellow
+
+        Renderer3D::DrawLine(ntl, ntr, color);
+        Renderer3D::DrawLine(ntr, nbr, color);
+        Renderer3D::DrawLine(nbr, nbl, color);
+        Renderer3D::DrawLine(nbl, ntl, color);
+
+        Renderer3D::DrawLine(ftl, ftr, color);
+        Renderer3D::DrawLine(ftr, fbr, color);
+        Renderer3D::DrawLine(fbr, fbl, color);
+        Renderer3D::DrawLine(fbl, ftl, color);
+
+        Renderer3D::DrawLine(ntl, ftl, color);
+        Renderer3D::DrawLine(ntr, ftr, color);
+        Renderer3D::DrawLine(nbr, fbr, color);
+        Renderer3D::DrawLine(nbl, fbl, color);
     }
 
     void Renderer3D::DrawScreen(Ref<Framebuffer>& buffer){

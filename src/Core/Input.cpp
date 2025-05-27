@@ -28,6 +28,10 @@ namespace UE {
         return { (float)xpos, (float)ypos };
     }
 
+    glm::vec2 Input::GetMouseDelta(){
+        return Application::Get().GetWindow().s_MouseDelta;
+    }
+
     void Input::HideCursor(bool hide){
         auto* window = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow());
         if(hide)            

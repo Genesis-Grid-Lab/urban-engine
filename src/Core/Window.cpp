@@ -10,6 +10,9 @@
 
 namespace UE {
 
+    glm::vec2 Window::s_LastMousePosition = glm::vec2(0.0f);
+    glm::vec2 Window::s_MouseDelta = glm::vec2(0.0f);
+
     static uint8_t s_GLFWwindowCount = 0;
 
     static void GLFWErrorCallback(int error, const char* desc){
@@ -157,6 +160,10 @@ namespace UE {
     void Window::OnUpdate(){
         glfwPollEvents();
         m_Context->SwapBuffers();
+
+        glm::vec2 currentPos = Input::GetMousePosition();
+        s_MouseDelta = currentPos - s_LastMousePosition;
+        s_LastMousePosition = currentPos;
     }
 
     void Window::SetVSync(bool enabled){

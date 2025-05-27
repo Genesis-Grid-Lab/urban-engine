@@ -144,7 +144,7 @@ namespace UE {
             std::make_unique<ObjectLayerPairFilterImpl>();
 
         // Now we can create the actual physics system.
-        _physics_system = std::make_unique<JPH::PhysicsSystem>();
+        _physics_system = new JPH::PhysicsSystem();
         _physics_system->Init(cMaxBodies,
                             cNumBodyMutexes,
                             cMaxBodyPairs,

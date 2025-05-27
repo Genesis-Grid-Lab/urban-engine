@@ -59,6 +59,11 @@ namespace UE {
         };
     
         WindowData m_Data;
+
+    //TODO: change
+        static glm::vec2 s_LastMousePosition;
+    public:
+        static glm::vec2 s_MouseDelta;
     };
 }
 

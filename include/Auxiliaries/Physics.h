@@ -203,13 +203,14 @@ namespace UE {
     class PhysicsEngine{
     public:
         PhysicsEngine();
+        ~PhysicsEngine(){ delete _physics_system;}
 
         void Init();
 
         void StartSimulation();
         bool Update(float dt);
         void CleanUp();
-        std::unique_ptr<JPH::PhysicsSystem> _physics_system;
+        JPH::PhysicsSystem* _physics_system;
         std::unique_ptr<JPH::JobSystemThreadPool> _job_system;
         JPH::uint _step{0};
     private:

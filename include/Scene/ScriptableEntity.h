@@ -25,11 +25,13 @@ namespace UE {
 		virtual void OnCreate() {}
 		virtual void OnDestroy() {}
 		virtual void OnUpdate(Timestep ts) {}
+		virtual void OnImGuiRender() {}
 	private:
 		Entity m_Entity;
         Scene* m_Scene;
         JPH::BodyInterface *m_BodyInterface;
 		friend class Scene;
+		friend class SceneHierarchyPanel;
 	};
 
 }
