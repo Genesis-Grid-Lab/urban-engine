@@ -37,7 +37,7 @@
 <h3 align="center">Urban-Engine</h3>
 
   <p align="center">
-    project_description
+    Simple Game Engine  with OpenGL, GLFW, and Jolt-physics
     <br />
     <a href="https://github.com/Genesis-Grid-Lab/urban-engine"><strong>Explore the docs »</strong></a>
     <br />
@@ -83,7 +83,7 @@
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
-[![Product Name Screen Shot][product-screenshot]](https://example.com)
+[![Urbain Editor Screen Shot][product-screenshot]](https://i.imgur.com/i5T0kK3.png)
 
 <!-- Here's a blank template to get started. To avoid retyping too much info, do a search and replace with your text editor for the following: `project_description` -->
 
@@ -119,34 +119,48 @@ To get a local copy up and running follow these simple example steps. -->
   ```sh
   npm install npm@latest -g
   ``` -->
+* OpenGL
 
 ### Installation
 
 <!-- 1. Get a free API Key at [https://example.com](https://example.com) -->
+#### Window
+
 1. Clone the repo
    ```sh
    git clone https://github.com/Genesis-Grid-Lab/urban-engine.git
    ```
-<!-- 3. Install NPM packages
+2. Build the project Debug Release
    ```sh
-   npm install
+   ./Win.bat [Debug | Release]
    ```
-4. Enter your API in `config.js`
-   ```js
-   const API_KEY = 'ENTER YOUR API';
-   ```
-5. Change git remote url to avoid accidental pushes to base project
+3. Enter your API in `config.js`
    ```sh
-   git remote set-url origin Genesis-Grid-Lab/urban-engine
-   git remote -v # confirm the changes
-   ``` -->
+   ./Run.bat
+   ```
+
+#### Linux*
+
+1. Clone the repo
+   ```sh
+   git clone https://github.com/Genesis-Grid-Lab/urban-engine.git
+   ```
+2. Build the project Debug Release
+   ```sh
+   ./Linux.sh [Debug | Release]
+   ```
+3. Enter your API in `config.js`
+   ```sh
+   ./Run.sh
+   ```
+
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 
 
 <!-- USAGE EXAMPLES -->
-## Usage
+## Usage API
 
 <!-- Use this space to show useful examples of how a project can be used. Additional screenshots, code examples and demos work well in this space. You may also link to more resources.
 

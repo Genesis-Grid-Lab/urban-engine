@@ -27,6 +27,7 @@ namespace UE {
 	}
 
     Scene::Scene(uint32_t width, uint32_t height){
+		UE_PROFILE_FUNCTION();
 		m_ViewportWidth = width;
 		m_ViewportHeight = height;
 
@@ -133,6 +134,7 @@ namespace UE {
 	}
 
 	void Scene::OnRuntimeStart(){
+		UE_PROFILE_FUNCTION();
 		JPH::BodyInterface &body_interface = m_Physics3D._physics_system->GetBodyInterface();
 
 		GroupEntity<BoxShapeComponent>([this] (auto entity, auto& comp, auto& transform, auto id){
@@ -355,12 +357,13 @@ namespace UE {
 
 	void Scene::OnRuntimeStop()
 	{
+		UE_PROFILE_FUNCTION();
 		// delete m_PhysicsWorld;
 		// m_PhysicsWorld = nullptr;
 	}
 
 	void Scene::PhysicsUpdate(float dt){
-
+		UE_PROFILE_FUNCTION();
 		++m_Physics3D._step;		
 
 		ViewEntity<Entity, RigidbodyComponent>([this, &dt] (auto entity, auto& comp){
@@ -458,7 +461,7 @@ namespace UE {
 	}
 
     void Scene::OnUpdateRuntime(Timestep ts, int& mouseX, int& mouseY, glm::vec2& viewportSize){
-		
+		UE_PROFILE_FUNCTION();
 		m_Framebuffer->Bind();
 		// Clear our entity ID attachment to -1
 		m_Framebuffer->ClearAttachment(1, -1);
@@ -604,6 +607,7 @@ namespace UE {
 
 	void Scene::OnUpdateEditor(Timestep ts, EditorCamera& camera, int& mouseX, int& mouseY, glm::vec2& viewportSize)
 	{
+		UE_PROFILE_FUNCTION();
 		m_Framebuffer->Bind();
 		// Clear our entity ID attachment to -1
 		m_Framebuffer->ClearAttachment(1, -1);
@@ -787,6 +791,7 @@ namespace UE {
 
     void Scene::OnViewportResize(uint32_t width, uint32_t height)
 	{
+		UE_PROFILE_FUNCTION();
 		m_ViewportWidth = width;
 		m_ViewportHeight = height;
 

@@ -1,3 +1,4 @@
+#include "uepch.h"
 #include "EditorLayer.h"
 #include <ImGuiFileDialog.h>
 #include <glm/gtc/matrix_transform.hpp>
@@ -6,6 +7,7 @@
 EditorLayer::EditorLayer(const glm::vec2& size): m_Size(size) {}
 
 void EditorLayer::OnAttach(){
+    UE_PROFILE_FUNCTION("Editor::OnAttach");
     console.AddLog("Starting");
     m_IconPlay = Texture2D::Create("Resources/Icons/PlayButton.png");
     m_IconStop = Texture2D::Create("Resources/Icons/StopButton.png");
@@ -20,7 +22,7 @@ void EditorLayer::OnAttach(){
         SceneSerializer serializer(m_ActiveScene);
         serializer.Deserialize(sceneFilePath);
     }
-
+    
     console.AddLog("Loading Resources");
     // Ref<Model> castle = CreateRef<Model>("Resources/sponza/sponza.obj");   
     // Ref<Model> castle = CreateRef<Model>("Resources/sponza2/source/glTF/Sponza.gltf");   
@@ -275,6 +277,7 @@ void EditorLayer::OnAttach(){
 }
 
 void EditorLayer::OnUpdate(Timestep ts){
+    UE_PROFILE_FUNCTION("Editor::OnUpdate");
     // Resize
     if (FramebufferSpecification spec = m_ActiveScene->m_Framebuffer->GetSpecification();
         m_ViewportSize.x > 0.0f && m_ViewportSize.y > 0.0f && // zero sized framebuffer is invalid
@@ -291,24 +294,26 @@ void EditorLayer::OnUpdate(Timestep ts){
     my = viewportSize.y - my;
     int mouseX = (int)mx;
     int mouseY = (int)my;
-
-    switch (m_SceneState)
     {
-        case SceneState::Edit:
+        UE_PROFILE_SCOPE("Scene::Update");
+        switch (m_SceneState)
         {
-            // m_ActiveScene->OnUpdateRuntime(ts, mouseX, mouseY, viewportSize);
-            m_ActiveScene->OnUpdateEditor(ts, m_EditorCamera, mouseX, mouseY, viewportSize);
-            m_EditorCamera.OnUpdate(ts);            
-            if(m_ViewportFocused && m_ViewportHovered)
-                m_ActiveScene->OnMouseInput(Input::GetMouseX(), Input::GetMouseY(), Input::IsMouseButtonPressed(0), ts);
-            break;
+            case SceneState::Edit:
+            {
+                // m_ActiveScene->OnUpdateRuntime(ts, mouseX, mouseY, viewportSize);
+                m_ActiveScene->OnUpdateEditor(ts, m_EditorCamera, mouseX, mouseY, viewportSize);
+                m_EditorCamera.OnUpdate(ts);            
+                if(m_ViewportFocused && m_ViewportHovered)
+                    m_ActiveScene->OnMouseInput(Input::GetMouseX(), Input::GetMouseY(), Input::IsMouseButtonPressed(0), ts);
+                break;
+            }
+            case SceneState::Play:
+            {
+                m_ActiveScene->OnUpdateRuntime(ts, mouseX, mouseY, viewportSize);
+                break;
+            }
         }
-        case SceneState::Play:
-        {
-            m_ActiveScene->OnUpdateRuntime(ts, mouseX, mouseY, viewportSize);
-            break;
-        }
-    }
+    }    
 
         
 }
@@ -404,6 +409,7 @@ void EditorLayer::OnEvent(Event& e){
 }
 
 void EditorLayer::OnImGuiRender(){
+    UE_PROFILE_FUNCTION("Editor::OnImGuiRender");
     // Note: Switch this to true to enable dockspace
     static bool dockspaceOpen = true;
     static bool opt_fullscreen_persistant = true;
@@ -532,80 +538,83 @@ void EditorLayer::OnImGuiRender(){
     bool p_open = true;
     console.Draw("Console", &p_open);
 
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0, 0 });
-    ImGui::Begin("Viewport");
-    auto viewportMinRegion = ImGui::GetWindowContentRegionMin();
-    auto viewportMaxRegion = ImGui::GetWindowContentRegionMax();
-    auto viewportOffset = ImGui::GetWindowPos();
-    m_ViewportBounds[0] = { viewportMinRegion.x + viewportOffset.x, viewportMinRegion.y + viewportOffset.y };
-    m_ViewportBounds[1] = { viewportMaxRegion.x + viewportOffset.x, viewportMaxRegion.y + viewportOffset.y };
-
-    m_ViewportFocused = ImGui::IsWindowFocused();
-    m_ViewportHovered = ImGui::IsWindowHovered();
-    Application::Get().GetImGuiLayer()->BlockEvents(!m_ViewportFocused && !m_ViewportHovered);
-
-    ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
-    m_ViewportSize = { viewportPanelSize.x, viewportPanelSize.y };
-
-    ImTextureID textureID = m_ActiveScene->m_Framebuffer->GetColorAttachmentRendererID();
-    ImGui::Image(textureID, ImVec2{m_ViewportSize.x, m_ViewportSize.y}, ImVec2{0, 1}, ImVec2{1,0});
-
-    //dragging    
-
-    // Gizmos
-    Entity selectedEntity = m_SceneHierarchyPanel.GetSelectedEntity();
-    if (selectedEntity && m_GizmoType != -1)
-    {
-        ImGuizmo::SetOrthographic(false);
-        ImGuizmo::SetDrawlist();        
-
-        ImGuizmo::SetRect(m_ViewportBounds[0].x, m_ViewportBounds[0].y, m_ViewportBounds[1].x - m_ViewportBounds[0].x, m_ViewportBounds[1].y - m_ViewportBounds[0].y);
-
-        // Camera
-        
-        // Runtime camera from entity
-        // auto cameraEntity = m_ActiveScene->GetPrimaryCameraEntity();
-        // const auto& camera = cameraEntity.GetComponent<CameraComponent>().Camera;
-        // const glm::mat4& cameraProjection = camera.GetProjection();
-        // glm::mat4 cameraView = glm::inverse(cameraEntity.GetComponent<TransformComponent>().GetTransform());
-
-        // Editor camera
-        const glm::mat4& cameraProjection = m_EditorCamera.GetProjectionMatrix();
-        glm::mat4 cameraView = m_EditorCamera.GetViewMatrix();
-
-        // Entity transform
-        auto& tc = selectedEntity.GetComponent<TransformComponent>();
-        glm::mat4 transform = tc.GetTransform();
-        // ImGuizmo::DrawCubes(glm::value_ptr(cameraView), glm::value_ptr(cameraProjection), glm::value_ptr(transform), 1);
-
-        // Snapping
-        bool snap = Input::IsKeyPressed(Key::LeftControl);
-        float snapValue = 0.5f; // Snap to 0.5m for translation/scale
-        // Snap to 45 degrees for rotation
-        if (m_GizmoType == ImGuizmo::OPERATION::ROTATE)
-            snapValue = 45.0f;
-
-        float snapValues[3] = { snapValue, snapValue, snapValue };
-
-        ImGuizmo::Manipulate(glm::value_ptr(cameraView), glm::value_ptr(cameraProjection),
-            (ImGuizmo::OPERATION)m_GizmoType, ImGuizmo::LOCAL, glm::value_ptr(transform),
-            nullptr, snap ? snapValues : nullptr);
-
-        if (ImGuizmo::IsUsing())
-        {            
-            glm::vec3 translation, rotation, scale;
-            Math::DecomposeTransform(transform, translation, rotation, scale);
-
-            glm::vec3 deltaRotation = rotation - tc.Rotation;
-            tc.Translation = translation;
-            tc.Rotation += deltaRotation;
-            tc.Scale = scale;
+    // {
+    //     UE_PROFILE_SCOPE("ImGui::Viewport");
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0, 0 });
+        ImGui::Begin("Viewport");
+        auto viewportMinRegion = ImGui::GetWindowContentRegionMin();
+        auto viewportMaxRegion = ImGui::GetWindowContentRegionMax();
+        auto viewportOffset = ImGui::GetWindowPos();
+        m_ViewportBounds[0] = { viewportMinRegion.x + viewportOffset.x, viewportMinRegion.y + viewportOffset.y };
+        m_ViewportBounds[1] = { viewportMaxRegion.x + viewportOffset.x, viewportMaxRegion.y + viewportOffset.y };
+    
+        m_ViewportFocused = ImGui::IsWindowFocused();
+        m_ViewportHovered = ImGui::IsWindowHovered();
+        Application::Get().GetImGuiLayer()->BlockEvents(!m_ViewportFocused && !m_ViewportHovered);
+    
+        ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
+        m_ViewportSize = { viewportPanelSize.x, viewportPanelSize.y };
+    
+        ImTextureID textureID = m_ActiveScene->m_Framebuffer->GetColorAttachmentRendererID();
+        ImGui::Image(textureID, ImVec2{m_ViewportSize.x, m_ViewportSize.y}, ImVec2{0, 1}, ImVec2{1,0});
+    
+        //dragging    
+    
+        // Gizmos
+        Entity selectedEntity = m_SceneHierarchyPanel.GetSelectedEntity();
+        if (selectedEntity && m_GizmoType != -1)
+        {
+            ImGuizmo::SetOrthographic(false);
+            ImGuizmo::SetDrawlist();        
+    
+            ImGuizmo::SetRect(m_ViewportBounds[0].x, m_ViewportBounds[0].y, m_ViewportBounds[1].x - m_ViewportBounds[0].x, m_ViewportBounds[1].y - m_ViewportBounds[0].y);
+    
+            // Camera
+            
+            // Runtime camera from entity
+            // auto cameraEntity = m_ActiveScene->GetPrimaryCameraEntity();
+            // const auto& camera = cameraEntity.GetComponent<CameraComponent>().Camera;
+            // const glm::mat4& cameraProjection = camera.GetProjection();
+            // glm::mat4 cameraView = glm::inverse(cameraEntity.GetComponent<TransformComponent>().GetTransform());
+    
+            // Editor camera
+            const glm::mat4& cameraProjection = m_EditorCamera.GetProjectionMatrix();
+            glm::mat4 cameraView = m_EditorCamera.GetViewMatrix();
+    
+            // Entity transform
+            auto& tc = selectedEntity.GetComponent<TransformComponent>();
+            glm::mat4 transform = tc.GetTransform();
+            // ImGuizmo::DrawCubes(glm::value_ptr(cameraView), glm::value_ptr(cameraProjection), glm::value_ptr(transform), 1);
+    
+            // Snapping
+            bool snap = Input::IsKeyPressed(Key::LeftControl);
+            float snapValue = 0.5f; // Snap to 0.5m for translation/scale
+            // Snap to 45 degrees for rotation
+            if (m_GizmoType == ImGuizmo::OPERATION::ROTATE)
+                snapValue = 45.0f;
+    
+            float snapValues[3] = { snapValue, snapValue, snapValue };
+    
+            ImGuizmo::Manipulate(glm::value_ptr(cameraView), glm::value_ptr(cameraProjection),
+                (ImGuizmo::OPERATION)m_GizmoType, ImGuizmo::LOCAL, glm::value_ptr(transform),
+                nullptr, snap ? snapValues : nullptr);
+    
+            if (ImGuizmo::IsUsing())
+            {            
+                glm::vec3 translation, rotation, scale;
+                Math::DecomposeTransform(transform, translation, rotation, scale);
+    
+                glm::vec3 deltaRotation = rotation - tc.Rotation;
+                tc.Translation = translation;
+                tc.Rotation += deltaRotation;
+                tc.Scale = scale;
+            }
+            
         }
-        
-    }
-
-    ImGui::End();
-    ImGui::PopStyleVar();
+    
+        ImGui::End();
+        ImGui::PopStyleVar();
+    // }
     
     if (ImGuiFileDialog::Instance()->Display("OpenScene")) {
         if (ImGuiFileDialog::Instance()->IsOk()) { // action if OK

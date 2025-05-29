@@ -19,6 +19,7 @@ namespace UE {
 
 	SceneHierarchyPanel::SceneHierarchyPanel(const Ref<Scene>& context)
 	{
+		UE_PROFILE_FUNCTION();
 		SetContext(context);
 	}
 
@@ -30,6 +31,7 @@ namespace UE {
 
 	void SceneHierarchyPanel::OnImGuiRender()
 	{
+		UE_PROFILE_FUNCTION();
 		ImGuiStyle& style = ImGui::GetStyle();
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowMinSize, ImVec2(370.0f, style.WindowMinSize.y));
 		ImGui::Begin("Scene Hierarchy");
@@ -96,34 +98,60 @@ namespace UE {
 
 		if (opened)
 		{
-			ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanAvailWidth;
-			bool opened = false;
+			ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_Bullet | ImGuiTreeNodeFlags_SpanAvailWidth;
+			bool Model = false, Camera = false, Rigid = false, Box = false, Cube = false, Sphere = false;
 			if(entity.HasComponent<ModelComponent>()){
 				auto& modcomp = entity.GetComponent<ModelComponent>();												
-				opened = ImGui::TreeNodeEx((void*)9817239, flags, "Model");				
+				Model = ImGui::TreeNodeEx((void*)9817239, flags, "Model");				
 			}
+			if(Model)
+			{
+				ImGui::TreePop();
+			}
+
 			if(entity.HasComponent<CameraComponent>()){
 				auto& modcomp = entity.GetComponent<CameraComponent>();												
-				opened = ImGui::TreeNodeEx((void*)9817238, flags, "Camera");				
+				Camera = ImGui::TreeNodeEx((void*)9817238, flags, "Camera");				
 			}
+			if(Camera)
+			{
+				ImGui::TreePop();
+			}
+
 			if(entity.HasComponent<RigidbodyComponent>()){
 				auto& modcomp = entity.GetComponent<RigidbodyComponent>();												
-				opened = ImGui::TreeNodeEx((void*)9817237, flags, "Rigidbody");				
+				Rigid = ImGui::TreeNodeEx((void*)9817237, flags, "Rigidbody");				
 			}
+			if(Rigid)
+			{
+				ImGui::TreePop();
+			}
+
 			if(entity.HasComponent<BoxShapeComponent>()){
 				auto& modcomp = entity.GetComponent<BoxShapeComponent>();												
-				opened = ImGui::TreeNodeEx((void*)9817236, flags, "BoxShape");				
+				Box = ImGui::TreeNodeEx((void*)9817236, flags, "BoxShape");				
 			}
+			if(Box)
+			{
+				ImGui::TreePop();
+			}
+
 			if(entity.HasComponent<CubeComponent>()){
 				auto& modcomp = entity.GetComponent<CubeComponent>();												
-				opened = ImGui::TreeNodeEx((void*)9817235, flags, "Cube");				
+				Cube = ImGui::TreeNodeEx((void*)9817235, flags, "Cube");				
 			}
+			if(Cube)
+			{
+				ImGui::TreePop();
+			}
+
 			if(entity.HasComponent<SphereShapeComponent>()){
 				auto& modcomp = entity.GetComponent<SphereShapeComponent>();												
-				opened = ImGui::TreeNodeEx((void*)9817234, flags, "SphereShape");				
+				Sphere = ImGui::TreeNodeEx((void*)9817234, flags, "SphereShape");				
 			}
-			if (opened)
+			if (Sphere)
 				ImGui::TreePop();
+				
 			ImGui::TreePop();
 		}
 

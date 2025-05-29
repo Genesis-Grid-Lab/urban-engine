@@ -7,6 +7,7 @@
 #include "Events/MouseEvent.h"
 #include "Events/KeyEvent.h"
 #include <glfw/glfw3.h>
+#include <stb_image.h>
 
 namespace UE {
 
@@ -20,15 +21,17 @@ namespace UE {
     }
 
     Window::Window(const WindowProps& props){
+        UE_PROFILE_FUNCTION();
         Init(props);
     }
 
     Window::~Window(){
+        UE_PROFILE_FUNCTION();
         Shutdown();
     }
 
     void Window::Init(const WindowProps& props){
-
+        UE_PROFILE_FUNCTION();
         m_Data.Title = props.m_Title;
         m_Data.Width = props.m_Width;
         m_Data.Height = props.m_Height;
@@ -41,7 +44,7 @@ namespace UE {
             glfwSetErrorCallback(GLFWErrorCallback);
         }
 
-        glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+        glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
 
         #if defined(UE_DEBUG)
             if (Renderer::GetAPI() == RendererAPI::API::OpenGL)
@@ -56,6 +59,10 @@ namespace UE {
 
         glfwSetWindowUserPointer(m_Window, &m_Data);
         SetVSync(true);
+
+        GLFWimage images[1]; images[0].pixels = stbi_load("Data/images/logo.png", &images[0].width, &images[0].height, 0, 4); //rgba channels 
+        glfwSetWindowIcon(m_Window, 1, images); 
+        stbi_image_free(images[0].pixels);
 
         // Set GLFW callbacks
         glfwSetWindowSizeCallback(m_Window, [](GLFWwindow* window, int width, int height){
@@ -149,6 +156,7 @@ namespace UE {
     }
 
     void Window::Shutdown(){
+        UE_PROFILE_FUNCTION();
         glfwDestroyWindow(m_Window);
         --s_GLFWwindowCount;
 
@@ -158,6 +166,8 @@ namespace UE {
     }
 
     void Window::OnUpdate(){
+        UE_PROFILE_FUNCTION();
+
         glfwPollEvents();
         m_Context->SwapBuffers();
 
@@ -167,6 +177,8 @@ namespace UE {
     }
 
     void Window::SetVSync(bool enabled){
+
+        UE_PROFILE_FUNCTION();
 
         if(enabled)
             glfwSwapInterval(1);

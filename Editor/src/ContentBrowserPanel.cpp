@@ -11,12 +11,14 @@ namespace UE {
 	ContentBrowserPanel::ContentBrowserPanel()
 		: m_CurrentDirectory(g_AssetPath)
 	{
+		UE_PROFILE_FUNCTION();
 		m_DirectoryIcon = Texture2D::Create("Resources/Icons/ContentBrowser/DirectoryIcon.png");
 		m_FileIcon = Texture2D::Create("Resources/Icons/ContentBrowser/FileIcon.png");
 	}
 
 	void ContentBrowserPanel::OnImGuiRender()
 	{
+		UE_PROFILE_FUNCTION();
 		ImGui::Begin("Content Browser");
 
 		if (m_CurrentDirectory != std::filesystem::path(g_AssetPath))
@@ -27,8 +29,8 @@ namespace UE {
 			}
 		}
 
-		static float padding = 16.0f;
-		static float thumbnailSize = 128.0f;
+		static float padding = 0.0f;
+		static float thumbnailSize = 52.0f;
 		float cellSize = thumbnailSize + padding;
 
 		float panelWidth = ImGui::GetContentRegionAvail().x;
@@ -72,8 +74,8 @@ namespace UE {
 
 		ImGui::Columns(1);
 
-		ImGui::SliderFloat("Thumbnail Size", &thumbnailSize, 16, 512);
-		ImGui::SliderFloat("Padding", &padding, 0, 32);
+		// ImGui::SliderFloat("Thumbnail Size", &thumbnailSize, 16, 512);
+		// ImGui::SliderFloat("Padding", &padding, 0, 32);
 
 		// TODO: status bar
 		ImGui::End();

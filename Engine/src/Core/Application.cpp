@@ -10,6 +10,7 @@ namespace UE {
     Application::Application(const std::string& name, const glm::vec2& size, ApplicationCommandLineArgs args)
         :m_CommandLineArgs(args){
 
+            UE_PROFILE_FUNCTION();
             UE_CORE_ASSERT(!s_Instance, "Application already exists!");
 
             s_Instance = this;
@@ -28,22 +29,26 @@ namespace UE {
         }
 
     Application::~Application(){
+        UE_PROFILE_FUNCTION();
         UE::Renderer::Shutdown();
     }
 
     void Application::PushLayer(Layer* layer)
     {    
+        UE_PROFILE_FUNCTION();
         m_LayerStack.PushLayer(layer);
         layer->OnAttach();
     }
 
     void Application::PushOverlay(Layer* layer)
     {
+        UE_PROFILE_FUNCTION();
         m_LayerStack.PushOverlay(layer);
         layer->OnAttach();
     }
 
     void Application::PopLayer(Layer* layer) {
+        UE_PROFILE_FUNCTION();
         m_LayerStack.PopLayer(layer);
     }
 
@@ -52,7 +57,7 @@ namespace UE {
     }
 
     void Application::OnEvent(Event& e){
-
+        UE_PROFILE_FUNCTION();
         EventDispatcher dispatcher(e);
         dispatcher.Dispatch<WindowCloseEvent>(BIND_EVENT_FN(Application::OnWindowClose));
         dispatcher.Dispatch<WindowResizeEvent>(BIND_EVENT_FN(Application::OnWindowResize));
@@ -67,20 +72,27 @@ namespace UE {
 
     void Application::Run(){
 
+        UE_PROFILE_FUNCTION();
         while(m_Running){
+            UE_PROFILE_SCOPE("RunLopp");
             float time = (float)glfwGetTime();
             Timestep timestep = time - m_LastFrameTime;
             m_LastFrameTime = time;
                 
             if(!m_Minimized){
-                for(Layer* layer : m_LayerStack)
-                    layer->OnUpdate(timestep);
+                {
+                    UE_PROFILE_SCOPE("LayerStack OnUpdate");
+                    for(Layer* layer : m_LayerStack)
+                        layer->OnUpdate(timestep);
+                }
 
     #if UE_DEBUG                
                 m_ImGuiLayer->Begin();
-
+                {
+                    UE_PROFILE_SCOPE("LayerStack OnImGuiRender");
                     for(Layer* layer : m_LayerStack)
                         layer->OnImGuiRender();
+                }
 
                 m_ImGuiLayer->End();
     #endif            
@@ -109,6 +121,8 @@ namespace UE {
     }
 
     bool Application::OnWindowResize(WindowResizeEvent& e){
+
+        UE_PROFILE_FUNCTION();
 
         if(e.GetWidth() == 0 || e.GetHeight() == 0){
             m_Minimized = true;

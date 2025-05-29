@@ -18,3 +18,13 @@
 #include <vector>
 #include <unordered_map>
 #include <unordered_set>
+
+#include "Debug/Instrumentor.h"
+#include "Core/Log.h"
+
+#ifdef UE_PLATFORM_WINDOWS
+    #ifndef NOMINMAX
+    # define NOMINMAX
+    #endif
+    #include <Windows.h>
+#endif

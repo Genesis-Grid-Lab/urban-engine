@@ -12,6 +12,7 @@ namespace UE {
 
 	void SceneCamera::SetPerspective(float verticalFOV, float nearClip, float farClip)
 	{
+		UE_PROFILE_FUNCTION();
 		m_ProjectionType = ProjectionType::Perspective;
 		m_PerspectiveFOV = verticalFOV;
 		m_PerspectiveNear = nearClip;
@@ -21,6 +22,7 @@ namespace UE {
 
 	void SceneCamera::SetOrthographic(float size, float nearClip, float farClip)
 	{
+		UE_PROFILE_FUNCTION();
 		m_ProjectionType = ProjectionType::Orthographic;
 		m_OrthographicSize = size;
 		m_OrthographicNear = nearClip;
@@ -30,6 +32,7 @@ namespace UE {
 
 	void SceneCamera::SetViewportSize(uint32_t width, uint32_t height)
 	{
+		UE_PROFILE_FUNCTION();
 		UE_CORE_ASSERT(width > 0 && height > 0);
 		m_AspectRatio = (float)width / (float)height;
 		RecalculateProjection();
@@ -37,6 +40,7 @@ namespace UE {
 
 	void SceneCamera::RecalculateProjection()
 	{
+		UE_PROFILE_FUNCTION();
 		if (m_ProjectionType == ProjectionType::Perspective)
 		{
 			m_ProjectionMatrix = glm::perspective(m_PerspectiveFOV, m_AspectRatio, m_PerspectiveNear, m_PerspectiveFar);
@@ -57,6 +61,7 @@ namespace UE {
 	}
 
 	void SceneCamera::RecalculateView(){
+		UE_PROFILE_FUNCTION();
 		glm::vec3 position;
 		glm::vec3 direction;
 		

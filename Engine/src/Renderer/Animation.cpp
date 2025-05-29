@@ -6,6 +6,7 @@
 namespace UE {
 
     Animation::Animation(const std::string& animationPath, Ref<Model> model):m_AssimpAnimation(nullptr), m_Model(model),m_Path(animationPath){
+		UE_PROFILE_FUNCTION();
         Assimp::Importer importer;
 		const aiScene* scene = importer.ReadFile(animationPath, aiProcess_Triangulate);
         if(scene == nullptr){
@@ -33,6 +34,7 @@ namespace UE {
     }
 
     void Animation::SetModel(Ref<Model> model) {
+		UE_PROFILE_FUNCTION();
         if (!m_AssimpAnimation || m_Bones.size() > 0) {
             UE_CORE_ERROR("Cannot bind model: No animation loaded.");
             return;
@@ -48,6 +50,7 @@ namespace UE {
 
     Bone* Animation::FindBone(const std::string& name)
 	{
+		UE_PROFILE_FUNCTION();
 		auto iter = std::find_if(m_Bones.begin(), m_Bones.end(),
 			[&](const Bone& Bone)
 			{
@@ -60,6 +63,7 @@ namespace UE {
 
     void Animation::ReadMissingBones(const aiAnimation* animation, Ref<Model>& model)
 	{        
+		UE_PROFILE_FUNCTION();
 		int size = animation->mNumChannels;
 
 		auto& boneInfoMap = model->GetBoneInfoMap();//getting m_BoneInfoMap from Model class
@@ -85,6 +89,7 @@ namespace UE {
 
     void Animation::ReadHierarchyData(AssimpNodeData& dest, const aiNode* src)
 	{
+		UE_PROFILE_FUNCTION();
 		assert(src);
 
 		dest.Name = src->mName.data;

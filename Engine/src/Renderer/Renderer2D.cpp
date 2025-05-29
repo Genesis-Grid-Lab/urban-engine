@@ -70,6 +70,7 @@ namespace UE {
 
     void Renderer2D::Init()
 	{			
+		UE_PROFILE_FUNCTION();
 		s_Data.QuadVertexArray = VertexArray::Create();
 
 		s_Data.QuadVertexBuffer = VertexBuffer::Create(s_Data.MaxVertices * sizeof(QuadVertex));
@@ -150,11 +151,13 @@ namespace UE {
 	}
 
     void Renderer2D::Shutdown(){
+		UE_PROFILE_FUNCTION();
         delete[] s_Data.QuadVertexBufferBase;
     }
 
     void Renderer2D::BeginCamera(const Camera& camera)
-	{				
+	{			
+		UE_PROFILE_FUNCTION();	
 		s_Data.CameraBuffer.ViewProjection = camera.GetViewProjectionMatrix();
 		s_Data.CameraUniformBuffer->SetData(&s_Data.CameraBuffer, sizeof(Renderer2DData::CameraData));
 
@@ -163,7 +166,7 @@ namespace UE {
 
 	void Renderer2D::BeginCamera(const EditorCamera& camera)
 	{
-		// FS_PROFILE_FUNCTION();
+		UE_PROFILE_FUNCTION();
 
 		s_Data.CameraBuffer.ViewProjection = camera.GetViewProjection();
 		s_Data.CameraUniformBuffer->SetData(&s_Data.CameraBuffer, sizeof(Renderer2DData::CameraData));
@@ -173,6 +176,7 @@ namespace UE {
 
     void Renderer2D::EndCamera()
 	{		
+		UE_PROFILE_FUNCTION();
 		Flush();
 	}
 
@@ -186,6 +190,7 @@ namespace UE {
 
 	void Renderer2D::Flush()
 	{
+		UE_PROFILE_FUNCTION();
 		if (s_Data.QuadIndexCount == 0)
 			return; // Nothing to draw
 
@@ -219,7 +224,6 @@ namespace UE {
 
 	void Renderer2D::DrawQuad(const glm::vec3& position, const glm::vec2& size, const glm::vec4& color)
 	{
-		
 
 		glm::mat4 transform = glm::translate(glm::mat4(1.0f), position)
 			* glm::scale(glm::mat4(1.0f), { size.x, size.y, 1.0f });
@@ -228,13 +232,12 @@ namespace UE {
 	}
 
 	void Renderer2D::DrawQuad(const glm::vec2& position, const glm::vec2& size, const Ref<Texture2D>& texture, float tilingFactor, const glm::vec4& tintColor)
-	{
+	{		
 		DrawQuad({ position.x, position.y, 0.0f }, size, texture, tilingFactor, tintColor);
 	}
 
 	void Renderer2D::DrawQuad(const glm::vec3& position, const glm::vec2& size, const Ref<Texture2D>& texture, float tilingFactor, const glm::vec4& tintColor)
-	{
-		
+	{		
 
 		glm::mat4 transform = glm::translate(glm::mat4(1.0f), position)
 			* glm::scale(glm::mat4(1.0f), { size.x, size.y, 1.0f });
@@ -264,7 +267,7 @@ namespace UE {
 
 	void Renderer2D::DrawQuad(const glm::mat4& transform, const glm::vec4& color, int entityID)
 	{
-		
+		UE_PROFILE_FUNCTION();
 
 		constexpr size_t quadVertexCount = 4;
 		const float textureIndex = 0.0f; // White Texture
@@ -292,7 +295,7 @@ namespace UE {
 
 	void Renderer2D::DrawQuad(const glm::mat4& transform, const Ref<Texture2D>& texture, float tilingFactor, const glm::vec4& tintColor, int entityID)
 	{
-		
+		UE_PROFILE_FUNCTION();
 
 		constexpr size_t quadVertexCount = 4;
 		constexpr glm::vec2 textureCoords[] = { { 0.0f, 0.0f }, { 1.0f, 0.0f }, { 1.0f, 1.0f }, { 0.0f, 1.0f } };
@@ -337,13 +340,12 @@ namespace UE {
 	}
 
 	void Renderer2D::DrawRotatedQuad(const glm::vec2& position, const glm::vec2& size, float rotation, const glm::vec4& color)
-	{
+	{		
 		DrawRotatedQuad({ position.x, position.y, 0.0f }, size, rotation, color);
 	}
 
 	void Renderer2D::DrawRotatedQuad(const glm::vec3& position, const glm::vec2& size, float rotation, const glm::vec4& color)
-	{
-		
+	{		
 
 		glm::mat4 transform = glm::translate(glm::mat4(1.0f), position)
 			* glm::rotate(glm::mat4(1.0f), glm::radians(rotation), { 0.0f, 0.0f, 1.0f })
@@ -353,13 +355,12 @@ namespace UE {
 	}
 
 	void Renderer2D::DrawRotatedQuad(const glm::vec2& position, const glm::vec2& size, float rotation, const Ref<Texture2D>& texture, float tilingFactor, const glm::vec4& tintColor)
-	{
+	{		
 		DrawRotatedQuad({ position.x, position.y, 0.0f }, size, rotation, texture, tilingFactor, tintColor);
 	}
 
 	void Renderer2D::DrawRotatedQuad(const glm::vec3& position, const glm::vec2& size, float rotation, const Ref<Texture2D>& texture, float tilingFactor, const glm::vec4& tintColor)
-	{
-		
+	{		
 
 		glm::mat4 transform = glm::translate(glm::mat4(1.0f), position)
 			* glm::rotate(glm::mat4(1.0f), glm::radians(rotation), { 0.0f, 0.0f, 1.0f })
@@ -373,6 +374,7 @@ namespace UE {
 		const Ref<Texture2D>& texture, float tilingFactor, 
 		const glm::vec4& tintColor, int entityID)
 	{
+		UE_PROFILE_FUNCTION();
 		
 		constexpr size_t quadVertexCount = 4;
 		glm::vec2 textureCoords[] = {
@@ -423,6 +425,7 @@ namespace UE {
 
 
 	void Renderer2D::DrawText(const std::string& text, const glm::vec3& position, Ref<Font> font, const glm::vec4& color){
+		UE_PROFILE_FUNCTION();
 		float x = position.x;
 		float y = position.y;
 
@@ -453,7 +456,7 @@ namespace UE {
 	}
 
 	void Renderer2D::DrawSprite(const glm::mat4& transform, SpriteRendererComponent& src, int entityID)
-	{
+	{		
 		if (src.Texture)
 			DrawQuad(transform, src.Texture, src.TilingFactor, src.Color, entityID);
 			// UE_CORE_INFO("DARW");
@@ -462,14 +465,14 @@ namespace UE {
 			// DrawQuad({0, 0} ,{100, 100}, src.Color);
 	}
 
-	void Renderer2D::DrawUI(const glm::mat4& transform, UIElement& src, int entityID){
+	void Renderer2D::DrawUI(const glm::mat4& transform, UIElement& src, int entityID){		
 		if(src.Texture)
 			DrawQuad(transform, src.Texture, 1.0f, {1, 1, 1, 1}, entityID);
 		else
 			DrawQuad(transform, src.Color, entityID);
 	}
 
-	void Renderer2D::DrawUI(const glm::vec3& position, TextUIComponent& src, int entityID){
+	void Renderer2D::DrawUI(const glm::vec3& position, TextUIComponent& src, int entityID){		
 		DrawText(src.Text, position, src.m_Font, src.Color);
 	}
 	

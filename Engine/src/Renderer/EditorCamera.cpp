@@ -15,17 +15,20 @@ namespace UE {
 	EditorCamera::EditorCamera(float fov, float aspectRatio, float nearClip, float farClip)
 		: m_FOV(fov), m_AspectRatio(aspectRatio), m_NearClip(nearClip), m_FarClip(farClip), Camera(glm::perspective(glm::radians(fov), aspectRatio, nearClip, farClip))
 	{
+		
 		UpdateView();
 	}
 
 	void EditorCamera::UpdateProjection()
 	{
+		UE_PROFILE_FUNCTION();
 		m_AspectRatio = m_ViewportWidth / m_ViewportHeight;
 		m_ProjectionMatrix = glm::perspective(glm::radians(m_FOV), m_AspectRatio, m_NearClip, m_FarClip);
 	}
 
 	void EditorCamera::UpdateView()
 	{
+		UE_PROFILE_FUNCTION();
 		// m_Yaw = m_Pitch = 0.0f; // Lock the camera's rotation
 		m_Position = CalculatePosition();
 
@@ -61,6 +64,7 @@ namespace UE {
 
 	void EditorCamera::OnUpdate(Timestep ts)
 	{
+		UE_PROFILE_FUNCTION();
 		if (Input::IsKeyPressed(Key::LeftAlt))
 		{
 			const glm::vec2& mouse{ Input::GetMouseX(), Input::GetMouseY() };

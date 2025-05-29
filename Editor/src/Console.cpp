@@ -100,21 +100,21 @@ void AppConsole::Draw(const char* title, bool* p_open)
     bool copy_to_clipboard = ImGui::SmallButton("Copy");
     //static float t = 0.0f; if (ImGui::GetTime() - t > 0.02f) { t = ImGui::GetTime(); AddLog("Spam %f", t); }
 
-    ImGui::Separator();
+    // ImGui::Separator();
 
-    // Options menu
-    if (ImGui::BeginPopup("Options"))
-    {
-        ImGui::Checkbox("Auto-scroll", &AutoScroll);
-        ImGui::EndPopup();
-    }
+    // // Options menu
+    // if (ImGui::BeginPopup("Options"))
+    // {
+    //     ImGui::Checkbox("Auto-scroll", &AutoScroll);
+    //     ImGui::EndPopup();
+    // }
 
     // Options, Filter
-    ImGui::SetNextItemShortcut(ImGuiMod_Ctrl | ImGuiKey_O, ImGuiInputFlags_Tooltip);
-    if (ImGui::Button("Options"))
-        ImGui::OpenPopup("Options");
-    ImGui::SameLine();
-    Filter.Draw("Filter (\"incl,-excl\") (\"error\")", 180);
+    // ImGui::SetNextItemShortcut(ImGuiMod_Ctrl | ImGuiKey_O, ImGuiInputFlags_Tooltip);
+    // if (ImGui::Button("Options"))
+    //     ImGui::OpenPopup("Options");
+    // ImGui::SameLine();
+    // Filter.Draw("Filter (\"incl,-excl\") (\"error\")", 180);
     ImGui::Separator();
 
     // Reserve enough left-over height for 1 separator + 1 input text

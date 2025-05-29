@@ -1,5 +1,6 @@
+#include "uepch.h"
 #include "ImGuiLayer.h"
-
+#include "Core/FA.h"
 #include <imgui.h>
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_opengl3.h>
@@ -9,6 +10,10 @@
 #include <GLFW/glfw3.h>
 #include "ImGuizmo.h"
 
+#define FONT_FILE "Data/Fonts/Roboto-Medium.ttf"
+#define ICON_FONT "Data/Fonts/fa-solid-900.ttf"
+#define REGULAR_FONT_SIZE 17
+#define SMALL_FONT_SIZE 15
 
 namespace UE {
 
@@ -18,6 +23,7 @@ namespace UE {
         :Layer("ImGuiLayer"){}
 
     void ImGuiLayer::OnAttach(){
+        UE_PROFILE_FUNCTION();
         // Setup Dear ImGui context
         
         g_CTX = ImGui::CreateContext();
@@ -29,9 +35,22 @@ namespace UE {
         //io.ConfigFlags |= ImGuiConfigFlags_ViewportsNoTaskBarIcons;
         //io.ConfigFlags |= ImGuiConfigFlags_ViewportsNoMerge;
 
+        ImFontConfig fontConfig;
+        fontConfig.MergeMode = true;
+        fontConfig.PixelSnapH = true;
+        static const ImWchar iconRange[] = { ICON_MIN_FA, ICON_MAX_FA, 0 };
+
         float fontSize = 18.0f;// *2.0f;
-        io.Fonts->AddFontFromFileTTF("Data/Fonts/OpenSans/static/OpenSans-Bold.ttf", fontSize);
-        io.FontDefault = io.Fonts->AddFontFromFileTTF("Data/Fonts/OpenSans/static/OpenSans-Regular.ttf", fontSize);
+        // io.Fonts->AddFontFromFileTTF("Data/Fonts/OpenSans/static/OpenSans-Bold.ttf", fontSize);
+        // io.FontDefault = io.Fonts->AddFontFromFileTTF("Data/Fonts/OpenSans/static/OpenSans-Regular.ttf", fontSize);
+
+        // regular font and icon
+        io.Fonts->AddFontFromFileTTF(FONT_FILE, REGULAR_FONT_SIZE);
+        io.Fonts->AddFontFromFileTTF(ICON_FONT, REGULAR_FONT_SIZE, &fontConfig, iconRange);
+
+        // small font and icon
+        io.Fonts->AddFontFromFileTTF(FONT_FILE, SMALL_FONT_SIZE);
+        io.Fonts->AddFontFromFileTTF(ICON_FONT, SMALL_FONT_SIZE, &fontConfig, iconRange);
         if (!std::filesystem::exists("imgui.ini"))
         {
             ImGui::LoadIniSettingsFromDisk("Data/ImGui/default.ini");
@@ -56,11 +75,13 @@ namespace UE {
 
         // Setup Platform/Renderer bindings
         ImGui_ImplGlfw_InitForOpenGL(window, true);
-        ImGui_ImplOpenGL3_Init("#version 410");        
+        ImGui_ImplOpenGL3_Init("#version 410");     
+        
+        ImGui::GetIO().ConfigWindowsMoveFromTitleBarOnly = true;
     }
 
     void ImGuiLayer::OnDetach(){
-
+        UE_PROFILE_FUNCTION();
         ImGui_ImplOpenGL3_Shutdown();
         ImGui_ImplGlfw_Shutdown();
         ImGui::DestroyContext();               
@@ -75,7 +96,8 @@ namespace UE {
         }
     }
 
-    void ImGuiLayer::Begin(){        
+    void ImGuiLayer::Begin(){  
+        UE_PROFILE_FUNCTION();      
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();  
@@ -86,7 +108,8 @@ namespace UE {
         return g_CTX;
     }
 
-    void ImGuiLayer::End(){        
+    void ImGuiLayer::End(){     
+        UE_PROFILE_FUNCTION();   
         ImGuiIO& io = ImGui::GetIO();
         Application& app = Application::Get();
         io.DisplaySize = ImVec2((float)app.GetWindow().GetWidth(), (float)app.GetWindow().GetHeight());

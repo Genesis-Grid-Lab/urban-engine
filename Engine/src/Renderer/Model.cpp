@@ -61,6 +61,7 @@ namespace UE {
     }
 
     void Model::LoadModel(const std::string& path){
+        UE_PROFILE_FUNCTION();
         // read file via ASSIMP
         Assimp::Importer importer;
         const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
@@ -76,6 +77,7 @@ namespace UE {
     }
 
     void Model::ProcessNode(aiNode* node, const aiScene* scene){
+        UE_PROFILE_FUNCTION();
         for(unsigned int i = 0; i < node->mNumMeshes; i++){
             aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
             m_Meshes.push_back(ProcessMesh(mesh, scene));
@@ -94,6 +96,7 @@ namespace UE {
     }
 
     Ref<Mesh> Model::ProcessMesh(aiMesh* mesh, const aiScene* scene){
+        UE_PROFILE_FUNCTION();
         Ref<Mesh> tempMesh;
         std::vector<Vertex> vertices;
         std::vector<uint32_t> indices;
@@ -159,6 +162,7 @@ namespace UE {
 
     void Model::ExtractBoneWeightForVertices(std::vector<Vertex>& vertices, aiMesh* mesh, const aiScene* scene)
 	{
+        UE_PROFILE_FUNCTION();
 		auto& boneInfoMap = m_BoneInfoMap;
 		int& boneCount = m_BoneCounter;
 
@@ -198,7 +202,8 @@ namespace UE {
 		}
 	}
 
-    std::vector<TextureMesh> Model::LoadMaterialTextures(aiMaterial* mat, aiTextureType type, std::string typeName){        
+    std::vector<TextureMesh> Model::LoadMaterialTextures(aiMaterial* mat, aiTextureType type, std::string typeName){   
+        UE_PROFILE_FUNCTION();     
         std::vector<TextureMesh> textures;
         for(unsigned int i = 0; i < mat->GetTextureCount(type); i++){
             aiString str;

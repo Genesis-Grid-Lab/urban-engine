@@ -1,3 +1,4 @@
+#include "uepch.h"
 #include "Renderer/Renderer.h"
 #include "Renderer/Renderer2D.h"
 #include "Renderer/Renderer3D.h"
@@ -5,7 +6,7 @@
 namespace UE {
 
     void Renderer::Init(){
-
+		UE_PROFILE_FUNCTION();
         RenderCommand::Init();
         Renderer2D::Init();
 		Renderer3D::Init();

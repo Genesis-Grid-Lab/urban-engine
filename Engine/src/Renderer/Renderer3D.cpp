@@ -131,6 +131,7 @@ namespace UE {
         return m_Shader;
     }
     void Renderer3D::Init(){
+        UE_PROFILE_FUNCTION();
         // s_ScreenShader = CreateRef<Shader>("Data/Shaders/Screen.glsl");
         m_Shader = Shader::Create("Data/Shaders/model.glsl");
         m_ShaderSimple = Shader::Create("Data/Shaders/Simplemodel.glsl");
@@ -182,9 +183,12 @@ namespace UE {
 		glBindVertexArray(0);
     }
 
-    void Renderer3D::Shutdown(){}
+    void Renderer3D::Shutdown(){
+        UE_PROFILE_FUNCTION();
+    }
 
     void Renderer3D::BeginCamera(const Camera& camera){
+        UE_PROFILE_FUNCTION();
         m_Shader->Bind();
         m_Shader->SetMat4("u_View", camera.GetViewMatrix());
         m_Shader->SetMat4("u_Projection", camera.GetProjectionMatrix());
@@ -207,7 +211,7 @@ namespace UE {
     }
 
     void Renderer3D::BeginCamera(const Camera& camera, const TransformComponent& tc){
-
+        UE_PROFILE_FUNCTION();
         glm::mat4 transform = glm::translate(glm::mat4(1.0f), tc.Translation);
         transform = glm::rotate(transform, tc.Rotation.x, glm::vec3(1, 0, 0)); // Pitch
         transform = glm::rotate(transform, tc.Rotation.y, glm::vec3(0, 1, 0)); // Yaw
@@ -236,6 +240,7 @@ namespace UE {
 
     void Renderer3D::BeginCamera(const EditorCamera& camera)
 	{
+        UE_PROFILE_FUNCTION();
 		m_Shader->Bind();
         m_Shader->SetMat4("u_View", camera.GetViewMatrix());
         m_Shader->SetMat4("u_Projection", camera.GetProjectionMatrix());
@@ -259,9 +264,12 @@ namespace UE {
         m_Skybox->Draw(m_SkyShader, camera.GetViewMatrix(), camera.GetProjectionMatrix());
 	}
 
-    void Renderer3D::EndCamera(){}
+    void Renderer3D::EndCamera(){
+        UE_PROFILE_FUNCTION();
+    }
 
     void Renderer3D::RenderLight(const glm::vec3& pos){
+        UE_PROFILE_FUNCTION();
         m_LightShader->Bind();
         m_LightPos = pos;  
         glm::mat4 imodel = glm::mat4(1.0f);
@@ -276,6 +284,7 @@ namespace UE {
     }
 
     void Renderer3D::DrawModel(const Ref<Model>& model,const glm::mat4& transform, const glm::vec3& color, const float transparancy, int entityID){
+        UE_PROFILE_FUNCTION();
         m_Shader->Bind();
         m_Shader->SetFloat3("u_Color", color);  
         m_Shader->SetMat4("u_Model", transform);  
@@ -297,8 +306,7 @@ namespace UE {
         m_Shader->Unbind();
     }
 
-    void Renderer3D::DrawModel(const Ref<Model>& model,const glm::vec3& position,const glm::vec3& size, const glm::vec3& color, const float transparancy){
-        
+    void Renderer3D::DrawModel(const Ref<Model>& model,const glm::vec3& position,const glm::vec3& size, const glm::vec3& color, const float transparancy){        
         glm::mat4 imodel = glm::mat4(1.0f);
         imodel = glm::translate(imodel, position);
         imodel = glm::rotate(imodel, glm::radians(0.0f), glm::vec3(0, 1, 0));
@@ -309,6 +317,7 @@ namespace UE {
     }
 
     void Renderer3D::DrawCube(const glm::mat4& transform, const glm::vec3& color, const float transparancy, int entityID){
+        UE_PROFILE_FUNCTION();
         m_ShaderSimple->Bind();
         m_ShaderSimple->SetMat4("u_Model", transform);
         m_ShaderSimple->SetFloat3("u_Color", color); 
@@ -323,12 +332,14 @@ namespace UE {
     }
     
     void Renderer3D::DrawCube(const glm::vec3& position, const glm::vec3& size, const glm::vec3& color, const float transparancy) {
+        
         glm::mat4 transform = glm::translate(glm::mat4(1.0f), position)
                             * glm::scale(glm::mat4(1.0f), size);        
         DrawCube(transform, color, transparancy);
     }
 
     void Renderer3D::DrawSphere(const glm::mat4& transform, const glm::vec3& color, float transparancy, int entityID) {
+        UE_PROFILE_FUNCTION();
         m_ShaderSimple->Bind();
         m_ShaderSimple->SetMat4("u_Model", transform);
         m_ShaderSimple->SetFloat3("u_Color", color); 
@@ -339,30 +350,35 @@ namespace UE {
     }
 
     void Renderer3D::DrawSphere(const glm::vec3& position, const glm::vec3& scale, const glm::vec3& color, float transparancy) {
+        
         glm::mat4 transform = glm::translate(glm::mat4(1.0f), position)
                             * glm::scale(glm::mat4(1.0f), scale);
         DrawSphere(transform, color, transparancy);
     }
 
     void Renderer3D::DrawSphere(const glm::vec3& position, float radius, const glm::vec3& color, float transparancy, int entityID) {
+        
         glm::mat4 transform = glm::translate(glm::mat4(1.0f), position)
                             * glm::scale(glm::mat4(1.0f), glm::vec3(radius));
         DrawSphere(transform, color, transparancy, entityID);
     }
 
     void Renderer3D::DrawWireCube(const glm::vec3& position, const glm::vec3& size, const glm::vec3& color, const float transparancy){
+        UE_PROFILE_FUNCTION();
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         DrawCube(position, size, color, transparancy);
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     }
 
     void Renderer3D::DrawWireSphere(const glm::vec3& position, const glm::vec3& scale, const glm::vec3& color, float transparancy){
+        UE_PROFILE_FUNCTION();
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         DrawSphere(position, scale, color, transparancy);
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     }
 
     void Renderer3D::DrawLine(const glm::vec3& p0, const glm::vec3& p1, const glm::vec4& color) {
+        UE_PROFILE_FUNCTION();
 		glm::vec3 points[2] = { p0, p1 };
 		glBindBuffer(GL_ARRAY_BUFFER, lineVBO);
 		glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(points), points);
@@ -379,6 +395,7 @@ namespace UE {
 
     void Renderer3D::DrawCameraFrustum(const UE::SceneCamera& cam)
     {
+        UE_PROFILE_FUNCTION();
         using namespace UE;
 
         glm::vec3 pos = cam.GetPosition();
@@ -447,6 +464,7 @@ namespace UE {
     }
 
     void Renderer3D::RunAnimation(Ref<Animation> animation, float ts){
+        UE_PROFILE_FUNCTION();
         m_Shader->Bind();
         if(s_Animator->GetCurrentAnimation() != animation){
             s_Animator->PlayAnimation(animation);

@@ -2,8 +2,8 @@
 #include <UrbanEngine.h>
 #include "EditorLayer.h"
 
-#define now_width 1600
-#define now_height 900
+#define now_width 1800
+#define now_height 1000
 
 using namespace UE;
 class EditorApp : public Application {
