@@ -146,7 +146,7 @@ namespace UE {
 
 	struct  BoxShapeComponent{
 		
-		JPH::Ref<JPH::BoxShape> Shape;
+		JPH::Ref<JPH::Shape> Shape;
 		JPH::BoxShapeSettings* Settings;
 		BoxShapeComponent() = default;
 		BoxShapeComponent(const BoxShapeComponent&) = default;		

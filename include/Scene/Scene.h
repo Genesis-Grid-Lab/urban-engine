@@ -38,6 +38,15 @@ namespace UE {
             });
         }
 
+        template<typename Comp, typename Task>
+        void GroupEntity(Task&& task){
+            auto group = m_Registry.group<Comp>(entt::get<TransformComponent>);
+            for(auto entity : group){
+                auto& [transform, comp] = group.get<TransformComponent, Comp>(entity);
+                task(std::move(Entity(entity, this)), comp, transform, entity);
+            }
+        }
+
         void OnRuntimeStart();
 		void OnRuntimeStop();
         void PhysicsUpdate(float dt);

@@ -12,6 +12,8 @@
 #include "Core/Log.h"
 #include <Jolt/Math/Math.h>
 #include <Jolt/Physics/Collision/Shape/RotatedTranslatedShape.h>
+#include <Jolt/Physics/Collision/Shape/CompoundShape.h>
+#include <Jolt/Physics/Collision/Shape/SubShapeID.h>
 //temp
 #include <glad/glad.h>
 
@@ -123,9 +125,9 @@ namespace UE {
 		if(mouseX >= 0 && mouseY >= 0 && mouseX < (int)viewportSize.x && mouseY < (int)viewportSize.y){            
 			int pixelData = m_Framebuffer->ReadPixel(1, mouseX, mouseY);
 			// UE_INFO("mx: {0}, my: {1}" ,Input::GetMouseX(), Input::GetMouseY() );
-			if(pixelData < -1 || pixelData >= 1036831949)
+			if(pixelData < -1 || pixelData >= 99036831949)
 				pixelData = -1;
-			UE_INFO("Pixel {0}",pixelData);
+			// UE_INFO("Pixel {0}",pixelData);
 			GlobHovered = pixelData == -1 ? Entity() : Entity((entt::entity)pixelData, this);            
 		}
 	}
@@ -133,13 +135,12 @@ namespace UE {
 	void Scene::OnRuntimeStart(){
 		JPH::BodyInterface &body_interface = m_Physics3D._physics_system->GetBodyInterface();
 
-		ViewEntity<Entity, BoxShapeComponent>([this] (auto entity, auto& comp){
+		GroupEntity<BoxShapeComponent>([this] (auto entity, auto& comp, auto& transform, auto id){
 			glm::vec3 minBounds(FLT_MAX);
 			glm::vec3 maxBounds(-FLT_MAX);
 			glm::vec3 center = glm::vec3(0);
 			glm::vec3 halfExtents = glm::vec3(0);
-			glm::vec3 scaledHalfExtents = glm::vec3(0);
-			auto& transform = entity.template GetComponent<TransformComponent>();
+			glm::vec3 scaledHalfExtents = glm::vec3(0);			
 
 			if(entity.HasComponent<ModelComponent>()){
 				auto& modelComp = entity.GetComponent<ModelComponent>();
@@ -175,7 +176,20 @@ namespace UE {
 
 			JPH::ShapeSettings::ShapeResult shape_result = comp.Settings->Create();
 
-			comp.Shape =  new JPH::BoxShape(*comp.Settings, shape_result);  
+			// comp.Shape =  new JPH::BoxShape(*comp.Settings, shape_result);  
+			
+			glm::vec3 joltCenterOffset = { center.x * transform.Scale.x, center.y * transform.Scale.y, center.z * transform.Scale.z };
+
+			JPH::Vec3 offset = {joltCenterOffset.x, joltCenterOffset.y, joltCenterOffset.z};
+
+			auto result = JPH::RotatedTranslatedShapeSettings(offset, JPH::Quat::sIdentity(), new JPH::BoxShape(JPH::Vec3(scaledHalfExtents.x, scaledHalfExtents.y, scaledHalfExtents.z))).Create();
+			if (result.HasError()) {
+				UE_CORE_ERROR("Failed to create offset shape: {}", result.GetError());
+				return;
+			}
+
+			// JPH::Ref<JPH::Shape> out = result.Get();
+			comp.Shape = result.Get();
 
 			if (shape_result.HasError())
 			{
@@ -187,8 +201,7 @@ namespace UE {
 
 		});	
 
-		ViewEntity<Entity, SphereShapeComponent>([this](auto entity, auto& comp){
-			auto& transform = entity.template GetComponent<TransformComponent>();
+		GroupEntity<SphereShapeComponent>([this](auto entity, auto& comp, auto& transform, auto id){			
 
 			if(!comp.Settings){
 				comp.Settings = new JPH::SphereShapeSettings{
@@ -207,8 +220,7 @@ namespace UE {
 			}	
 		});
 
-		ViewEntity<Entity, RigidbodyComponent>([this, &body_interface](auto entity, auto& comp){
-			auto& transform = entity.template GetComponent<TransformComponent>();
+		GroupEntity<RigidbodyComponent>([this, &body_interface](auto entity, auto& comp, auto& transform, auto id){			
 
 			// Create the settings for the body itself. Note that here you can also set
 			// other properties like the restitution / friction.	
@@ -259,13 +271,12 @@ namespace UE {
 			body_interface.ActivateBody(comp.ID);
 		});
 
-		ViewEntity<Entity, CharacterComponent>([this] (auto entity, auto& comp){
+		GroupEntity<CharacterComponent>([this] (auto entity, auto& comp, auto& transform, auto id){
 			glm::vec3 minBounds(FLT_MAX);
 			glm::vec3 maxBounds(-FLT_MAX);
 			glm::vec3 center = glm::vec3(0);
 			glm::vec3 halfExtents = glm::vec3(0);
-			glm::vec3 scaledHalfExtents = glm::vec3(0);
-			auto& transform = entity.template GetComponent<TransformComponent>();
+			glm::vec3 scaledHalfExtents = glm::vec3(0);			
 
 			if(entity.HasComponent<ModelComponent>()){
 				auto& modelComp = entity.GetComponent<ModelComponent>();
@@ -283,8 +294,17 @@ namespace UE {
 
 			scaledHalfExtents = halfExtents * transform.Scale;
 			glm::vec3 joltCenterOffset = { center.x * transform.Scale.x, center.y * transform.Scale.y, center.z * transform.Scale.z };
+
 			JPH::Vec3 offset = {joltCenterOffset.x, joltCenterOffset.y, joltCenterOffset.z};
 
+			JPH::Vec3 characterPos = {
+				transform.Translation.x - offset.GetX(),
+				transform.Translation.y - offset.GetY(),
+				transform.Translation.z - offset.GetZ()
+			};
+
+			UE_CORE_WARN("extent {} {} {}", scaledHalfExtents.x, scaledHalfExtents.y, scaledHalfExtents.z);
+			UE_CORE_WARN("offset {}", joltCenterOffset);
 			if(entity.HasComponent<BoxShapeComponent>()){
 				auto& boxComp = m_Registry.get<BoxShapeComponent>(entity);
 				boxComp.Shape = new JPH::BoxShape(
@@ -296,8 +316,9 @@ namespace UE {
 					UE_CORE_ERROR("Failed to create offset shape: {}", result.GetError());
 					return;
 				}
+
+				// comp.Shape = boxComp.Shape;				
 				comp.Shape = result.Get();
-				// comp.Shape = boxComp.Shape;
 			}
 			else{
 				UE_CORE_WARN("No Shape in CharacterComponent");
@@ -315,14 +336,17 @@ namespace UE {
 
 			if(!comp.Character){
 				comp.Character = new JPH::Character(comp.Setting, 
-					{transform.Translation.x, transform.Translation.y, transform.Translation.z}, JPH::Quat::sIdentity(), 0, m_Physics3D._physics_system);				
+					characterPos, JPH::Quat::sIdentity(), 0, m_Physics3D._physics_system);				
 			}			
 
 			comp.ID = comp.Character->GetBodyID();
-			comp.Character->AddToPhysicsSystem((JPH::EActivation)comp.Activate);			
+			comp.Character->AddToPhysicsSystem((JPH::EActivation)comp.Activate);	
+			UE_CORE_WARN("Original Pos: {}", transform.Translation);
+			UE_CORE_WARN("Final Pos: {}", glm::vec3(characterPos.GetX(), characterPos.GetY(),characterPos.GetZ()));		
 
 			comp.Character->Activate();
-			// transform.Translation.y -= center.y * transform.Scale.y - scaledHalfExtents.y;
+			// transform.Translation.y -= center.y * transform.Scale.y - scaledHalfExtents.y;			
+			
 
 		});		
 
@@ -392,7 +416,7 @@ namespace UE {
 				m_Physics3D._physics_system->GetBodyInterface()};
 			if (!body_interface.IsActive(comp.ID))
 			{		
-				UE_CORE_WARN("Entity not active");
+				// UE_CORE_WARN("Entity not active");
 				return;
 			}		
 						
@@ -493,12 +517,9 @@ namespace UE {
 
 			Renderer3D::RenderLight({5.5f, 5.0f, 0.3f });
 
-			auto modelGroup = m_Registry.group<ModelComponent>(entt::get<TransformComponent>);
-			for (auto entity : modelGroup) {
-				auto [transform, modelComp] = modelGroup.get<TransformComponent, ModelComponent>(entity);				
-				
-				Renderer3D::DrawModel(modelComp.ModelData, transform.GetTransform(), glm::vec3(1.0f),(int)entity);			
-			}
+			GroupEntity<ModelComponent>([this](auto entity, auto& comp, auto& transform, auto id){
+				Renderer3D::DrawModel(comp.ModelData, transform.GetTransform(), glm::vec3(1.0f),(int)id);
+			});
 
 			auto CubeGroup = m_Registry.group<CubeComponent>(entt::get<TransformComponent>);
 			for (auto entity : CubeGroup) {
@@ -593,36 +614,34 @@ namespace UE {
 		// glEnable(GL_DEPTH_TEST);
 		Renderer3D::BeginCamera(camera);
 		//temp
-		Renderer3D::RenderLight({5.5f, 5.0f, 0.3f });
+		Renderer3D::RenderLight({5.5f, 5.0f, 0.3f });		
 
-
-		ViewEntity<Entity, ModelComponent>([this] (auto entity, auto& comp){
-			auto& transform = entity.template GetComponent<TransformComponent>();
-			Renderer3D::DrawModel(comp.ModelData, transform.GetTransform(), glm::vec3(1),(int)entity);
+		GroupEntity<ModelComponent>([this] (auto entity, auto& comp, auto& transform, auto id){
+			// UE_CORE_WARN("Model entity: {}", (int)id);
+			Renderer3D::DrawModel(comp.ModelData, transform.GetTransform(), glm::vec3(1.0f), 1.0f,(int)id);	
 		});
 
-		ViewEntity<Entity, CubeComponent>([this] (auto entity, auto& comp){			
-			auto& transform = entity.template GetComponent<TransformComponent>();
-			
-			Renderer3D::DrawCube(transform.GetTransform(), comp.Color, (int)entity);
+		GroupEntity<CubeComponent>([this] (auto entity, auto& comp, auto& transform, auto id){						
+			// UE_CORE_WARN("Cube entity: {}", (int)entity);
+			Renderer3D::DrawCube(transform.GetTransform(), comp.Color, 1.0f, (int)id);
 		});
 
-		ViewEntity<Entity, CameraComponent>([this] (auto entity, auto& comp){
-			auto& transform = entity.template GetComponent<TransformComponent>();
+		GroupEntity<CameraComponent>([this] (auto entity, auto& comp, auto& transform, auto id){						
 			comp.Camera.m_Position = &transform.Translation;
 			// CamComp.Camera.m_Rotation2 = &transform.Rotation;
 			if(ShowCams)
-				Renderer3D::DrawCube(transform.GetTransform(), {1,0,0}, 1.0f, (int)entity - 1);
+				Renderer3D::DrawCube(transform.GetTransform(), {1,0,0}, 1.0f, (int)id);
 				// Renderer3D::DrawCameraFrustum(comp.Camera);
+
+			// UE_CORE_WARN("Camera entity: {}", (int)id);
 		});
 
-		ViewEntity<Entity, BoxShapeComponent>([this] (auto entity, auto& comp){
+		GroupEntity<BoxShapeComponent>([this] (auto entity, auto& comp, auto& transform, auto id){
 			glm::vec3 minBounds(FLT_MAX);
 			glm::vec3 maxBounds(-FLT_MAX);
 			glm::vec3 center = glm::vec3(0);
 			glm::vec3 halfExtents = glm::vec3(0);
-			glm::vec3 scaledHalfExtents = glm::vec3(0);
-			auto& transform = entity.template GetComponent<TransformComponent>();
+			glm::vec3 scaledHalfExtents = glm::vec3(0);			
 
 			if(entity.HasComponent<ModelComponent>()){
 				auto& modelComp = entity.GetComponent<ModelComponent>();
@@ -687,8 +706,7 @@ namespace UE {
 
 		});		
 
-		ViewEntity<Entity, SphereShapeComponent>([this] (auto entity, auto& comp){
-			auto& transform = entity.template GetComponent<TransformComponent>();
+		GroupEntity<SphereShapeComponent>([this] (auto entity, auto& comp, auto& transform, auto id){			
 			
 			if(!comp.Settings){
 				comp.Settings = new JPH::SphereShapeSettings{
