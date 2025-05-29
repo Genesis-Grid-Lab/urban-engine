@@ -1,0 +1,51 @@
+Scene: Untitled
+Entities:
+  - Entity: 1257122380926065782
+    TagComponent:
+      Tag: Sphere
+    TransformComponent:
+      Translation: [0, 4.69999981, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    ModelComponent:
+      Model:
+        Path: Resources/sphere.fbx
+    RigidbodyComponent:
+      Type: Dynamic
+      Layer: 1
+      Velocity: [1, 1, 1]
+    SphereShapeComponent:
+      {}
+  - Entity: 17975182870964200704
+    TagComponent:
+      Tag: Floor
+    TransformComponent:
+      Translation: [0, -2, 0]
+      Rotation: [0, 0, 0]
+      Scale: [50, 1, 50]
+    CubeComponent:
+      Color: [0.5, 0, 0.5]
+    RigidbodyComponent:
+      Type: Static
+      Layer: 0
+      Velocity: [0, 0, 0]
+    BoxShapeComponent:
+      {}
+  - Entity: 9268471605909202419
+    TagComponent:
+      Tag: Cam
+    TransformComponent:
+      Translation: [0, 0.699999988, 5.5]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    CameraComponent:
+      Camera:
+        ProjectionType: 0
+        PerspectiveFOV: 0.785398185
+        PerspectiveNear: 0.00999999978
+        PerspectiveFar: 1000
+        OrthographicSize: 10
+        OrthographicNear: -1
+        OrthographicFar: 1
+      Primary: true
+      FixedAspectRatio: false

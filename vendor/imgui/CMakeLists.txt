@@ -14,5 +14,5 @@ add_library(imgui ${headers} ${sources} ${CMAKE_CURRENT_SOURCE_DIR}/backends/img
 
 target_include_directories(imgui PUBLIC 
             ${CMAKE_CURRENT_SOURCE_DIR}/
-            ${CMAKE_SOURCE_DIR}/vendor/urban-engine/vendor/glfw/include/
+            ${CMAKE_SOURCE_DIR}/vendor/glfw/include/
             )

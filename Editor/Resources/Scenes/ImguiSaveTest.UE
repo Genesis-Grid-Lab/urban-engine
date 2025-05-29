@@ -1,0 +1,83 @@
+Scene: Untitled
+Entities:
+  - Entity: 15049181606142813869
+    TagComponent:
+      Tag: Man
+    TransformComponent:
+      Translation: [1, 2, 0]
+      Rotation: [90, 0, 90]
+      Scale: [0.100000001, 0.100000001, 0.100000001]
+    ModelComponent:
+      Model:
+        Path: Resources/dancing_vampire.dae
+    RigidbodyComponent:
+      Type: Dynamic
+      Layer: 1
+      Velocity: [0, 0, 0]
+    BoxShapeComponent:
+      {}
+  - Entity: 16043106228805222468
+    TagComponent:
+      Tag: Cube
+    TransformComponent:
+      Translation: [-1, 2, 2]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    ModelComponent:
+      Model:
+        Path: Resources/cube.fbx
+    RigidbodyComponent:
+      Type: Dynamic
+      Layer: 1
+      Velocity: [0, 0, 0]
+    BoxShapeComponent:
+      {}
+  - Entity: 14957502597524638560
+    TagComponent:
+      Tag: Sphere
+    TransformComponent:
+      Translation: [0, 2, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    ModelComponent:
+      Model:
+        Path: Resources/sphere.fbx
+    RigidbodyComponent:
+      Type: Dynamic
+      Layer: 1
+      Velocity: [0, 0, 0]
+    SphereShapeComponent:
+      {}
+  - Entity: 11412457676502332946
+    TagComponent:
+      Tag: Floor
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [50, 1, 50]
+    CubeComponent:
+      Color: [0.5, 0, 0.5]
+    RigidbodyComponent:
+      Type: Static
+      Layer: 0
+      Velocity: [0, 0, 0]
+    BoxShapeComponent:
+      {}
+  - Entity: 10927625821078602041
+    TagComponent:
+      Tag: Cam
+    TransformComponent:
+      Translation: [0, 2.70000005, 5.5]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    CameraComponent:
+      Camera:
+        ProjectionType: 0
+        PerspectiveFOV: 0.785398185
+        PerspectiveNear: 0.00999999978
+        PerspectiveFar: 1000
+        OrthographicSize: 10
+        OrthographicNear: -1
+        OrthographicFar: 1
+      Primary: true
+      FixedAspectRatio: false

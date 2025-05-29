@@ -1,0 +1,34 @@
+{
+    "configurations": [
+        {
+            "includePath": [
+                "${workspaceFolder}/Editor/include",                
+                "${workspaceFolder}/Engine/include",                
+                "${workspaceFolder}/vendor/imgui",
+                "${workspaceFolder}/vendor/imgui/backends",
+                "${workspaceFolder}/vendor/glfw/include",
+                "${workspaceFolder}/vendor/glm",
+                "${workspaceFolder}/vendor/physx/include",                
+                "${workspaceFolder}/vendor/glad/include",
+                "${workspaceFolder}/vendor/stb_image",
+                "${workspaceFolder}/vendor/entt/src/entt",
+                "${workspaceFolder}/vendor/assimp/include",
+                "${workspaceFolder}/vendor/ImGuizmo",
+                "${workspaceFolder}/vendor/ImGuiFileDialog",
+                "${workspaceFolder}/vendor/JoltPhysics",
+                "${workspaceFolder}/vendor/yaml-cpp/include"                                
+            ],
+            "configurationProvider": "ms-vscode.cmake-tools",
+            "defines": [
+                "UE_ENABLE_ASSERTS",
+                "UE_DEBUG",
+                "UE_PLATFORM_WINDOWS"
+            ],
+            "intelliSenseMode": "${default}",
+            "cppStandard": "c++17",
+            "cStandard": "c17",
+            "name": "cpp-dev"
+        }
+    ],
+    "version": 4
+}

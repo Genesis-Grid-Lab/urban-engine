@@ -1,0 +1,32 @@
+{
+    "version": "0.2.0",
+
+    "configurations": [
+        //Windows
+        {
+            "type": "cppvsdbg",
+            "request": "launch",
+            "name": "Editor",
+            "program": "EbonyEditor.exe",
+            "externalConsole": false,
+            "console": "integratedTerminal",
+            "logging": {
+                "moduleLoad": false,
+                "trace": true
+            },
+            "cwd": "${workspaceFolder}/Targets/Debug/bin",
+            "preLaunchTask": "UrbanEngine-Debug"
+            
+        },
+
+        //Linux
+        {
+            "type": "cppdbg",
+            "request": "launch",
+            "name": "Game Linux",
+            "miDebuggerPath": "/usr/bin/gdb",
+            "cwd": "${workspaceFolder}/Targets/Debug/bin",
+            "program": "EbonyEditor",
+        },
+    ]
+}
