@@ -220,7 +220,7 @@ Distributed under the Apache License. See `LICENSE.txt` for more information.
 <!-- CONTACT -->
 ## Contact
 
-Your Name - [@nesmy_](https://twitter.com/nesmy_) - nesmypdj@gmail.com
+Nesmy PDJ - [@nesmy_](https://twitter.com/nesmy_) - nesmypdj@gmail.com
 
 Project Link: [https://github.com/Genesis-Grid-Lab/urban-engine](https://github.com/Genesis-Grid-Lab/urban-engine)
 
