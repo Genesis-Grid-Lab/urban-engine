@@ -134,7 +134,7 @@ To get a local copy up and running follow these simple example steps. -->
    ```sh
    ./Win.bat [Debug | Release]
    ```
-3. Enter your API in `config.js`
+3. Run
    ```sh
    ./Run.bat
    ```
@@ -149,7 +149,7 @@ To get a local copy up and running follow these simple example steps. -->
    ```sh
    ./Linux.sh [Debug | Release]
    ```
-3. Enter your API in `config.js`
+3. Run
    ```sh
    ./Run.sh
    ```
