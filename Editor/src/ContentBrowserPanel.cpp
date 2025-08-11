@@ -4,6 +4,14 @@
 #include <imgui.h>
 
 namespace UE {
+  static std::string to_utf8(const std::filesystem::path& p) {
+#ifdef _WIN32
+    auto u8 = p.u8string();                    // std::u8string
+    return std::string(u8.begin(), u8.end());  // to std::string (UTF-8)
+#else
+    return p.string();                         // already UTF-8 on POSIX
+#endif
+}
 
 	// Once we have projects, change this
 	extern const std::filesystem::path g_AssetPath = "Resources";
@@ -51,10 +59,11 @@ namespace UE {
 			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
 			ImGui::ImageButton(filenameString.c_str(),(ImTextureID)icon->GetRendererID(), { thumbnailSize, thumbnailSize }, { 0, 1 }, { 1, 0 });
 
-			if (ImGui::BeginDragDropSource())
-			{
-				const wchar_t* itemPath = relativePath.c_str();
-				ImGui::SetDragDropPayload("CONTENT_BROWSER_ITEM", itemPath, (wcslen(itemPath) + 1) * sizeof(wchar_t));
+                        if (ImGui::BeginDragDropSource()) {
+			  std::string itemPathStr = to_utf8(relativePath);
+                          // const wchar_t *itemPath = relativePath.c_str();
+			  const char* itemPath = itemPathStr.c_str();                          
+			  ImGui::SetDragDropPayload("CONTENT_BROWSER_ITEM", itemPath, itemPathStr.size() + 1);
 				ImGui::EndDragDropSource();
 			}
 

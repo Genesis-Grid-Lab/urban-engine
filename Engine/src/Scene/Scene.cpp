@@ -144,8 +144,8 @@ namespace UE {
 			glm::vec3 halfExtents = glm::vec3(0);
 			glm::vec3 scaledHalfExtents = glm::vec3(0);			
 
-			if(entity.HasComponent<ModelComponent>()){
-				auto& modelComp = entity.GetComponent<ModelComponent>();
+			if(entity.template HasComponent<ModelComponent>()){
+			  auto& modelComp = entity.template GetComponent<ModelComponent>();
 
 				for(auto& mesh : modelComp.ModelData->GetMeshes()){
 					for(const auto& vertex : mesh->m_Vertices){
@@ -155,8 +155,8 @@ namespace UE {
 				}
 			}
 
-			if(entity.HasComponent<CubeComponent>()){
-				auto& cubeComp = entity.GetComponent<CubeComponent>();
+			if(entity.template HasComponent<CubeComponent>()){
+				auto& cubeComp = entity.template GetComponent<CubeComponent>();
 
 				for(const auto& vertex : Renderer3D::GetCubeMesh()->m_Vertices){
 					minBounds = glm::min(minBounds, vertex.Position);
@@ -199,7 +199,7 @@ namespace UE {
 							shape_result.GetError());
 			}
 			
-			auto& box = comp.Shape->GetLocalBounds();	
+			const auto& box = comp.Shape->GetLocalBounds();	
 
 		});	
 
@@ -226,12 +226,12 @@ namespace UE {
 
 			// Create the settings for the body itself. Note that here you can also set
 			// other properties like the restitution / friction.	
-			if(entity.HasComponent<BoxShapeComponent>()){
-				auto& boxComp = entity.GetComponent<BoxShapeComponent>();
+			if(entity.template HasComponent<BoxShapeComponent>()){
+				auto& boxComp = entity.template GetComponent<BoxShapeComponent>();
 				comp.Shape = boxComp.Shape;
 			}
-			else if(entity.HasComponent<SphereShapeComponent>()){
-				auto& boxComp = entity.GetComponent<SphereShapeComponent>();
+			else if(entity.template HasComponent<SphereShapeComponent>()){
+				auto& boxComp = entity.template GetComponent<SphereShapeComponent>();
 				comp.Shape = boxComp.Shape;
 			}
 			else{
@@ -280,8 +280,8 @@ namespace UE {
 			glm::vec3 halfExtents = glm::vec3(0);
 			glm::vec3 scaledHalfExtents = glm::vec3(0);			
 
-			if(entity.HasComponent<ModelComponent>()){
-				auto& modelComp = entity.GetComponent<ModelComponent>();
+			if(entity.template HasComponent<ModelComponent>()){
+				auto& modelComp = entity.template GetComponent<ModelComponent>();
 
 				for(auto& mesh : modelComp.ModelData->GetMeshes()){
 					for(const auto& vertex : mesh->m_Vertices){
@@ -307,7 +307,7 @@ namespace UE {
 
 			UE_CORE_WARN("extent {} {} {}", scaledHalfExtents.x, scaledHalfExtents.y, scaledHalfExtents.z);
 			UE_CORE_WARN("offset {}", joltCenterOffset);
-			if(entity.HasComponent<BoxShapeComponent>()){
+			if(entity.template HasComponent<BoxShapeComponent>()){
 				auto& boxComp = m_Registry.get<BoxShapeComponent>(entity);
 				boxComp.Shape = new JPH::BoxShape(
 					{ 0.25f, scaledHalfExtents.y, scaledHalfExtents.z }
@@ -535,7 +535,7 @@ namespace UE {
 			for (auto entity : boxShapeGroup) {
 				auto [transform, boxComp] = boxShapeGroup.get<TransformComponent, BoxShapeComponent>(entity);				
 				
-				auto& box = boxComp.Shape->GetLocalBounds();
+				const auto& box = boxComp.Shape->GetLocalBounds();
 
 				if(ShowBoxesPlay)
 					Renderer3D::DrawWireCube({transform.Translation.x, transform.Translation.y, transform.Translation.z}, 
@@ -548,7 +548,7 @@ namespace UE {
 			for (auto entity : sphereShapeGroup) {
 				auto [transform, sphereComp] = sphereShapeGroup.get<TransformComponent, SphereShapeComponent>(entity);				
 				
-				auto& box = sphereComp.Shape->GetLocalBounds();
+				const auto& box = sphereComp.Shape->GetLocalBounds();
 
 				if(ShowBoxesPlay)
 					Renderer3D::DrawWireSphere({transform.Translation.x, transform.Translation.y, transform.Translation.z}, 
@@ -647,8 +647,8 @@ namespace UE {
 			glm::vec3 halfExtents = glm::vec3(0);
 			glm::vec3 scaledHalfExtents = glm::vec3(0);			
 
-			if(entity.HasComponent<ModelComponent>()){
-				auto& modelComp = entity.GetComponent<ModelComponent>();
+			if(entity.template HasComponent<ModelComponent>()){
+				auto& modelComp = entity.template GetComponent<ModelComponent>();
 
 				for(auto& mesh : modelComp.ModelData->GetMeshes()){
 					for(const auto& vertex : mesh->m_Vertices){
@@ -658,8 +658,8 @@ namespace UE {
 				}
 			}
 
-			if(entity.HasComponent<CubeComponent>()){
-				auto& cubeComp = entity.GetComponent<CubeComponent>();
+			if(entity.template HasComponent<CubeComponent>()){
+				auto& cubeComp = entity.template GetComponent<CubeComponent>();
 
 				for(const auto& vertex : Renderer3D::GetCubeMesh()->m_Vertices){
 					minBounds = glm::min(minBounds, vertex.Position);
@@ -699,7 +699,7 @@ namespace UE {
 							shape_result.GetError());
 			}
 			
-			auto& box = comp.Shape->GetLocalBounds();
+			const auto& box = comp.Shape->GetLocalBounds();
 
 			if(ShowBoxes)
 				Renderer3D::DrawWireCube({transform.Translation.x, transform.Translation.y, transform.Translation.z}, 
@@ -728,7 +728,7 @@ namespace UE {
 							shape_result.GetError());
 			}
 			
-			auto& box = comp.Shape->GetLocalBounds();
+			const auto& box = comp.Shape->GetLocalBounds();
 
 			if(ShowBoxes)
 				Renderer3D::DrawWireSphere({transform.Translation.x, transform.Translation.y, transform.Translation.z}, 

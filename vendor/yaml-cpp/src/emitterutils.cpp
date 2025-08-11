@@ -11,6 +11,7 @@
 #include "yaml-cpp/binary.h"  // IWYU pragma: keep
 #include "yaml-cpp/null.h"
 #include "yaml-cpp/ostream_wrapper.h"
+#include <cstdint>
 
 namespace YAML {
 namespace Utils {

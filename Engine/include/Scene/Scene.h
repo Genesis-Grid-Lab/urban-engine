@@ -11,6 +11,7 @@
 #include "Renderer/Shader.h"
 #include "Renderer/Model.h"
 #include "Auxiliaries/Physics.h"
+#include "Components.h"
 
 namespace UE {
 
@@ -42,7 +43,7 @@ namespace UE {
         void GroupEntity(Task&& task){
             auto group = m_Registry.group<Comp>(entt::get<TransformComponent>);
             for(auto entity : group){
-                auto& [transform, comp] = group.get<TransformComponent, Comp>(entity);
+                const auto& [transform, comp] = group.template get<TransformComponent, Comp>(entity);
                 task(std::move(Entity(entity, this)), comp, transform, entity);
             }
         }

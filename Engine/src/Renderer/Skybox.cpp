@@ -2,7 +2,7 @@
 #include "Renderer/Skybox.h"
 #include "Renderer/Renderer.h"
 #include "Core/UE_Assert.h"
-#include "Platform/OpenGl/OpenGLSkybox.h"
+#include "Platform/OpenGL/OpenGLSkybox.h"
 
 namespace UE {
 

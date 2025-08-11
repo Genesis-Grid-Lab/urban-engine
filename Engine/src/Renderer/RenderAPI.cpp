@@ -2,7 +2,7 @@
 #include "Renderer/RendererAPI.h"
 #include "Log.h"
 #include "Core/UE_Assert.h"
-#include "Platform/OpenGl/OpenGLRendererAPI.h"
+#include "Platform/OpenGL/OpenGLRendererAPI.h"
 
 namespace UE {
 

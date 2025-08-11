@@ -2,7 +2,7 @@
 #include "Renderer/GraphicsContext.h"
 #include "Renderer/Renderer.h"
 #include "UE_Assert.h"
-#include "Platform/OpenGl/OpenGLContext.h"
+#include "Platform/OpenGL/OpenGLContext.h"
 
 namespace UE {
 

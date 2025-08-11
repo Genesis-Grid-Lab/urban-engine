@@ -2,7 +2,7 @@
 #include "Renderer/Shader.h"
 #include "Core/UE_Assert.h"
 #include "Renderer/Renderer.h"
-#include "Platform/OpenGl/OpenGLShader.h"
+#include "Platform/OpenGL/OpenGLShader.h"
 
 
 namespace UE {

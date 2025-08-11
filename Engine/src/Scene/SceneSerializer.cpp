@@ -256,7 +256,7 @@ namespace UE {
 				{
 					auto& cc = deserializedEntity.AddComponent<CameraComponent>();
 
-					auto& cameraProps = cameraComponent["Camera"];
+					const auto& cameraProps = cameraComponent["Camera"];
 					cc.Camera.SetProjectionType((SceneCamera::ProjectionType)cameraProps["ProjectionType"].as<int>());
 
 					cc.Camera.SetPerspectiveVerticalFOV(cameraProps["PerspectiveFOV"].as<float>());
@@ -275,8 +275,8 @@ namespace UE {
 				if (modelComponent)
 				{
 					auto& mc = deserializedEntity.AddComponent<ModelComponent>();
-					auto& modelProps = modelComponent["Model"];
-					auto& modelAnimProps = modelComponent["ModelAnimation"];
+					const auto& modelProps = modelComponent["Model"];
+					const auto& modelAnimProps = modelComponent["ModelAnimation"];
 					Ref<Model> tempModel = CreateRef<Model>(modelProps["Path"].as<std::string>());
 					Ref<Animation> tempModelAnim;
 					mc.ModelData = tempModel;

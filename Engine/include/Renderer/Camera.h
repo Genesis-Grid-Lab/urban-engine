@@ -27,7 +27,7 @@ namespace UE {
 		const glm::mat4& GetProjectionMatrix() const { return m_ProjectionMatrix; }
 		const glm::mat4& GetViewMatrix() const { return m_ViewMatrix; }
 		const glm::mat4& GetViewProjectionMatrix() const { return m_ViewProjectionMatrix; }
-		glm::vec3* m_Position = &glm::vec3(0);
+		glm::vec3* m_Position = nullptr;
 	private:
 		virtual void RecalculateViewMatrix() {};
 	protected:

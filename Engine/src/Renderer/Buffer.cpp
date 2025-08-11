@@ -3,7 +3,7 @@
 #include "Core/UE_Assert.h"
 #include"Renderer/Renderer.h"
 #include "Core/UE_Assert.h"
-#include "Platform/OpenGl/OpenGLBuffer.h"
+#include "Platform/OpenGL/OpenGLBuffer.h"
 
 namespace UE {
 

@@ -1,7 +1,7 @@
 #include "uepch.h"
 #include "Renderer/VertexArray.h"
 #include "Core/UE_Assert.h"
-#include "Platform/OpenGl/OpenGLVertexArray.h"
+#include "Platform/OpenGL/OpenGLVertexArray.h"
 #include "Renderer/Renderer.h"
 
 namespace UE {

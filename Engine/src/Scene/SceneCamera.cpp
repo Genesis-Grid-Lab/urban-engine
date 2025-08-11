@@ -95,7 +95,7 @@ namespace UE {
 		}
 
 		m_ViewMatrix = glm::lookAt(position, position + direction, glm::vec3(0, 1, 0));
-		*m_Position = position;
+		m_Position = &position;
 		m_ViewProjectionMatrix = m_ProjectionMatrix * m_ViewMatrix;
 	}
 

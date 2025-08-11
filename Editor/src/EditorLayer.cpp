@@ -7,7 +7,7 @@
 EditorLayer::EditorLayer(const glm::vec2& size): m_Size(size) {}
 
 void EditorLayer::OnAttach(){
-    UE_PROFILE_FUNCTION("Editor::OnAttach");
+    // UE_PROFILE_FUNCTION("Editor::OnAttach");
     console.AddLog("Starting");
     m_IconPlay = Texture2D::Create("Resources/Icons/PlayButton.png");
     m_IconStop = Texture2D::Create("Resources/Icons/StopButton.png");
@@ -29,12 +29,12 @@ void EditorLayer::OnAttach(){
     Ref<Model> sphere = CreateRef<Model>("Resources/sphere.fbx");
     Ref<Model> cube = CreateRef<Model>("Resources/cube.fbx");
     Ref<Model> Man = CreateRef<Model>("Resources/Animations/Idle.fbx");
-    Ref<Animation> ManAnim = CreateRef<Animation>("Resources/Animations/Idle.fbx", Man);
-    Ref<Animation> runAnim = CreateRef<Animation>("Resources/Animations/Running.fbx", Man);
-    Ref<Animation> jumpAnim = CreateRef<Animation>("Resources/Animations/jump.fbx", Man);
+    // Ref<Animation> ManAnim = CreateRef<Animation>("Resources/Animations/Idle.fbx", Man);
+    // Ref<Animation> runAnim = CreateRef<Animation>("Resources/Animations/Running.fbx", Man);
+    // Ref<Animation> jumpAnim = CreateRef<Animation>("Resources/Animations/jump.fbx", Man);
 
     console.AddLog("Creating entity");
-    auto& camEntt = m_ActiveScene->CreateEntity("Cam");
+    auto camEntt = m_ActiveScene->CreateEntity("Cam");
     auto& sceneCam = camEntt.AddComponent<CameraComponent>();
     auto& camTC = camEntt.GetComponent<TransformComponent>();
     camTC.Translation = {0.0f, 2.7f, 5.5f};  
@@ -65,7 +65,7 @@ void EditorLayer::OnAttach(){
     UE_CORE_WARN("DONE CAM");
     glm::vec3 cubePos = {0.0f, 0.0f, 0.0f};
     glm::vec3 cubeSize = {50, 1, 50};
-    auto& floorEntity = m_ActiveScene->CreateEntity("Floor");
+    auto floorEntity = m_ActiveScene->CreateEntity("Floor");
     floorEntity.AddComponent<CubeComponent>().Color = {0.5f, 0.0f, 0.5f};
     auto& FloorTC = floorEntity.GetComponent<TransformComponent>();
     auto& fbox = floorEntity.AddComponent<BoxShapeComponent>();
@@ -78,7 +78,7 @@ void EditorLayer::OnAttach(){
     frb.Layer = Layers::NON_MOVING;
     frb.Activate = false;
 
-    auto& sphereEntt = m_ActiveScene->CreateEntity("Sphere");
+    auto sphereEntt = m_ActiveScene->CreateEntity("Sphere");
     sphereEntt.AddComponent<ModelComponent>().ModelData = sphere;
     auto& stc = sphereEntt.GetComponent<TransformComponent>();
     auto& sbox = sphereEntt.AddComponent<SphereShapeComponent>();   
@@ -90,7 +90,7 @@ void EditorLayer::OnAttach(){
     srb.Layer = Layers::MOVING;    
     srb.Activate = true;    
 
-    auto& cubeEntt = m_ActiveScene->CreateEntity("Cube");
+    auto cubeEntt = m_ActiveScene->CreateEntity("Cube");
     cubeEntt.AddComponent<ModelComponent>().ModelData = cube;
     auto& ctc = cubeEntt.GetComponent<TransformComponent>();
     ctc.Translation = {-1.0f, 2.0f, 2.0f};
@@ -100,16 +100,16 @@ void EditorLayer::OnAttach(){
     crb.Type = JPH::EMotionType::Dynamic;
     crb.Activate = true;    
 
-    auto& manEntt = m_ActiveScene->CreateEntity("Man");
+    auto manEntt = m_ActiveScene->CreateEntity("Man");
     auto& manTC = manEntt.GetComponent<TransformComponent>();
     manTC.Translation = {1, 2, 0};
     manTC.Scale = glm::vec3(0.1f);
     manTC.Rotation = {0, glm::radians(180.0f), 0};
     auto& manModel = manEntt.AddComponent<ModelComponent>();
     manModel.ModelData = Man;
-    manModel.AnimationData["idle"] = ManAnim;
-    manModel.AnimationData["run"] = runAnim;
-    manModel.AnimationData["jump"] = jumpAnim;
+    // manModel.AnimationData["idle"] = ManAnim;
+    // manModel.AnimationData["run"] = runAnim;
+    // manModel.AnimationData["jump"] = jumpAnim;
     manEntt.AddComponent<BoxShapeComponent>();
     auto& manRB = manEntt.AddComponent<CharacterComponent>();
     // auto& manRB = manEntt.AddComponent<RigidbodyComponent>();
@@ -277,7 +277,7 @@ void EditorLayer::OnAttach(){
 }
 
 void EditorLayer::OnUpdate(Timestep ts){
-    UE_PROFILE_FUNCTION("Editor::OnUpdate");
+    // UE_PROFILE_FUNCTION("Editor::OnUpdate");
     // Resize
     if (FramebufferSpecification spec = m_ActiveScene->m_Framebuffer->GetSpecification();
         m_ViewportSize.x > 0.0f && m_ViewportSize.y > 0.0f && // zero sized framebuffer is invalid
@@ -333,14 +333,14 @@ bool EditorLayer::OnKeyPressed(KeyPressedEvent& e){
             // if (control)
             //     NewScene();
 
-            break;
+            return true;
         }
         case Key::O:
         {
             // if (control)
             //     OpenScene();
 
-            break;
+            return true;
         }
         case Key::S:
         {
@@ -352,7 +352,7 @@ bool EditorLayer::OnKeyPressed(KeyPressedEvent& e){
                 //     SaveScene();
             }
 
-            break;
+            return true;
         }
 
         // Scene Commands
@@ -361,7 +361,7 @@ bool EditorLayer::OnKeyPressed(KeyPressedEvent& e){
             // if (control)
             //     OnDuplicateEntity();
 
-            break;
+            return true;
         }
 
         // Gizmos
@@ -369,26 +369,28 @@ bool EditorLayer::OnKeyPressed(KeyPressedEvent& e){
         {
             if (!ImGuizmo::IsUsing())
                 m_GizmoType = -1;
-            break;
+            return true;
         }
         case Key::W:
         {            
             if (!ImGuizmo::IsUsing())
                 m_GizmoType = ImGuizmo::OPERATION::TRANSLATE;
-            break;
+            return true;
         }
         case Key::E:
         {
             if (!ImGuizmo::IsUsing())
                 m_GizmoType = ImGuizmo::OPERATION::ROTATE;
-            break;
+            return true;
         }
         case Key::R:
         {
             if (!ImGuizmo::IsUsing())
                 m_GizmoType = ImGuizmo::OPERATION::SCALE;
-            break;
+            return true;
         }
+        default:
+	  return false;
     }
 }
 
@@ -409,7 +411,7 @@ void EditorLayer::OnEvent(Event& e){
 }
 
 void EditorLayer::OnImGuiRender(){
-    UE_PROFILE_FUNCTION("Editor::OnImGuiRender");
+    // UE_PROFILE_FUNCTION("Editor::OnImGuiRender");
     // Note: Switch this to true to enable dockspace
     static bool dockspaceOpen = true;
     static bool opt_fullscreen_persistant = true;

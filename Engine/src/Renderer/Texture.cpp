@@ -2,7 +2,7 @@
 #include "Renderer/Texture.h"
 #include "Core/UE_Assert.h"
 #include "Renderer/Renderer.h"
-#include "Platform/OpenGl/OpenGLTexture.h"
+#include "Platform/OpenGL/OpenGLTexture.h"
 namespace UE {
 	Ref<Texture2D> Texture2D::Create(uint32_t width, uint32_t height)
 	{
