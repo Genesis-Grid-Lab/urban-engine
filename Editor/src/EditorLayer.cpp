@@ -29,9 +29,9 @@ void EditorLayer::OnAttach(){
     Ref<Model> sphere = CreateRef<Model>("Resources/sphere.fbx");
     Ref<Model> cube = CreateRef<Model>("Resources/cube.fbx");
     Ref<Model> Man = CreateRef<Model>("Resources/Animations/Idle.fbx");
-    // Ref<Animation> ManAnim = CreateRef<Animation>("Resources/Animations/Idle.fbx", Man);
-    // Ref<Animation> runAnim = CreateRef<Animation>("Resources/Animations/Running.fbx", Man);
-    // Ref<Animation> jumpAnim = CreateRef<Animation>("Resources/Animations/jump.fbx", Man);
+    Ref<Animation> ManAnim = CreateRef<Animation>("Resources/Animations/Idle.fbx", Man);
+    Ref<Animation> runAnim = CreateRef<Animation>("Resources/Animations/Running.fbx", Man);
+    Ref<Animation> jumpAnim = CreateRef<Animation>("Resources/Animations/Jump.fbx", Man);
 
     console.AddLog("Creating entity");
     auto camEntt = m_ActiveScene->CreateEntity("Cam");
@@ -107,9 +107,9 @@ void EditorLayer::OnAttach(){
     manTC.Rotation = {0, glm::radians(180.0f), 0};
     auto& manModel = manEntt.AddComponent<ModelComponent>();
     manModel.ModelData = Man;
-    // manModel.AnimationData["idle"] = ManAnim;
-    // manModel.AnimationData["run"] = runAnim;
-    // manModel.AnimationData["jump"] = jumpAnim;
+    manModel.AnimationData["idle"] = ManAnim;
+    manModel.AnimationData["run"] = runAnim;
+    manModel.AnimationData["jump"] = jumpAnim;
     manEntt.AddComponent<BoxShapeComponent>();
     auto& manRB = manEntt.AddComponent<CharacterComponent>();
     // auto& manRB = manEntt.AddComponent<RigidbodyComponent>();
