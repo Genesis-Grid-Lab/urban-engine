@@ -3,6 +3,9 @@
 
 #include <glad/glad.h>
 
+// tmp
+#include <GLFW/glfw3.h>
+
 namespace UE {
 
 	/////////////////////////////////////////////////////////////////////////////
@@ -37,9 +40,15 @@ namespace UE {
 
 	OpenGLVertexBuffer::~OpenGLVertexBuffer()
 	{		
-		UE_PROFILE_FUNCTION();
-
-		glDeleteBuffers(1, &m_RendererID);
+	  UE_PROFILE_FUNCTION();
+		
+          if (m_RendererID) {
+	    if(glfwGetCurrentContext())
+	      glDeleteBuffers(1, &m_RendererID);
+          }
+	  
+	  m_RendererID = 0;
+                
 	}
 
 	void OpenGLVertexBuffer::Bind() const
@@ -81,9 +90,13 @@ namespace UE {
 
 	OpenGLIndexBuffer::~OpenGLIndexBuffer()
 	{		
-		UE_PROFILE_FUNCTION();
+	  UE_PROFILE_FUNCTION();
+          if (m_RendererID) {
+	    if(glfwGetCurrentContext())
+	      glDeleteBuffers(1, &m_RendererID);
+          }
 
-		glDeleteBuffers(1, &m_RendererID);
+	  m_RendererID = 0;
 	}
 
 	void OpenGLIndexBuffer::Bind() const

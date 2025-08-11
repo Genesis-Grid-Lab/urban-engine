@@ -5,6 +5,9 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glad/glad.h>
 
+// tmp
+#include <GLFW/glfw3.h>
+
 namespace UE {
 
     static GLenum ShaderTypeFromString(const std::string& type)
@@ -47,9 +50,14 @@ namespace UE {
 
 	OpenGLShader::~OpenGLShader()
 	{
-		UE_PROFILE_FUNCTION();
+	  UE_PROFILE_FUNCTION();
+		
+          if (m_RendererID) {
+	    if(glfwGetCurrentContext())
+	      glDeleteProgram(m_RendererID);
+          }
 
-		glDeleteProgram(m_RendererID);
+	  m_RendererID = 0;      
 	}
 
 	std::string OpenGLShader::ReadFile(const std::string& filepath)

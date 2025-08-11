@@ -19,7 +19,7 @@ namespace UE {
 
             UE::Renderer::Init();
 
-            m_ScreenShader = Shader::Create("Data/Shaders/Screen.glsl");
+            // m_ScreenShader = Shader::Create("Data/Shaders/Screen.glsl");
 
     #if UE_DEBUG
             m_ImGuiLayer = new ImGuiLayer();
@@ -29,8 +29,9 @@ namespace UE {
         }
 
     Application::~Application(){
-        UE_PROFILE_FUNCTION();
-        UE::Renderer::Shutdown();
+      UE_PROFILE_FUNCTION();
+      UE_CORE_INFO("Shutting down Application..");
+      UE::Renderer::Shutdown();
     }
 
     void Application::PushLayer(Layer* layer)

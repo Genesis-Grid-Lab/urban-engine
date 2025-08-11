@@ -3,6 +3,9 @@
 
 #include <glad/glad.h>
 
+// tmp
+#include <GLFW/glfw3.h>
+
 namespace UE {
 
 	OpenGLUniformBuffer::OpenGLUniformBuffer(uint32_t size, uint32_t binding)
@@ -14,7 +17,12 @@ namespace UE {
 
 	OpenGLUniformBuffer::~OpenGLUniformBuffer()
 	{
-		glDeleteBuffers(1, &m_RendererID);
+          if (m_RendererID) {
+	    if(glfwGetCurrentContext())
+	      glDeleteBuffers(1, &m_RendererID);
+          }
+
+	  m_RendererID = 0;      
 	}
 
 

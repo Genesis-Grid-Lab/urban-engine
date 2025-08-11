@@ -27,6 +27,7 @@ namespace UE {
 
     Window::~Window(){
         UE_PROFILE_FUNCTION();
+	UE_CORE_INFO("Shutting down window...");
         Shutdown();
     }
 

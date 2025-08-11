@@ -3,6 +3,9 @@
 #include "Core/UE_Assert.h"
 #include <glad/glad.h>
 
+// temp
+#include <GLFW/glfw3.h>
+
 namespace UE {
 
 	static GLenum ShaderDataTypeToOpenGLBaseType(ShaderDataType type)
@@ -27,16 +30,23 @@ namespace UE {
 	}
 
 	OpenGLVertexArray::OpenGLVertexArray()
-	{		
-		UE_PROFILE_FUNCTION();
+	{
+                UE_PROFILE_FUNCTION();
+                
 		glCreateVertexArrays(1, &m_RendererID);
 	}
 
 	OpenGLVertexArray::~OpenGLVertexArray()
 	{
-		UE_PROFILE_FUNCTION();
-
-		glDeleteVertexArrays(1, &m_RendererID);
+	  UE_PROFILE_FUNCTION();
+	  if (m_RendererID) {
+	    // Only delete if a context is current in this thread
+	    if (glfwGetCurrentContext()) {
+	      glDeleteVertexArrays(1, &m_RendererID);
+	    }
+	    // else: context is gone; skip (small leak only at process exit)
+	    m_RendererID = 0;
+	  }
 	}
 
 	void OpenGLVertexArray::Bind() const

@@ -19,8 +19,8 @@ namespace UE {
     static Ref<Skybox> m_Skybox; 
     static Ref<Mesh> s_CubeMesh; 
     static Ref<Mesh> s_SphereMesh;   
-    static Ref<VertexBuffer> ScreenVertexBuffer;
-	static Ref<VertexArray> ScreenVertexArray;
+    // static Ref<VertexBuffer> ScreenVertexBuffer;
+    // 	static Ref<VertexArray> ScreenVertexArray;
     static Ref<Animator> s_Animator;
 
     //TODO: remove
@@ -148,7 +148,7 @@ namespace UE {
         s_CubeMesh = GenerateCubeMesh();
         s_SphereMesh = GenerateSphereMesh();
 
-        ScreenVertexArray = VertexArray::Create();
+        // ScreenVertexArray = VertexArray::Create();
 
         float quadVertices[] = {
 			// positions   // texCoords
@@ -160,16 +160,16 @@ namespace UE {
 
         uint32_t indices[] = { 0, 1, 2, 2, 3, 0 };
 
-        ScreenVertexBuffer = VertexBuffer::Create(quadVertices, sizeof(quadVertices));
-		ScreenVertexBuffer->SetLayout({
-			{ ShaderDataType::Float2, "a_Position" },
-			{ ShaderDataType::Float2, "a_TexCoord" }
-		});
+        // ScreenVertexBuffer = VertexBuffer::Create(quadVertices, sizeof(quadVertices));
+	// 	ScreenVertexBuffer->SetLayout({
+	// 		{ ShaderDataType::Float2, "a_Position" },
+	// 		{ ShaderDataType::Float2, "a_TexCoord" }
+	// 	});
 		
-		const auto& ib = IndexBuffer::Create(indices, 6);
+	// 	const auto& ib = IndexBuffer::Create(indices, 6);
 		
-		ScreenVertexArray->AddVertexBuffer(ScreenVertexBuffer);
-		ScreenVertexArray->SetIndexBuffer(ib);
+	// 	ScreenVertexArray->AddVertexBuffer(ScreenVertexBuffer);
+	// 	ScreenVertexArray->SetIndexBuffer(ib);
 
         s_Animator = CreateRef<Animator>();
 
@@ -184,7 +184,16 @@ namespace UE {
     }
 
     void Renderer3D::Shutdown(){
-        UE_PROFILE_FUNCTION();
+      UE_PROFILE_FUNCTION();
+      m_Shader.reset();    
+      m_ShaderSimple.reset();    
+      m_LightShader.reset();
+      m_SkyShader.reset();          
+      m_LightModel.reset();   
+      m_Skybox.reset(); 
+      s_CubeMesh.reset(); 
+      s_SphereMesh.reset();         
+      s_Animator.reset();          
     }
 
     void Renderer3D::BeginCamera(const Camera& camera){
@@ -459,8 +468,8 @@ namespace UE {
 	
 		// Draw fullscreen quad		
 	
-		ScreenVertexArray->Bind();
-		RenderCommand::DrawIndexed(ScreenVertexArray);				
+		// ScreenVertexArray->Bind();
+		// RenderCommand::DrawIndexed(ScreenVertexArray);				
     }
 
     void Renderer3D::RunAnimation(Ref<Animation> animation, float ts){

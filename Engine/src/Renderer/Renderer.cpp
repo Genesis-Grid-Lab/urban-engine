@@ -6,21 +6,22 @@
 namespace UE {
 
     void Renderer::Init(){
-		UE_PROFILE_FUNCTION();
-        RenderCommand::Init();
-        Renderer2D::Init();
-		Renderer3D::Init();
+      UE_PROFILE_FUNCTION();
+      RenderCommand::Init();
+      Renderer2D::Init();
+      Renderer3D::Init();
     }
 
-    void Renderer::Shutdown(){
-        Renderer2D::Shutdown();
-		Renderer3D::Shutdown();
+    void Renderer::Shutdown() {
+      UE_CORE_INFO("Shutting down renderers");
+      Renderer2D::Shutdown();
+      Renderer3D::Shutdown();
     }
 
     void Renderer::OnWindowResize(uint32_t width, uint32_t height)
-	{
-		RenderCommand::SetViewport(0, 0, width, height);
-	}
+    {
+      RenderCommand::SetViewport(0, 0, width, height);
+    }
 
     // void Renderer::Begin(Camera& camera)
 	// {

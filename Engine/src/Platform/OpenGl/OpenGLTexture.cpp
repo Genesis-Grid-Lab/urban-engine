@@ -4,6 +4,9 @@
 #include <stb_image.h>
 #include <glad/glad.h>
 
+// tmp
+#include <GLFW/glfw3.h>
+
 namespace UE {
 	OpenGLTexture2D::OpenGLTexture2D(unsigned int id){
 		m_RendererID = id;
@@ -107,9 +110,14 @@ namespace UE {
 
 	OpenGLTexture2D::~OpenGLTexture2D()
 	{
-		UE_PROFILE_FUNCTION();
+	  UE_PROFILE_FUNCTION();
+	  
+          if (m_RendererID) {
+	    if(glfwGetCurrentContext())
+	      glDeleteTextures(1, &m_RendererID);
+          }
 
-		glDeleteTextures(1, &m_RendererID);
+	  m_RendererID = 0;       
 	}
 
 	void OpenGLTexture2D::SetData(void* data, uint32_t size)

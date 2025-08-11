@@ -20,4 +20,5 @@ fi
 # chmod +x "$target/EbonyEditor"
 
 # Launch the editor
-"$target/EbonyEditor"
+cd "$target"
+./EbonyEditor
