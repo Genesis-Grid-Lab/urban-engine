@@ -1,29 +1,30 @@
 #pragma once
 
 #include "Scene.h"
+#include "Scene/Components.h"
 
 namespace UE {
-	static std::string RigidBody3DBodyTypeToString(JPH::EMotionType bodyType)
+  static std::string RigidBody3DBodyTypeToString(BodyType bodyType)
 	{
 		switch (bodyType)
 		{
-			case JPH::EMotionType::Static:    return "Static";
-			case JPH::EMotionType::Dynamic:   return "Dynamic";
-			case JPH::EMotionType::Kinematic: return "Kinematic";
+			case BodyType::Static:    return "Static";
+			case BodyType::Dynamic:   return "Dynamic";
+			case BodyType::Kinematic: return "Kinematic";
 		}
 
 		UE_CORE_ASSERT(false, "Unknown body type");
 		return {};
 	}
 
-	static JPH::EMotionType RigidBody3DBodyTypeFromString(const std::string& bodyTypeString)
+	static BodyType RigidBody3DBodyTypeFromString(const std::string& bodyTypeString)
 	{
-		if (bodyTypeString == "Static")    return JPH::EMotionType::Static;
-		if (bodyTypeString == "Dynamic")   return JPH::EMotionType::Dynamic;
-		if (bodyTypeString == "Kinematic") return JPH::EMotionType::Kinematic;
+		if (bodyTypeString == "Static")    return BodyType::Static;
+		if (bodyTypeString == "Dynamic")   return BodyType::Dynamic;
+		if (bodyTypeString == "Kinematic") return BodyType::Kinematic;
 	
 		UE_CORE_ASSERT(false, "Unknown body type");
-		return JPH::EMotionType::Static;
+		return BodyType::Static;
 	}
 
 	class SceneSerializer

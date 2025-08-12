@@ -22,6 +22,7 @@
 #include <Jolt/Physics/Body/BodyCreationSettings.h>
 #include <Jolt/Physics/Character/Character.h>
 
+namespace UE {
 // Layer that objects can be in, determines which other objects it can collide
 // with Typically you at least want to have 1 layer for moving bodies and 1
 // layer for static bodies, but you can have more layers if you want. E.g. you
@@ -29,34 +30,43 @@
 // physics simulation but only if you do collision testing).
 namespace Layers
 {
-    static constexpr JPH::ObjectLayer NON_MOVING{0};
-    static constexpr JPH::ObjectLayer MOVING{1};
-    static constexpr JPH::ObjectLayer NUM_LAYERS{2};
-}; // namespace Layers
+// static constexpr JPH::ObjectLayer NON_MOVING{0};
+// static constexpr JPH::ObjectLayer MOVING{1};
+// static constexpr JPH::ObjectLayer NUM_LAYERS{2};
+enum : JPH::ObjectLayer {
+  NON_MOVING = 0,
+  MOVING = 1,
+  NUM_LAYERS
+  };
+} // namespace Layers
 
 
 
-namespace UE {
 
     /// Class that determines if two object layers can collide
     class ObjectLayerPairFilterImpl : public JPH::ObjectLayerPairFilter
     {
     public:
-        [[nodiscard]] bool ShouldCollide(JPH::ObjectLayer inObject1,
-                                        JPH::ObjectLayer inObject2) const override
-        {
-            switch (inObject1)
-            {
-            case Layers::NON_MOVING:
-                return inObject2 ==
-                    Layers::MOVING; // Non moving only collides with moving
-            case Layers::MOVING:
-                return true; // Moving collides with everything
-            default:
-                JPH_ASSERT(false);
-                return false;
-            }
-        }
+      // [[nodiscard]] bool ShouldCollide(JPH::ObjectLayer inObject1,
+      //                                 JPH::ObjectLayer inObject2) const
+      //                                 override
+      // {
+      //     switch (inObject1)
+      //     {
+      //     case Layers::NON_MOVING:
+      //         return inObject2 ==
+      //             Layers::MOVING; // Non moving only collides with moving
+      //     case Layers::MOVING:
+      //         return true; // Moving collides with everything
+      //     default:
+      //         JPH_ASSERT(false);
+      //         return false;
+      //     }
+      // }
+      bool ShouldCollide(JPH::ObjectLayer a, JPH::ObjectLayer b) const override {
+        if (a == Layers::NON_MOVING && b == Layers::NON_MOVING) return false;
+        return true;
+      }
     };
 
     // Each broadphase layer results in a separate bounding volume tree in the broad
@@ -200,28 +210,55 @@ namespace UE {
         }
     };
 
-    class PhysicsEngine{
-    public:
-        PhysicsEngine();
-        ~PhysicsEngine(){ delete _physics_system;}
+  class PhysicsEngine{
+  public:
+    PhysicsEngine();
+    ~PhysicsEngine();
 
-        void Init();
+    PhysicsEngine(const PhysicsEngine&) = delete;
+    PhysicsEngine& operator=(const PhysicsEngine&) = delete;
 
-        void StartSimulation();
-        bool Update(float dt);
-        void CleanUp();
-        JPH::PhysicsSystem* _physics_system;
-        std::unique_ptr<JPH::JobSystemThreadPool> _job_system;
-        JPH::uint _step{0};
-    private:
-        std::unique_ptr<JPH::TempAllocatorImpl> _temp_allocator;
-        std::unique_ptr<MyBodyActivationListener> _body_activation_listener;
-        std::unique_ptr<MyContactListener> _contact_listener;
-        std::unique_ptr<BPLayerInterfaceImpl> _broad_phase_layer_interface;
-        std::unique_ptr<ObjectVsBroadPhaseLayerFilterImpl>
-            _object_vs_broadphase_layer_filter;
-        std::unique_ptr<ObjectLayerPairFilterImpl> _object_vs_object_layer_filter;
-        JPH::BodyID _sphere_id;
-        JPH::BodyID _floor_id;
-    };
+    void Init();
+
+    void StartSimulation();
+    bool Step(float dt);
+    void Shutdown();
+    
+    JPH::PhysicsSystem&       System()       { return *_physics; }
+    const JPH::PhysicsSystem& System() const { return *_physics; }
+    JPH::BodyInterface&       Bodies();      // thread-safe or NoLock variant if you run single-threaded
+
+    JPH::JobSystem&       JobSystem();      // new
+    JPH::TempAllocator&   TempAllocator();  // new
+    float                 FixedStep() const { return _fixedStep; }
+  private:
+    // std::unique_ptr<JPH::TempAllocatorImpl> _temp_allocator;
+    // std::unique_ptr<MyBodyActivationListener> _body_activation_listener;
+    // std::unique_ptr<MyContactListener> _contact_listener;
+    // std::unique_ptr<BPLayerInterfaceImpl> _broad_phase_layer_interface;
+    // std::unique_ptr<ObjectVsBroadPhaseLayerFilterImpl>
+    // _object_vs_broadphase_layer_filter;
+    // std::unique_ptr<ObjectLayerPairFilterImpl>
+    // _object_vs_object_layer_filter; JPH::BodyID _sphere_id; JPH::BodyID
+    // _floor_id;
+
+    // global Jolt bootstrap with refcount so we don’t double-register/types
+    static void InitJoltOnce();
+    static void ShutdownJoltOnce();
+    static std::atomic<int> s_joltInits;
+
+    // lifetime: these must outlive PhysicsSystem (Jolt keeps refs to them)
+    std::unique_ptr<BPLayerInterfaceImpl>           _bp_iface;
+    std::unique_ptr<ObjectVsBroadPhaseLayerFilterImpl> _obj_vs_bp_filter;
+    std::unique_ptr<ObjectLayerPairFilterImpl>      _obj_vs_obj_filter;
+    std::unique_ptr<MyContactListener>              _contact_listener;
+    std::unique_ptr<MyBodyActivationListener>       _activation_listener;
+
+    std::unique_ptr<JPH::TempAllocatorImpl>         _temp_alloc;
+    std::unique_ptr<JPH::JobSystemThreadPool>       _jobs;
+    std::unique_ptr<JPH::PhysicsSystem>             _physics;
+
+    float _accumulator = 0.0f;
+    float _fixedStep   = 1.0f / 60.0f;
+  };
 }
