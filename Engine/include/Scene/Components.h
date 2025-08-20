@@ -147,13 +147,15 @@ namespace UE {
     // Runtime
     JPH::RefConst<JPH::Shape> Shape;   // capsule shape
     JPH::BodyID Body{};                  // kinematic body
-
+    JPH::Ref<JPH::Character> Controller;
+    
     // Simple gravity model:
     float VerticalVel   = 0.0f;
-    float Gravity       = -9.81f;   // m/s^2
+    float Gravity       = 9.81f;   // m/s^2
     float JumpImpulse   = 5.0f;     // tweak
     bool Grounded = false;
     JPH::Vec3 Velocity { 0.0f, 0.0f, 0.0f };
+    float CapsuleOffsetY = 0.0f;
     
     bool                      Dirty { true };
 

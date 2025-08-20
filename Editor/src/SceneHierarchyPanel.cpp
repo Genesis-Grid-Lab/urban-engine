@@ -304,13 +304,16 @@ void SceneHierarchyPanel::DrawComponents(Entity entity)
     });
 
     // Character (mutually exclusive with Rigidbody)
-    DrawComponent<CharacterComponent>("Character Controller", entity, [](Entity e, CharacterComponent& cc)
-    {
-        ImGui::DragFloat("Half Height", &cc.HalfHeight, 0.01f, 0.0f, 1000.0f);
-        ImGui::DragFloat("Radius", &cc.Radius, 0.01f, 0.0f, 1000.0f);
-        ImGui::Checkbox("Continuous (CCD)", &cc.EnableCCD);
-        ImGui::DragFloat("Gravity", &cc.Gravity, 0.05f, -100.0f, 100.0f);
-        ImGui::DragFloat("Jump Impulse", &cc.JumpImpulse, 0.05f, 0.0f, 100.0f);
+    DrawComponent<CharacterComponent>("Character Controller", entity,
+                                      [](Entity e, CharacterComponent &cc) {
+                                        
+					bool changed = false;
+        changed |= ImGui::DragFloat("Half Height", &cc.HalfHeight, 0.01f, 0.0f, 1000.0f);
+        changed |= ImGui::DragFloat("Radius", &cc.Radius, 0.01f, 0.0f, 1000.0f);
+        changed |= ImGui::Checkbox("Continuous (CCD)", &cc.EnableCCD);
+        changed |= ImGui::DragFloat("Gravity", &cc.Gravity, 0.05f, -100.0f, 100.0f);
+        changed |= ImGui::DragFloat("Jump Impulse", &cc.JumpImpulse, 0.05f, 0.0f, 100.0f);
+	changed |= ImGui::DragFloat("Capsule Offset Y", &cc.CapsuleOffsetY,0.0f, -100.0f, 100.0f);
 
         ImGui::Separator();
         ImGui::Text("Runtime (read-only)");
@@ -319,7 +322,12 @@ void SceneHierarchyPanel::DrawComponents(Entity entity)
         ImGui::DragFloat("VerticalVel", &cc.VerticalVel, 0.01f);
         ImGui::EndDisabled();
 
-        if (ImGui::Button("Rebuild Shape")) { cc.Dirty = true; }
+        if (ImGui::Button("Rebuild Shape")) {
+          changed = true;
+        }
+        if (changed) {
+	  cc.Dirty = true;
+	}
 
         if (e.HasComponent<RigidbodyComponent>())
         {

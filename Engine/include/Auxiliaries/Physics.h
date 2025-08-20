@@ -4,6 +4,8 @@
 
 #include "Core/Config.h"
 #include "Core/UE_Assert.h"
+#include "Jolt/Physics/Collision/Shape/RotatedTranslatedShape.h"
+#include "Jolt/Physics/Collision/Shape/Shape.h"
 // Jolt includes
 #include <Jolt/Core/Core.h>
 #include <Jolt/Core/IssueReporting.h>
@@ -20,9 +22,92 @@
 #include <Jolt/Physics/Collision/Shape/BoxShape.h>
 #include <Jolt/Physics/Collision/Shape/SphereShape.h>
 #include <Jolt/Physics/Body/BodyCreationSettings.h>
+#include <Jolt/Physics/Collision/Shape/CapsuleShape.h>
 #include <Jolt/Physics/Character/Character.h>
+#include <Jolt/Renderer/DebugRenderer.h>
+#include <Jolt/Core/Color.h>
+#include <memory>
+
+// temp
+// #include "Renderer/Renderer3D.h"
+
+// extern void UE::Renderer3D::DrawLine(const glm::vec3& p0, const glm::vec3& p1, const glm::vec4& color);
 
 namespace UE {
+ // Local helpers
+  static inline JPH::RefConst<JPH::Shape> BuildBox(const glm::vec3& he) {
+    auto res = JPH::BoxShapeSettings(JPH::Vec3(he.x, he.y, he.z)).Create();
+    return res.IsValid() ? res.Get() : nullptr;
+  }
+  static inline JPH::RefConst<JPH::Shape> BuildSphere(float r) {
+    auto res = JPH::SphereShapeSettings(r).Create();
+    return res.IsValid() ? res.Get() : nullptr;
+  }
+
+  static inline JPH::RefConst<JPH::Shape> BuildCapsule(float half_h, float r, float offsety = 0) {
+    JPH::RefConst<JPH::Shape> res = new JPH::CapsuleShape(half_h, r);
+    auto rts = JPH::RotatedTranslatedShapeSettings(JPH::Vec3(0, offsety, 0),JPH::Quat::sIdentity(), res ).Create();
+    return rts.IsValid() ? rts.Get() : nullptr;
+  }  
+
+  static inline glm::quat ToGlmQuat(const JPH::Quat& q) {
+    return glm::quat(q.GetW(), q.GetX(), q.GetY(), q.GetZ()); // glm wants (w,x,y,z)
+  }
+  static inline JPH::Quat ToJoltQuat(const glm::quat& q) {
+    return JPH::Quat(q.x, q.y, q.z, q.w); // Jolt ctor is (x,y,z,w)
+  }
+
+  static inline JPH::Vec3 ToJoltVec3(const glm::vec3& v){
+    return JPH::Vec3(v.x, v.y, v.z);
+  }
+
+  static inline glm::vec3 ToGlm(const JPH::Vec3 &v) {
+    return glm::vec3(v.GetX(), v.GetY(), v.GetZ());
+  }
+
+  static inline void FromJoltTransform(const JPH::RMat44& xf, glm::vec3& outPos, glm::vec3& outEuler)
+  {
+    const JPH::RVec3 t = xf.GetTranslation();
+    outPos = glm::vec3((float)t.GetX(), (float)t.GetY(), (float)t.GetZ());
+
+    const JPH::Quat rq = xf.GetRotation().GetQuaternion();  // Jolt rotation
+    const glm::quat gq((float)rq.GetW(), (float)rq.GetX(), (float)rq.GetY(), (float)rq.GetZ());
+    outEuler = glm::eulerAngles(gq); // radians
+  }
+
+  // static inline uint32_t ToRGBA(JPH::ColorArg c) {
+  //   return (uint32_t(c.GetR())      ) |
+  //     (uint32_t(c.GetG()) <<  8) |
+  //     (uint32_t(c.GetB()) << 16) |
+  //     (uint32_t(c.GetA()) << 24);
+  // }
+
+  // class UEJoltDebugRenderer  : public JPH::DebugRenderer {
+  // public:
+  //   // Minimal implementation (Jolt will fall back to calling these even for batched geometry)
+  //   void DrawLine(JPH::RVec3Arg from, JPH::RVec3Arg to, JPH::ColorArg color) override {
+  //     // Renderer3D::DrawLine(ToGlm(from), ToGlm(to), {color.r, color.g,
+  //     // color.b, color.a});
+  //     UE_CORE_ERROR("DrawLine");
+  //   }
+
+  //   void DrawTriangle(JPH::RVec3Arg v1, JPH::RVec3Arg v2, JPH::RVec3Arg v3,
+  //                     JPH::ColorArg color, ECastShadow /*cast_shadow*/) override {
+  //     // DebugDrawTri(ToGlm(v1), ToGlm(v2), ToGlm(v3), ToRGBA(color));
+  //     UE_CORE_ERROR("DrawTriangle");
+  //   }
+
+  //   void DrawText3D(JPH::RVec3Arg pos, const JPH::string_view &text,
+  //                   JPH::ColorArg color, float height) override {
+  //     // DebugDrawText3D(ToGlm(pos), text.data(), ToRGBA(color), height);
+  //     UE_CORE_ERROR("DrawTex3D");
+  //   }
+
+  //   // Keep default (empty) implementations for batching:
+  //   Batch CreateTriangleBatch(const Triangle*, int) override { return {}; }
+  //   Batch CreateTriangleBatch(const Vertex*, int, const uint32_t*, int) override { return {}; }
+  //   void DrawGeometry(JPH::RMat44Arg, const JPH::AABox&, float, JPH::ColorArg, const GeometryRef&, ECullMode, ECastShadow, EDrawMode) override { }
+  // };  
 // Layer that objects can be in, determines which other objects it can collide
 // with Typically you at least want to have 1 layer for moving bodies and 1
 // layer for static bodies, but you can have more layers if you want. E.g. you
@@ -239,12 +324,13 @@ namespace Layers {
     std::unique_ptr<ObjectLayerPairFilterImpl>      _obj_vs_obj_filter;
     std::unique_ptr<MyContactListener>              _contact_listener;
     std::unique_ptr<MyBodyActivationListener>       _activation_listener;
+    // std::unique_ptr<UEJoltDebugRenderer>            _debugRenderer;
 
     std::unique_ptr<JPH::TempAllocatorImpl>         _temp_alloc;
     std::unique_ptr<JPH::JobSystemThreadPool>       _jobs;
     std::unique_ptr<JPH::PhysicsSystem>             _physics;
-
     float _accumulator = 0.0f;
     float _fixedStep   = 1.0f / 60.0f;
   };
+
 }

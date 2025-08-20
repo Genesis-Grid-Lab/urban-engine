@@ -99,8 +99,6 @@ class PlayerController : public ScriptableEntity
 
         // NEW API: write the desired horizontal velocity; physics system consumes this in its MoveKinematic step
         charComp.WishMove = moveDir * speed;
-	// TEMP: prove motion regardless of input
-	charComp.WishMove = glm::vec3(2.0f, 0.0f, 0.0f); // should drift along +X
 
         // Jump flag (if you later add vertical handling in your PhysicsUpdate for characters)
         charComp.Jump = Input::IsKeyPressed(Key::Space);

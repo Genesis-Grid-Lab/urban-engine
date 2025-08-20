@@ -46,6 +46,7 @@ set(YAML_CPP_BUILD_TESTS OFF)
 set(YAML_BUILD_SHARED_LIBS OFF)
 add_subdirectory(vendor/yaml-cpp)
 set(USE_STATIC_MSVC_RUNTIME_LIBRARY ON)
+# set(JPH_DEBUG_RENDERER ON)
 add_subdirectory(vendor/JoltPhysics/Build)
 add_subdirectory(vendor/ImGuiFileDialog)
 

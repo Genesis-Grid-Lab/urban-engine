@@ -115,6 +115,9 @@ namespace UE {
     constexpr uint cMaxBodyPairs            = 1024;
     constexpr uint cMaxContactConstraints   = 1024;
 
+    // _debugRenderer = std::make_unique<UEJoltDebugRenderer>();
+    // JPH::DebugRenderer::sInstance = _debugRenderer.get();
+   
     // gravity etc.
     const JPH::Vec3 gravity(0.0f, -9.81f, 0.0f);
 
