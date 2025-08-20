@@ -155,6 +155,7 @@ namespace UE {
       _accumulator -= _fixedStep;
       simulated = true;
     }
+    UE_CORE_INFO("[PHYSICS ENGINE]: {}", _accumulator);    
     return simulated;
   }
 

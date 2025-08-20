@@ -7,9 +7,10 @@
 
 # Jolt Physics
 
-A multi core friendly rigid body physics and collision detection library. Suitable for games and VR applications. Used by Horizon Forbidden West.
+A multi core friendly rigid body physics and collision detection library. Suitable for games and VR applications. Used by Horizon Forbidden West and Death Stranding 2: On the Beach.
 
 [![Horizon Forbidden West Cover Art](https://jrouwe.nl/jolt/Horizon_Forbidden_West.png)](https://www.playstation.com/en-us/games/horizon-forbidden-west/)
+[![Death Stranding 2 Cover Art](https://jrouwe.nl/jolt/Death_Stranding_2.png)](https://www.playstation.com/en-us/games/death-stranding-2-on-the-beach/)
 
 |[![Ragdoll Pile](https://img.youtube.com/vi/pwyCW0yNKMA/hqdefault.jpg)](https://www.youtube.com/watch?v=pwyCW0yNKMA)|
 |:-|
@@ -148,7 +149,7 @@ If you're interested in how Jolt scales with multiple CPUs and compares to other
 
 * C [here](https://github.com/amerkoleci/joltc), [here](https://github.com/zig-gamedev/zphysics/tree/main/libs/JoltC) and [here](https://github.com/SecondHalfGames/JoltC/)
 * [C#](https://github.com/amerkoleci/JoltPhysicsSharp)
-* [Java](https://github.com/stephengold/jolt-jni)
+* [Java or Kotlin](https://stephengold.github.io/jolt-jni-docs)
 * [JavaScript](https://github.com/jrouwe/JoltPhysics.js)
 * [Rust](https://github.com/SecondHalfGames/jolt-rust)
 * [Zig](https://github.com/zig-gamedev/zphysics)

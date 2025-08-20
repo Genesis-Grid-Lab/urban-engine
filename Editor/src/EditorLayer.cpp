@@ -14,6 +14,7 @@ void EditorLayer::OnAttach(){
     m_IconPlay = Texture2D::Create("Resources/Icons/PlayButton.png");
     m_IconStop = Texture2D::Create("Resources/Icons/StopButton.png");
     m_ActiveScene = CreateRef<Scene>(m_Size.x, m_Size.y);
+    m_EditorScene  = m_ActiveScene;    
     m_SceneHierarchyPanel = SceneHierarchyPanel(m_ActiveScene);
     m_EditorCamera = EditorCamera(30.0f, 1.778f, 0.1f, 2000.0f);
 
@@ -73,7 +74,9 @@ void EditorLayer::OnAttach(){
     auto& FloorTC = floorEntity.GetComponent<TransformComponent>();
     auto& fbox = floorEntity.AddComponent<BoxShapeComponent>();
     FloorTC.Translation = cubePos;
-    FloorTC.Scale = cubeSize; 
+    FloorTC.Scale = cubeSize;
+    fbox.HalfExtents = {10.0f, 0.5f, 10.0f};
+    fbox.Dirty = true;    
 
     auto& frb = floorEntity.AddComponent<RigidbodyComponent>();
     frb.Type = BodyType::Static;
@@ -107,12 +110,7 @@ void EditorLayer::OnAttach(){
     manModel.AnimationData["idle"] = ManAnim;
     manModel.AnimationData["run"] = runAnim;
     manModel.AnimationData["jump"] = jumpAnim;
-    manEntt.AddComponent<BoxShapeComponent>();
-    auto& manRB = manEntt.AddComponent<CharacterComponent>();
-    // auto& manRB = manEntt.AddComponent<RigidbodyComponent>();
-    // manRB.Layer = Layers::MOVING;
-    // manRB.Type = JPH::EMotionType::Dynamic;
-    // manRB.Activate = true;    
+    auto& manRB = manEntt.AddComponent<CharacterComponent>();   
 
     manEntt.AddComponent<NativeScriptComponent>().Bind<PlayerController>();
 
@@ -440,7 +438,7 @@ void EditorLayer::OnImGuiRender(){
             glm::mat4 cameraView = m_EditorCamera.GetViewMatrix();
 
             // Entity transform
-	    
+	    // TransformComponent ts;
             auto& tc = selectedEntity.GetComponent<TransformComponent>();
             glm::mat4 transform = tc.GetTransform();
             // ImGuizmo::DrawCubes(glm::value_ptr(cameraView), glm::value_ptr(cameraProjection), glm::value_ptr(transform), 1);
@@ -541,7 +539,9 @@ void EditorLayer::NewScene()
 {
     
     m_ActiveScene = CreateRef<Scene>(m_Size.x, m_Size.y);
-    m_ActiveScene->OnViewportResize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
+    m_ActiveScene->OnViewportResize((uint32_t)m_ViewportSize.x,
+                                    (uint32_t)m_ViewportSize.y);
+    m_EditorScene  = m_ActiveScene;  
     m_SceneHierarchyPanel.SetContext(m_ActiveScene);
     
     m_EditorScenePath = std::filesystem::path();
@@ -621,14 +621,15 @@ void EditorLayer::OnScenePlay()
     m_SceneHierarchyPanel.SetContext(m_ActiveScene);
 }
 
-void EditorLayer::OnSceneStop()
-{
-    m_SceneState = SceneState::Edit;
+void EditorLayer::OnSceneStop() {
+  if (m_SceneState != SceneState::Play)
+    return;    
+  m_SceneState = SceneState::Edit;
 
-    m_ActiveScene->OnRuntimeStop();
-    m_ActiveScene = m_EditorScene;
+  m_ActiveScene->OnRuntimeStop();
+  m_ActiveScene = m_EditorScene;
 
-    m_SceneHierarchyPanel.SetContext(m_ActiveScene);
+  m_SceneHierarchyPanel.SetContext(m_ActiveScene);
 }
 
 void EditorLayer::OnDuplicateEntity()

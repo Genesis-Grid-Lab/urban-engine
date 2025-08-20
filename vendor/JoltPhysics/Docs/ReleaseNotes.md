@@ -9,10 +9,20 @@ For breaking API changes see [this document](https://github.com/jrouwe/JoltPhysi
 * Added Cosserat rods to soft bodies. This is a stick constraint with an orientation that can be used to attach geometry. Can be used e.g. to simulate vegetation in a cheap way. See the new `SoftBodyCosseratRodConstraintTest` demo.
 * Added ability to drive hinge constraints with `Ragdoll::DriveToPoseUsingMotors`. This also adds `HingeConstraint::SetTargetOrientationBS` which sets the target angle in body space.
 * Added `JPH_USE_EXTERNAL_PROFILE` cmake option that allows overriding the behavior of the profile macros.
+* Added `SoftBodyCreationSettings::mFacesDoubleSided` which treats the faces of the soft body as double sided. This can be used to make e.g. flags double sided.
+* Added functions to get the `CharacterSettings` from a `Character` and `CharacterVirtualSettings` from a `CharacterVirtual`.
+* Added `BodyInterface::SetIsSensor`/`IsSensor` functions.
 
 ### Bug Fixes
 
-* The remap tables in `SoftBodySharedSettings::OptimizationResults`` mapped from new to old index instead of from old to new as was documented. The maps now behave as documented.
+* Fixed bug in `ConvexHullShape::CollideSoftBodyVertices` where the wrong edge could be reported as the closest edge.
+* Fixed bug in `PhysicsSystem::OptimizeBroadPhase`. When calling this function after removing all bodies from the `PhysicsSystem`, the internal nodes would not be freed until bodies are added again. This could lead to running out of internal nodes in rare cases.
+* Fixed passing underestimate of penetration depth in `ContactListener::OnContactPersisted` when the contact comes from the contact cache.
+* `QuadTree` will now fall back to the heap when running out of stack space during collision queries. Previously this would trigger an assert and some collisions would not be detected.
+* Fixed `BodyInterface::MoveKinematic`, `SetLinearVelocity`, `SetAngularVelocity`, `SetLinearAndAngularVelocity`, `AddLinearVelocity`, `AddLinearAndAngularVelocity`, `SetPositionRotationAndVelocity` and `SetMotionType` when body not added to the physics system yet.
+* Fixed UBSAN false positive error that detected a dirty trick in `SimShapeFilter`.
+* WheelSettingsTV and WheelSettingsWV were not serializing their base class members.
+* The remap tables in `SoftBodySharedSettings::OptimizationResults` mapped from new to old index instead of from old to new as was documented. The maps now behave as documented.
 * Fixed an issue where soft body bend constraints could be created with identical vertices. This led to an assert triggering.
 * Fixed infinite recursion when colliding a `TriangleShape` vs a `TriangleShape`.
 * 32-bit MinGW g++ doesn't call the correct overload for the new operator when a type is 16 bytes aligned. This could cause unaligned read access violations.

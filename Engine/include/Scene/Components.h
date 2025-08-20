@@ -125,7 +125,7 @@ namespace UE {
     float AngularDamp{0.0f};
     bool Continuous{false}; // CCD for fast movers
     float GravityFactor{1.0f};
-    JPH::BodyID ID;    
+    JPH::BodyID ID{};    
 
     RigidbodyComponent() = default;
     RigidbodyComponent(const RigidbodyComponent&) = default;
@@ -146,13 +146,14 @@ namespace UE {
     bool SpawnSynced = false;
     // Runtime
     JPH::RefConst<JPH::Shape> Shape;   // capsule shape
-    JPH::BodyID Body;                  // kinematic body
+    JPH::BodyID Body{};                  // kinematic body
 
     // Simple gravity model:
     float VerticalVel   = 0.0f;
     float Gravity       = -9.81f;   // m/s^2
     float JumpImpulse   = 5.0f;     // tweak
     bool Grounded = false;
+    JPH::Vec3 Velocity { 0.0f, 0.0f, 0.0f };
     
     bool                      Dirty { true };
 

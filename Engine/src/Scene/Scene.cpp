@@ -1,3 +1,4 @@
+#include "Auxiliaries/Physics.h"
 #include "entity/fwd.hpp"
 #include "uepch.h"
 #include "Scene/Scene.h"
@@ -17,6 +18,13 @@
 #include <Jolt/Physics/Collision/Shape/CompoundShape.h>
 #include <Jolt/Physics/Collision/Shape/SubShapeID.h>
 #include <Jolt/Physics/Collision/Shape/CapsuleShape.h>
+#include <Jolt/Physics/Collision/ShapeCast.h>
+#include <Jolt/Physics/Collision/CollisionCollector.h>
+#include <Jolt/Physics/Collision/BroadPhase/BroadPhaseLayer.h>
+#include <Jolt/Physics/Collision/ObjectLayer.h>
+#include <Jolt/Physics/Collision/RayCast.h>
+#include <Jolt/Physics/Collision/CastResult.h>
+
 //temp
 #include <glad/glad.h>
 
@@ -53,7 +61,19 @@ namespace UE {
     return JPH::Quat(q.x, q.y, q.z, q.w); // Jolt ctor is (x,y,z,w)
   }
 
+  static inline JPH::Vec3 ToJoltVec3(const glm::vec3& v){
+    return JPH::Vec3(v.x, v.y, v.z);
+  }
 
+  static inline void FromJoltTransform(const JPH::RMat44& xf, glm::vec3& outPos, glm::vec3& outEuler)
+  {
+    const JPH::RVec3 t = xf.GetTranslation();
+    outPos = glm::vec3((float)t.GetX(), (float)t.GetY(), (float)t.GetZ());
+
+    const JPH::Quat rq = xf.GetRotation().GetQuaternion();  // Jolt rotation
+    const glm::quat gq((float)rq.GetW(), (float)rq.GetX(), (float)rq.GetY(), (float)rq.GetZ());
+    outEuler = glm::eulerAngles(gq); // radians
+  }
 
   Entity GlobHovered;
 
@@ -175,7 +195,10 @@ namespace UE {
   template<typename ShapeComp>
   void Scene::BuildRigidBodyForEntity(Entity e, TransformComponent& tr, ShapeComp& sc)
   {
-    if (!sc.Shape) return;
+    if (!sc.Shape) {
+      UE_CORE_ERROR("[BuildRigidBodyForEntity]: No Shape in RigidBodyComponent: {}", e.GetName());
+      return;    
+    }
 
     auto& rb = e.GetComponent<RigidbodyComponent>();
 
@@ -184,10 +207,18 @@ namespace UE {
     switch (rb.Type) {
     case BodyType::Static:    motion = JPH::EMotionType::Static;    layer = Layers::NON_MOVING; break;
     case BodyType::Kinematic: motion = JPH::EMotionType::Kinematic; layer = Layers::MOVING;     break;
-    case BodyType::Dynamic:   motion = JPH::EMotionType::Dynamic;   layer = Layers::MOVING;     break;
+    case BodyType::Dynamic:
+      motion = JPH::EMotionType::Dynamic;
+      layer = Layers::MOVING;
+      break;
+    default:
+      UE_CORE_WARN("[BuildRigidBodyForEntity]: unknown BodyType");
+      break;
     }
 
+    UE_CORE_INFO("[BuildRigidBodyForEntity glm pos] {},{},{}", tr.Translation.x, tr.Translation.y, tr.Translation.z);
     const JPH::RVec3 pos(tr.Translation.x, tr.Translation.y, tr.Translation.z);
+    UE_CORE_INFO("[BuildRigidBodyForEntity JPH pos] {},{},{}", pos.GetX(), pos.GetY(), pos.GetZ());
     const glm::quat gp = glm::quat(tr.Rotation);
     const JPH::Quat  rot = ToJoltQuat(gp);
 
@@ -200,210 +231,408 @@ namespace UE {
       : JPH::EMotionQuality::Discrete;
     bcs.mUserData = (JPH::uint64)(entt::entity)e; // map contacts -> entity
 
-    auto& bi = m_Physics3D.Bodies();
+    auto &bi = m_Physics3D.Bodies();
+    auto &sys = m_Physics3D.System();
     rb.ID = bi.CreateAndAddBody(bcs, JPH::EActivation::Activate);
+    if (rb.ID.IsInvalid()) {
+      UE_CORE_ERROR("[BuildRigidBodyForEntity]: CreateAndAddBody failed");
+      return;
+    }
 
     if (rb.Type == BodyType::Dynamic && rb.Mass > 0.0f) {
       // Optional: set mass properties (or leave Jolt to compute from shape density)
       bi.SetLinearVelocity(rb.ID, JPH::Vec3(0,0,0));
       bi.SetAngularVelocity(rb.ID, JPH::Vec3(0,0,0));
     }
+
+    // Extra sanity: verify the body truly exists & inspect it.
+    {
+      const JPH::BodyLockInterfaceNoLock &bli = sys.GetBodyLockInterfaceNoLock();
+      JPH::BodyLockRead lock(bli, rb.ID);
+      if (!lock.Succeeded()) {
+        UE_CORE_ERROR("[BuildRigidBodyForEntity]: CreateAndAddBody - Body lock failed right after creation (not added?)");
+        return;
+      }
+      const JPH::Body &b = lock.GetBody();
+      UE_CORE_INFO("[BuildRigidBodyForEntity]: Body created - id={} motion={} grav={} added={} active={}",
+		   (unsigned)rb.ID.GetIndexAndSequenceNumber(),
+		   (int)b.GetMotionType(),
+		   8,
+		   bi.IsAdded(rb.ID) ? 1 : 0,
+		   bi.IsActive(rb.ID) ? 1 : 0);
+    }
+
+    if (!bi.IsAdded(rb.ID)) {
+	UE_CORE_ERROR("[BuildRigidBodyForEntity]: {} is not Added with id {}", e.GetName(), (unsigned)rb.ID.GetIndexAndSequenceNumber());
+        return;
+    }else {
+      UE_CORE_INFO("[CREATRE] {} Added with id {}", e.GetName(), (unsigned)rb.ID.GetIndexAndSequenceNumber());
+        }
   }
 
-  template <typename TChar>
-  void Scene::BuildCharacterForEntity(Entity e, TransformComponent& tr, TChar& cc) {
+  template<typename TChar>
+    void Scene::BuildCharacterForEntity(Entity e, TransformComponent& tr, TChar& cc) {
     if (!cc.Shape) return;
-
-    const JPH::RVec3 pos(tr.Translation.x, tr.Translation.y, tr.Translation.z);
-    UE_CORE_WARN("POS {} {} {}", pos.GetX(), pos.GetY(), pos.GetZ());
-
-    // If you store Euler in Transform:
-    const glm::quat gq = glm::quat(tr.Rotation);
-    const JPH::Quat rot = ToJoltQuat(gq);
-
-    
 
     JPH::BodyCreationSettings bcs(
 				  cc.Shape,
-				  pos,
-				  rot,
-				  JPH::EMotionType::Kinematic,
-				  Layers::MOVING // your object layer
+				  JPH::RVec3(tr.Translation.x, tr.Translation.y, tr.Translation.z),
+				  ToJoltQuat(glm::quat(tr.Rotation)),
+				  JPH::EMotionType::Dynamic,
+				  Layers::CHARACTER
 				  );
+
     bcs.mFriction      = 0.8f;
     bcs.mRestitution   = 0.0f;
-    bcs.mMotionQuality = cc.EnableCCD ? JPH::EMotionQuality::LinearCast
-      : JPH::EMotionQuality::Discrete;
+    bcs.mMotionQuality = JPH::EMotionQuality::LinearCast; // <-- force sweep
+    bcs.mIsSensor      = false;                           // <-- must collide
     bcs.mUserData      = (JPH::uint64)(entt::entity)e;
 
     auto& bi = m_Physics3D.Bodies();
     cc.Body = bi.CreateAndAddBody(bcs, JPH::EActivation::Activate);
+    cc.SpawnSynced = false;
   }
-
 
 
   // ------------------------------
   // Scene::OnRuntimeStart
   // ------------------------------
-  void Scene::OnRuntimeStart() {
+  void Scene::OnRuntimeStart()
+  {
     UE_PROFILE_FUNCTION();
 
-    // 0) Bring physics up
+    // ViewEntity<Entity, RigidbodyComponent>([&](auto e, auto& rb){
+    //   rb.ID = {};
+    // });
+
+    // ViewEntity<Entity, CharacterComponent>([&](auto e, auto& cc){
+    //   cc.Body = {};
+    // });    
+
     m_Physics3D.Init();
     m_Physics3D.StartSimulation();
 
-    // 1) Instantiate scripts first so their OnCreate() can set final transforms
-    m_Registry.view<NativeScriptComponent>().each([&](auto entt_handle, auto &nsc){
-      if (!nsc.Instance) {
-	nsc.Instance = nsc.InstantiateScript();
-        nsc.Instance->m_Entity = Entity(entt_handle, this);
-        nsc.Instance->m_Scene = this;
-	nsc.Instance->m_BodyInterface = &m_Physics3D.Bodies();
-      }
-      nsc.Instance->OnCreate();
-    });
+    UE_CORE_INFO("[OnRuntimeStart]: scene={} physics_sys={}",
+                 (const void*)this, (const void*)&m_Physics3D.System());
+
+    auto& sys = m_Physics3D.System();
+    auto& bi  = m_Physics3D.Bodies();
+
+    // Characters first (so we don't create a rigidbody for them)
+    ViewEntity<Entity, CharacterComponent>(
+        [&](auto e, auto &cc) {
+          auto &tr = e.template GetComponent<TransformComponent>();
+
+          if (cc.Body.IsInvalid()) {
+            BuildCharacterForEntity(e, tr, cc);   // creates a kinematic capsule (your helper)
+          }
+
+          if (!cc.Body.IsInvalid()) {
+            bi.SetPositionAndRotation(
+                cc.Body,
+                JPH::RVec3(tr.Translation.x, tr.Translation.y, tr.Translation.z),
+                ToJoltQuat(glm::quat(tr.Rotation)),
+                JPH::EActivation::Activate
+            );
+
+            // initialize character runtime state
+            cc.SpawnSynced = true;
+            cc.VerticalVel = 0.0f;
+            cc.Grounded    = false;
+            // cc.WishMove    = {0.0f};
+            cc.Jump = false;
+          } else {
+	    UE_CORE_WARN("[OnRuntimeStart]: no valid Body in CharacterCompoenet");
+	  }
+        });
 
     // 2) Build colliders if needed
-    ViewEntity<Entity, BoxShapeComponent>([&](auto e, auto &c){
-      if (!c.Shape || c.Dirty) { c.Shape = BuildBox(c.HalfExtents); c.Dirty = false; }
+    ViewEntity<Entity, BoxShapeComponent>([&](auto e, auto &c) {
+      if (!c.Shape || c.Dirty) {
+	UE_CORE_INFO("[OnRuntimeStart]: BoxShapeComponent for {} dirty", e.GetName());
+        c.Shape = BuildBox(c.HalfExtents);
+        c.Dirty = false;
+      }
+      
     });
-    ViewEntity<Entity, SphereShapeComponent>([&](auto e, auto &c){
-      if (!c.Shape || c.Dirty) { c.Shape = BuildSphere(c.Radius);   c.Dirty = false; }
+    ViewEntity<Entity, SphereShapeComponent>([&](auto e, auto &c) {
+      if (!c.Shape || c.Dirty) {
+	UE_CORE_INFO("[OnRuntimeStart]: SphereShapeComponent for {} dirty", e.GetName());
+        c.Shape = BuildSphere(c.Radius);
+        c.Dirty = false;
+      }      
     });
 
-    // 3) Create rigidbodies (skip entities that also have CharacterComponent)
+    // Rigidbodies (skip if entity has a CharacterComponent)
     ViewEntity<Entity, RigidbodyComponent>([&](auto e, auto &rb){
       if (e.template HasComponent<CharacterComponent>()) return;
+      auto &tr = e.template GetComponent<TransformComponent>();
       if (rb.ID.IsInvalid()) {
-	auto &tr = e.template GetComponent<TransformComponent>();
 	if (e.template HasComponent<BoxShapeComponent>())
 	  BuildRigidBodyForEntity(e, tr, e.template GetComponent<BoxShapeComponent>());
 	if (e.template HasComponent<SphereShapeComponent>())
 	  BuildRigidBodyForEntity(e, tr, e.template GetComponent<SphereShapeComponent>());
       }
+
+      if (!rb.ID.IsInvalid()) {
+        m_Physics3D.Bodies().SetPositionAndRotation(
+						    rb.ID,
+						    JPH::RVec3(tr.Translation.x, tr.Translation.y, tr.Translation.z),
+						    ToJoltQuat(glm::quat(tr.Rotation)),
+						    JPH::EActivation::Activate
+						    );
+      }else {
+	UE_CORE_WARN("[OnRuntimeStart]: no valid ID in RigidbodyComponent");
+        }
     });
 
-    // 4) Create characters and teleport them ONCE to authored Transform
-    auto &bi = m_Physics3D.Bodies();
-    ViewEntity<Entity, CharacterComponent>([&](auto e, auto &cc) {
-      auto &tr = e.template GetComponent<TransformComponent>();
-      if (!cc.Shape || cc.Dirty) { cc.Shape = BuildCapsule(cc.HalfHeight, cc.Radius); cc.Dirty = false; }
-      if (cc.Body.IsInvalid())   BuildCharacterForEntity(e, tr, cc);
-      if (cc.Body.IsInvalid())   return;
+    ViewEntity<Entity, NativeScriptComponent>([=](auto entity, auto& nsc)
+    {
+      JPH::BodyInterface &body_interface = m_Physics3D.Bodies();
 
-      bi.SetPositionAndRotation(
-				cc.Body,
-				JPH::RVec3(tr.Translation.x, tr.Translation.y, tr.Translation.z),
-				ToJoltQuat(glm::quat(tr.Rotation)),
-				JPH::EActivation::Activate
-				);
-      cc.LastY = tr.Translation.y;
-      cc.SpawnSynced = true;     // pre-step won’t resync from ECS
+      if (!nsc.Instance) {
+        UE_CORE_ASSERT(nsc.InstantiateScript, "NativeScriptComponent missing Bind()");
+        nsc.Instance = nsc.InstantiateScript();
+        // >>> set context first <<<
+        nsc.Instance->m_Entity        = Entity{ entity, this };
+        nsc.Instance->m_Scene         = this;
+        nsc.Instance->m_BodyInterface = &body_interface;
+        // now it's safe to enter user code
+        nsc.Instance->OnCreate();
+      } else {
+        // keep context up to date for already-instantiated scripts
+        nsc.Instance->m_Entity        = Entity{ entity, this };
+        nsc.Instance->m_Scene         = this;
+        nsc.Instance->m_BodyInterface = &body_interface;
+      }
+
     });
   }
-
+  
 
   // ------------------------------
   // Scene::OnRuntimeStop
   // ------------------------------
-  void Scene::OnRuntimeStop() {
+  void Scene::OnRuntimeStop()
+  {
     UE_PROFILE_FUNCTION();
 
     auto &sys = m_Physics3D.System();
     auto &bi  = m_Physics3D.Bodies();
 
-    // Non-copyable interface: take a reference
-    const JPH::BodyLockInterface &bli = sys.GetBodyLockInterface();
+    // Stop further stepping
+    // m_RuntimeRunning = false;
 
-    // Characters
-    ViewEntity<Entity, CharacterComponent>([&](auto, auto &cc){
-      if (cc.Body.IsInvalid()) return;
+    // 1) Collect body ids (Rigidbody + Character)
+    std::vector<JPH::BodyID> ids;
+    ids.reserve(64);
 
-      JPH::BodyLockWrite lock(bli, cc.Body);
-      if (!lock.Succeeded()) { cc.Body = {}; return; }
-
-      if (bi.IsAdded(cc.Body)) bi.RemoveBody(cc.Body);
-      bi.DestroyBody(cc.Body);
-      cc.Body = {};
-      cc.SpawnSynced = false;
+    ViewEntity<Entity, RigidbodyComponent>([&](auto, auto &rb) {
+      if (!rb.ID.IsInvalid()) ids.push_back(rb.ID);
     });
 
-    // Rigidbodies
-    ViewEntity<Entity, RigidbodyComponent>([&](auto, auto &rb){
-      if (rb.ID.IsInvalid()) return;
-
-      JPH::BodyLockWrite lock(bli, rb.ID);
-      if (!lock.Succeeded()) { rb.ID = {}; return; }
-
-      if (bi.IsAdded(rb.ID)) bi.RemoveBody(rb.ID);
-      bi.DestroyBody(rb.ID);
-      rb.ID = {};
+    ViewEntity<Entity, CharacterComponent>([&](auto, auto &cc) {
+      if (!cc.Body.IsInvalid()) ids.push_back(cc.Body);
     });
 
-    // (optional) stop/shutdown physics here if your wrapper supports it
-    // m_Physics3D.StopSimulation();
-    // m_Physics3D.Shutdown();
+    // Deduplicate
+    std::sort(ids.begin(), ids.end(), [](const JPH::BodyID &a, const JPH::BodyID &b) {
+      return a.GetIndexAndSequenceNumber() < b.GetIndexAndSequenceNumber();
+    });
+    ids.erase(std::unique(ids.begin(), ids.end(), [](const JPH::BodyID &a, const JPH::BodyID &b) {
+      return a.GetIndexAndSequenceNumber() == b.GetIndexAndSequenceNumber();
+    }), ids.end());
+
+    // Filter out obviously bogus ids
+    auto looks_valid = [](const JPH::BodyID &id) -> bool {
+      return !id.IsInvalid() && id.GetIndex() != 0xFFFFFF;
+    };
+    ids.erase(std::remove_if(ids.begin(), ids.end(),
+                             [&](const JPH::BodyID &id){ return !looks_valid(id); }),
+              ids.end());
+
+    UE_CORE_INFO("[Stop] Collected {} unique valid body ids", (int)ids.size());
+    for (auto &b : ids)
+      UE_CORE_INFO("  id idx+seq = {}", (uint32_t)b.GetIndexAndSequenceNumber());
+
+    // If nothing to do, just invalidate components and return
+    if (ids.empty()) {
+      ViewEntity<Entity, RigidbodyComponent>([&](auto, auto &rb){ rb.ID = {}; });
+      ViewEntity<Entity, CharacterComponent>([&](auto, auto &cc){ cc.Body = {}; });
+      return;
+    }
+
+    // 2) Remove only if currently added
+    for (const JPH::BodyID &id : ids) {
+      if (bi.IsAdded(id)) {
+	bi.RemoveBody(id);
+      }
+    }
+
+    // 3) Destroy only those that still exist (verify via lock)
+    std::vector<JPH::BodyID> to_destroy;
+    to_destroy.reserve(ids.size());
+
+    const JPH::BodyLockInterfaceNoLock &bli = sys.GetBodyLockInterfaceNoLock();
+    for (const JPH::BodyID &id : ids) {
+      JPH::BodyLockRead lock(bli, id);
+      if (lock.Succeeded()) {
+	to_destroy.push_back(id);
+      }
+    }
+
+    if (!to_destroy.empty()) {
+      bi.DestroyBodies(to_destroy.data(), (int)to_destroy.size());
+    }
+
+    // 4) Invalidate component handles (prevents double-destroy later)
+    ViewEntity<Entity, RigidbodyComponent>([&](auto, auto &rb){ rb.ID = {}; });
+    ViewEntity<Entity, CharacterComponent>([&](auto, auto &cc){ cc.Body = {}; });
   }
-
-
 
   
   // ------------------------------
   // Scene::PhysicsUpdate
   // ------------------------------
-  void Scene::PhysicsUpdate(float dt) {
+  void Scene::PhysicsUpdate(float dt)
+  {
     UE_PROFILE_FUNCTION();
-    auto &bi = m_Physics3D.Bodies();
+    UE_CORE_WARN("[PhysicsUpdate]");
+    auto& sys = m_Physics3D.System();
+    auto& bi  = m_Physics3D.Bodies();
 
-    // === PRE-STEP: Characters ===
-    ViewEntity<Entity, CharacterComponent>([&](auto e, auto &cc){
-      if (cc.Body.IsInvalid()) return;
-      auto &tr = e.template GetComponent<TransformComponent>();
-
-      // One-time spawn sync in case this entity was duplicated/teleported this frame
-      if (!cc.SpawnSynced) {
-	bi.SetPositionAndRotation(
-				  cc.Body,
-				  JPH::RVec3(tr.Translation.x, tr.Translation.y, tr.Translation.z),
-				  ToJoltQuat(glm::quat(tr.Rotation)),
-				  JPH::EActivation::Activate
-				  );
-	cc.LastY = tr.Translation.y;
-	cc.SpawnSynced = true;
+    UE_CORE_INFO("[PhysicsUpdate]: scene={} physics_sys={}",
+                 (const void*)this, (const void*)&sys);
+   // --- Drive kinematic characters from input (WishMove / JumpRequested) ---
+    ViewEntity<Entity, CharacterComponent>([&](auto e, auto &cc) {
+      if (cc.Body.IsInvalid()) {
+	UE_CORE_ERROR("[PhysicsUpdate]: CharacterComponent Body for {} with id={} is invalid", e.GetName(), (uint)cc.Body.GetIndexAndSequenceNumber());
+        return;
+      }
+      if (!bi.IsAdded(cc.Body)) {
+        UE_CORE_ERROR("[PhysicsUpdate]: CharacterComponent for {} with id={} is not added", e.GetName(), (uint)cc.Body.GetIndexAndSequenceNumber());
+        return;
       }
 
-      // Vertical motion (simple)
-      if (cc.Grounded && cc.Jump) { cc.VerticalVel = cc.JumpImpulse; cc.Grounded = false; }
-      else                        { cc.VerticalVel += cc.Gravity * dt; }
+      // Current pose
+      const JPH::RMat44 xf = bi.GetWorldTransform(cc.Body);
 
-      // Desired velocity from controller
-      const glm::vec3 vel = cc.WishMove + glm::vec3(0.0f, cc.VerticalVel, 0.0f);
+      // Horizontal velocity from input in world space
+      JPH::Vec3 wish = ToJoltVec3(cc.WishMove);            // set by your script each frame
+      const float wl = wish.Length();
+      const JPH::Vec3 hvel = wl > 0.0f ? (wish / wl) * cc.MaxSpeed : JPH::Vec3::sZero();
 
-      // IMPORTANT: base on PHYSICS pose, not ECS (avoids zero snap)
-      const JPH::RVec3 p0 = bi.GetCenterOfMassPosition(cc.Body);
-      const JPH::RVec3 p1 = p0 + JPH::RVec3(vel.x * dt, vel.y * dt, vel.z * dt);
+      // Ground ray: 2 m down from COM (R* types because NarrowPhase uses double-precision casts)
+      JPH::RRayCast ray(xf.GetTranslation(), JPH::RVec3(0.0, -2.0, 0.0));
+      JPH::RayCastResult hit;
 
-      const JPH::Quat rot = ToJoltQuat(glm::quat(tr.Rotation));
-      bi.MoveKinematic(cc.Body, p1, rot, dt);
+      // Use same filters the world was built with: CHARACTER collides with NON_MOVING, etc.
+      JPH::DefaultBroadPhaseLayerFilter bp(m_Physics3D.GetOVBPFilter(), Layers::CHARACTER);
+      JPH::DefaultObjectLayerFilter     of(m_Physics3D.GetPairFilter(),  Layers::CHARACTER);
 
-      cc.Jump = false; // consume
+      const bool ray_hit = sys.GetNarrowPhaseQuery().CastRay(ray, hit, bp, of);
+      cc.Grounded = ray_hit && hit.mFraction < 1.0f;
+
+      // Vertical motion
+      if (cc.Grounded) {
+	if (cc.Jump) {
+	  cc.VerticalVel   = cc.JumpImpulse;   // e.g. 5–8 m/s
+	  cc.Jump = false;
+	} else {
+	  if (std::abs(cc.VerticalVel) < 0.01f) cc.VerticalVel = 0.0f; // kill tiny drift
+	}
+      } else {
+	cc.VerticalVel -= cc.Gravity * dt;       // e.g. 9.81
+      }
+
+      // Compose velocity and move kinematic
+      const JPH::RVec3 vel(hvel.GetX(), cc.VerticalVel, hvel.GetZ());
+      const JPH::RVec3 target_pos = xf.GetTranslation() + vel * dt;
+
+      UE_CORE_INFO("[CHARAC POS PHYSICS]: {},{},{}", target_pos.GetX(), target_pos.GetY(), target_pos.GetZ());
+
+      bi.MoveKinematic(cc.Body, target_pos, xf.GetRotation().GetQuaternion(), dt);
     });
 
-    // === STEP the world ===
+    // --- Step the physics world ---
+    // Use your wrapper; replace this line with your actual step call if different.
     m_Physics3D.Step(dt);
 
-    // === POST-STEP: Rigidbodies ===
-    ViewEntity<Entity, RigidbodyComponent>([&](auto e, auto &rb){
-      if (rb.ID.IsInvalid()) return;
+    auto &bli = sys.GetBodyLockInterface();    
+
+    // --- Copy back transforms from physics (ONLY for entities with valid bodies) ---
+    // ViewEntity<Entity, RigidbodyComponent>([&](auto e, auto &rb) {
+    //   if (rb.ID.IsInvalid())
+    //     return;
+
+    //   JPH::BodyLockRead lock(bli, rb.ID);
+    //   if (!lock.Succeeded()) {
+    // 	UE_CORE_WARN("[PhysUpdate] Rigidbody BodyLockRead failed id={} name={}",
+    //                      (uint)rb.ID.GetIndexAndSequenceNumber(),
+    // 		     e.GetName());
+    //     return;
+    //   }
+
+    //   UE_CORE_WARN("[PHYSICS UPDATE RIGIDBODY COMP]");
+      
+    //   auto &tr = e.template GetComponent<TransformComponent>();
+    //   const JPH::Body &body = lock.GetBody();
+      
+    //   if (rb.Type == BodyType::Dynamic) {
+    // 	UE_CORE_INFO("[Dynamic]");
+    // 	// physics -> ECS
+    // 	const JPH::RMat44 xf = body.GetWorldTransform();
+    //     // const JPH::RVec3 p = bi.GetCenterOfMassPosition(rb.ID);
+    // 	const JPH::RVec3 p = xf.GetTranslation();
+    //     const JPH::Quat q = bi.GetRotation(rb.ID);
+    // 	UE_CORE_WARN("JPH {} {} {}", p.GetX(), p.GetY(), p.GetZ());
+    //     tr.Translation = {(float)p.GetX(), (float)p.GetY(), (float)p.GetZ()};
+    // 	UE_CORE_WARN("TRANS {} {} {}", tr.Translation.x, tr.Translation.y, tr.Translation.z);
+    // 	tr.Rotation    = glm::eulerAngles(ToGlmQuat(q)); // if you store Euler
+    //   } else if (rb.Type == BodyType::Kinematic) {
+    //     // ECS -> physics
+    // 	UE_CORE_INFO("[Kinematic]");
+    // 	bi.SetPositionAndRotation(
+    // 				  rb.ID,
+    // 				  JPH::RVec3(tr.Translation.x, tr.Translation.y, tr.Translation.z),
+    // 				  ToJoltQuat(glm::quat(tr.Rotation)),
+    // 				  JPH::EActivation::Activate
+    // 				  );
+    //   } else {
+    // 	UE_CORE_INFO("[Static]");
+    //   }
+    //   // Static: no per-frame push
+
+    //   UE_CORE_WARN("[PHYSICS UPDATE RIGIDBODY COMP DONE]");
+    // });
+
+    ViewEntity<Entity, RigidbodyComponent>([&](auto e, auto &rb) {
+      if (rb.ID.IsInvalid()){
+	UE_CORE_ERROR("[PhysicsUpdate]: RigidbodyComponent ID for {} with id={} is invalid", e.GetName(), (uint)rb.ID.GetIndexAndSequenceNumber());
+        return;
+      }
+
+      // JPH::BodyLockRead lock(bli, rb.ID);
+      // if (!lock.Succeeded()) {
+      // 	UE_CORE_WARN("[PhysicsUpdate]: RigidbodyComponent BodyLockRead failed id={} name={}",
+      //                    (uint)rb.ID.GetIndexAndSequenceNumber(),
+      // 		     e.GetName());
+      //   return;
+      // }
+
+      // const JPH::Body &body = lock.GetBody();
       auto &tr = e.template GetComponent<TransformComponent>();
 
       if (rb.Type == BodyType::Dynamic) {
-	// physics -> ECS
-	const JPH::RVec3 p = bi.GetCenterOfMassPosition(rb.ID);
+        // physics -> ECS
+        // const JPH::RMat44 xf = body.GetWorldTransform();
+	const JPH::RMat44 xf = bi.GetWorldTransform(rb.ID);
+	const JPH::RVec3 p = xf.GetTranslation();        
+	// const JPH::RVec3 p = bi.GetCenterOfMassPosition(rb.ID);
         const JPH::Quat q = bi.GetRotation(rb.ID);
-	UE_CORE_WARN("JPH {} {} {}", p.GetX(), p.GetY(), p.GetZ());
+	UE_CORE_INFO("[PhysicsUpdate]: RigidbodyComponent JPH {} {} {}", p.GetX(), p.GetY(), p.GetZ());
         tr.Translation = {(float)p.GetX(), (float)p.GetY(), (float)p.GetZ()};
-	UE_CORE_WARN("TRANS {} {} {}", tr.Translation.x, tr.Translation.y, tr.Translation.z);
+	UE_CORE_INFO("[PhysicsUpdate]: RigidbodyComponent TRANS {} {} {}", tr.Translation.x, tr.Translation.y, tr.Translation.z);
 	tr.Rotation    = glm::eulerAngles(ToGlmQuat(q)); // if you store Euler
       } else if (rb.Type == BodyType::Kinematic) {
 	// ECS -> physics
@@ -416,30 +645,33 @@ namespace UE {
       }
       // Static: no per-frame push
     });
+    
+    ViewEntity<Entity, CharacterComponent>([&](auto e, auto &cc) {
+      if (cc.Body.IsInvalid()){
+	UE_CORE_ERROR("[PhysicsUpdate]: CharacterComponent Body for {} with id={} is invalid", e.GetName(), (uint)cc.Body.GetIndexAndSequenceNumber());
+        return;
+      }
 
-    // === POST-STEP: Characters -> ECS + grounded flag ===
-    ViewEntity<Entity, CharacterComponent>([&](auto e, auto &cc){
-      if (cc.Body.IsInvalid()) return;
-
+      // JPH::BodyLockRead lock(bli, cc.Body);
+      // if (!lock.Succeeded()) {
+      // 	UE_CORE_WARN("[PhysicsUpdate]: CharacterComponent BodyLockRead failed id={} name={}",
+      // 		     (uint)cc.Body.GetIndexAndSequenceNumber(),
+      // 		     e.GetName());
+      // 	return;
+      // }
+      
       auto &tr = e.template GetComponent<TransformComponent>();
-      const JPH::RVec3 p = bi.GetCenterOfMassPosition(cc.Body);
-      const JPH::Quat  q = bi.GetRotation(cc.Body);
 
-      const float newY = (float)p.GetY();
-      const float dy   = newY - cc.LastY;
+      const JPH::RMat44 xf = bi.GetWorldTransform(cc.Body);
+      const JPH::RVec3  p  = xf.GetTranslation();
+      tr.Translation = { (float)p.GetX(), (float)p.GetY(), (float)p.GetZ() };
 
-      tr.Translation = { (float)p.GetX(), newY, (float)p.GetZ() };
-      tr.Rotation    = glm::eulerAngles(ToGlmQuat(q));
-
-      // crude grounded inference
-      if (cc.VerticalVel <= 0.0f && dy >= -1e-4f) { cc.Grounded = true; cc.VerticalVel = 0.0f; }
-      else                                       { cc.Grounded = false; }
-
-      cc.LastY = newY;
+      const JPH::Quat q = xf.GetRotation().GetQuaternion();
+      tr.Rotation = glm::eulerAngles(ToGlmQuat(q)); 
     });
-
     FlushEntityDestruction();
   }
+
 
 
 
@@ -457,15 +689,24 @@ namespace UE {
       {
 	JPH::BodyInterface &body_interface = m_Physics3D.Bodies();
 	// TODO: Move to Scene::OnScenePlay
-	if (!nsc.Instance)
-	  {
-	    nsc.Instance = nsc.InstantiateScript();
-	    nsc.Instance->m_Entity = Entity{ entity, this };
-	    nsc.Instance->m_Scene = this;
-	    nsc.Instance->m_BodyInterface = &body_interface;
-	  }
+        if (!nsc.Instance) {
+	  UE_CORE_ASSERT(nsc.InstantiateScript, "NativeScriptComponent missing Bind()");
+	  nsc.Instance = nsc.InstantiateScript();
+	  // >>> set context first <<<
+	  nsc.Instance->m_Entity        = Entity{ entity, this };
+	  nsc.Instance->m_Scene         = this;
+	  nsc.Instance->m_BodyInterface = &body_interface;
+	  // now it's safe to enter user code
+	  nsc.Instance->OnCreate();
+	}else {
+	  // keep context up to date for already-instantiated scripts
+	  nsc.Instance->m_Entity        = Entity{ entity, this };
+	  nsc.Instance->m_Scene         = this;
+	  nsc.Instance->m_BodyInterface = &body_interface;
+	}       
 
 	nsc.Instance->OnUpdate(ts);
+	
       });
     }
 		
@@ -631,8 +872,9 @@ namespace UE {
     FlushEntityDestruction();
   }
 
-  void Scene::OnUpdateEditor(Timestep ts, EditorCamera& camera, int& mouseX, int& mouseY, glm::vec2& viewportSize)
-  {
+  void Scene::OnUpdateEditor(Timestep ts, EditorCamera &camera, int &mouseX,
+                             int &mouseY, glm::vec2 &viewportSize) {
+    UE_CORE_WARN("[OnUpdateEditor]");
     UE_PROFILE_FUNCTION();
     m_Framebuffer->Bind();
     // Clear our entity ID attachment to -1
@@ -655,39 +897,38 @@ namespace UE {
 	  c.Dirty = false;
 
 	  // Rebuild body if present
-	  if (e.template HasComponent<RigidbodyComponent>()) {
-            auto& rb = e.template GetComponent<RigidbodyComponent>();
-            auto& bi = m_Physics3D.Bodies();
-            if (!rb.ID.IsInvalid()) {
-              bi.RemoveBody(rb.ID);
-              bi.DestroyBody(rb.ID);
-              rb.ID = {};
-            }
-            auto& tr = e.template GetComponent<TransformComponent>();
-            BuildRigidBodyForEntity(e, tr, c);
-	  }
+	  // if (e.template HasComponent<RigidbodyComponent>()) {
+          //   auto& rb = e.template GetComponent<RigidbodyComponent>();
+          //   auto& bi = m_Physics3D.Bodies();
+          //   if (!rb.ID.IsInvalid()) {
+          //     bi.RemoveBody(rb.ID);
+          //     bi.DestroyBody(rb.ID);
+          //     rb.ID = {};
+          //   }
+          //   auto& tr = e.template GetComponent<TransformComponent>();
+          //   BuildRigidBodyForEntity(e, tr, c);
+	  // }
 	}
       }
     });
 
-    // Apply path (editor or play)
     ViewEntity<Entity, CharacterComponent>([&](auto e, auto& c){
       if (!c.Dirty) return;
       c.Shape = BuildCapsule(c.HalfHeight, c.Radius);
       c.Dirty = false;
 
       // Recreate body if it exists
-      if (c.Body.IsInvalid()) {
-        auto& tr = e.template GetComponent<TransformComponent>();
-        BuildCharacterForEntity(e, tr, c);
-      } else {
-        auto& bi = m_Physics3D.Bodies();
-        bi.RemoveBody(c.Body);
-        bi.DestroyBody(c.Body);
-        c.Body = {};
-        auto& tr = e.template GetComponent<TransformComponent>();
-        BuildCharacterForEntity(e, tr, c);
-      }
+      // if (c.Body.IsInvalid()) {
+      //   auto& tr = e.template GetComponent<TransformComponent>();
+      //   BuildCharacterForEntity(e, tr, c);
+      // } else {
+      //   auto& bi = m_Physics3D.Bodies();
+      //   bi.RemoveBody(c.Body);
+      //   bi.DestroyBody(c.Body);
+      //   c.Body = {};
+      //   auto& tr = e.template GetComponent<TransformComponent>();
+      //   BuildCharacterForEntity(e, tr, c);
+      // }
     });
 
     GroupEntity<ModelComponent>([this] (auto entity, auto& comp, auto& transform, auto id){
@@ -721,17 +962,28 @@ namespace UE {
 				
       Renderer3D::SetEntity((int)entity);
 
-    });		
+    });
 
-    GroupEntity<SphereShapeComponent>([this] (auto entity, auto& comp, auto& transform, auto id){			
+    GroupEntity<SphereShapeComponent>([this](auto entity, auto &comp,
+                                             auto &transform, auto id) {			
 			
       const auto& box = comp.Shape->GetLocalBounds();
 
       if(ShowBoxes)
 	Renderer3D::DrawWireSphere({transform.Translation.x, transform.Translation.y, transform.Translation.z}, 
 				   {box.GetSize().GetX(), box.GetSize().GetY(), box.GetSize().GetZ()}, 
-				   {0,0,1}, 0.5f);	
-    });		
+				   {0,0,1}, 0.5f);
+    });
+
+    GroupEntity<CharacterComponent>(
+        [this](auto entity, auto &comp, auto &transform, auto id) {
+          const auto &box = comp.Shape->GetLocalBounds();
+
+          if (ShowBoxes)
+	    Renderer3D::DrawWireSphere(transform.Translation, {box.GetSize().GetX(), box.GetSize().GetY(), box.GetSize().GetZ()}, 
+				       {0.0f,0.5f,1.0f}, 0.5f);
+      
+    });
 
     Renderer3D::EndCamera();
     // glDisable(GL_DEPTH_TEST);
@@ -946,8 +1198,8 @@ namespace UE {
     }
     // If a collider is already present, create the body now
     auto& tr = entity.GetComponent<TransformComponent>();
-    if (entity.HasComponent<BoxShapeComponent>())    BuildRigidBodyForEntity(entity, tr, entity.GetComponent<BoxShapeComponent>());
-    if (entity.HasComponent<SphereShapeComponent>()) BuildRigidBodyForEntity(entity, tr, entity.GetComponent<SphereShapeComponent>());
+    // if (entity.HasComponent<BoxShapeComponent>())    BuildRigidBodyForEntity(entity, tr, entity.GetComponent<BoxShapeComponent>());
+    // if (entity.HasComponent<SphereShapeComponent>()) BuildRigidBodyForEntity(entity, tr, entity.GetComponent<SphereShapeComponent>());
   }
 
   template<>
@@ -992,7 +1244,7 @@ namespace UE {
 
     // Create the kinematic body
     auto& tr = entity.GetComponent<TransformComponent>();
-    BuildCharacterForEntity(entity, tr, component);
+    // BuildCharacterForEntity(entity, tr, component);
   }
 
   template<>

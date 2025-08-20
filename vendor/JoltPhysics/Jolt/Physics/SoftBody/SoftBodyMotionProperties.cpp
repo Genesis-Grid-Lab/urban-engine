@@ -63,6 +63,8 @@ void SoftBodyMotionProperties::Initialize(const SoftBodyCreationSettings &inSett
 	mNumIterations = inSettings.mNumIterations;
 	mPressure = inSettings.mPressure;
 	mUpdatePosition = inSettings.mUpdatePosition;
+	mFacesDoubleSided = inSettings.mFacesDoubleSided;
+	SetVertexRadius(inSettings.mVertexRadius);
 
 	// Initialize vertices
 	mVertices.resize(inSettings.mSettings->mVertices.size());
@@ -184,7 +186,7 @@ void SoftBodyMotionProperties::DetermineCollidingShapes(const SoftBodyUpdateCont
 						Array<LeafShape>	mHits;
 					};
 					LeafShapeCollector collector;
-					body.GetShape()->CollectTransformedShapes(mLocalBounds, com.GetTranslation(), com.GetQuaternion(), Vec3::sOne(), SubShapeIDCreator(), collector, mShapeFilter);
+					body.GetShape()->CollectTransformedShapes(mLocalBounds, com.GetTranslation(), com.GetQuaternion(), Vec3::sOne(), SubShapeIDCreator(), collector, mShapeFilter.GetFilter());
 					if (collector.mHits.empty())
 						return;
 
@@ -236,14 +238,13 @@ void SoftBodyMotionProperties::DetermineCollidingShapes(const SoftBodyUpdateCont
 	// Calculate local bounding box
 	AABox local_bounds = mLocalBounds;
 	local_bounds.Encapsulate(mLocalPredictedBounds);
-	local_bounds.ExpandBy(Vec3::sReplicate(mSettings->mVertexRadius));
+	local_bounds.ExpandBy(Vec3::sReplicate(mVertexRadius));
 
 	// Calculate world space bounding box
 	AABox world_bounds = local_bounds.Transformed(inContext.mCenterOfMassTransform);
 
 	// Create shape filter
-	SimShapeFilterWrapperUnion shape_filter_union(inContext.mSimShapeFilter, inContext.mBody);
-	SimShapeFilterWrapper &shape_filter = shape_filter_union.GetSimShapeFilterWrapper();
+	SimShapeFilterWrapper shape_filter(inContext.mSimShapeFilter, inContext.mBody);
 
 	Collector collector(inContext, inSystem, inBodyLockInterface, local_bounds, shape_filter, mCollidingShapes, mCollidingSensors);
 	ObjectLayer layer = inContext.mBody->GetObjectLayer();
@@ -357,7 +358,7 @@ void SoftBodyMotionProperties::IntegratePositions(const SoftBodyUpdateContext &i
 
 		// Integrate
 		Quat rotation = r.mRotation;
-		Quat delta_rotation = half_dt * Quat(Vec4(r.mAngularVelocity, 0)) * rotation;
+		Quat delta_rotation = half_dt * Quat::sMultiplyImaginary(r.mAngularVelocity, rotation);
 		r.mPreviousRotationInternal = rotation; // Overwrites mAngularVelocity
 		r.mRotation = (rotation + delta_rotation).Normalized();
 	}
@@ -625,8 +626,8 @@ void SoftBodyMotionProperties::ApplyRodStretchShearConstraints(const SoftBodyUpd
 		v0.mPosition = x0 + v0.mInvMass * delta;
 		v1.mPosition = x1 - v1.mInvMass * delta;
 		// q * e3_bar = q * (0, 0, -1, 0) = [-qy, qx, -qw, qz]
-		Quat q_e3_bar(UVec4::sXor(rotation.GetXYZW().Swizzle<SWIZZLE_Y, SWIZZLE_X, SWIZZLE_W, SWIZZLE_Z>().ReinterpretAsInt(), UVec4(0x80000000u, 0, 0x80000000u, 0)).ReinterpretAsFloat());
-		rotation += (2.0f * r->mInvMass * r->mLength) * Quat(Vec4(delta, 0)) * q_e3_bar;
+		Quat q_e3_bar(rotation.GetXYZW().Swizzle<SWIZZLE_Y, SWIZZLE_X, SWIZZLE_W, SWIZZLE_Z>().FlipSign<-1, 1, -1, 1>());
+		rotation += (2.0f * r->mInvMass * r->mLength) * Quat::sMultiplyImaginary(delta, q_e3_bar);
 
 		// Renormalize
 		rod_state->mRotation = rotation.Normalized();
@@ -702,7 +703,7 @@ void SoftBodyMotionProperties::ApplyCollisionConstraintsAndUpdateVelocities(cons
 
 	float dt = inContext.mSubStepDeltaTime;
 	float restitution_threshold = -2.0f * inContext.mGravity.Length() * dt;
-	float vertex_radius = mSettings->mVertexRadius;
+	float vertex_radius = mVertexRadius;
 	for (Vertex &v : mVertices)
 		if (v.mInvMass > 0.0f)
 		{

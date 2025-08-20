@@ -7,6 +7,7 @@ class PlayerController : public ScriptableEntity
  public:
   virtual void OnCreate() override
   {
+    UE_INFO("OnCreate");
     m_Scene = GetScene();
     // Randomize X a little, keep Y/Z as authored
     auto &tc = GetComponent<TransformComponent>();
@@ -17,10 +18,19 @@ class PlayerController : public ScriptableEntity
     for (auto entity : view) {
       auto [transform, camera] = view.get<TransformComponent, CameraComponent>(entity);
       if (camera.Primary) {
+	UE_INFO("CAM FOUND");
 	Cam = Entity(entity, m_Scene);
 	break;
       }
     }
+    // m_Scene->ViewEntity<Entity, CameraComponent>([&](auto e, auto &CamComp) {
+    //   UE_INFO("Searching cam");
+    //   if (CamComp.Primary) {
+    // 	UE_INFO("CAM FOUND");
+    //     Cam = Entity(e, m_Scene);
+    // 	// break;
+    //   }
+    // });
   }
 
   virtual void OnDestroy() override
@@ -128,7 +138,7 @@ class PlayerController : public ScriptableEntity
         /*     Renderer3D::RunAnimation(modelAnim["jump"], ts); */
         /* else if (idle && modelAnim.contains("idle")) */
         /*     Renderer3D::RunAnimation(modelAnim["idle"], ts); */
-	UE_CORE_INFO("PC WishMove len={:.3f} jump={}", glm::length(charComp.WishMove), (int)charComp.Jump);
+	UE_INFO("PC WishMove len={:.3f} jump={}", glm::length(charComp.WishMove), (int)charComp.Jump);
     }
 
     void OnImGuiRender() override {

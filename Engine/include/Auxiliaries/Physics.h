@@ -28,17 +28,13 @@ namespace UE {
 // layer for static bodies, but you can have more layers if you want. E.g. you
 // could have a layer for high detail collision (which is not used by the
 // physics simulation but only if you do collision testing).
-namespace Layers
-{
-// static constexpr JPH::ObjectLayer NON_MOVING{0};
-// static constexpr JPH::ObjectLayer MOVING{1};
-// static constexpr JPH::ObjectLayer NUM_LAYERS{2};
-enum : JPH::ObjectLayer {
-  NON_MOVING = 0,
-  MOVING = 1,
-  NUM_LAYERS
-  };
+namespace Layers {
+    static constexpr JPH::ObjectLayer NON_MOVING  = 0; // static/world
+    static constexpr JPH::ObjectLayer MOVING      = 1; // dynamic/kinematic rigidbodies
+    static constexpr JPH::ObjectLayer CHARACTER   = 2; // player/NPC controllers
+    static constexpr JPH::ObjectLayer        NUM_LAYERS  = 3;
 } // namespace Layers
+
 
 
 
@@ -47,25 +43,14 @@ enum : JPH::ObjectLayer {
     class ObjectLayerPairFilterImpl : public JPH::ObjectLayerPairFilter
     {
     public:
-      // [[nodiscard]] bool ShouldCollide(JPH::ObjectLayer inObject1,
-      //                                 JPH::ObjectLayer inObject2) const
-      //                                 override
-      // {
-      //     switch (inObject1)
-      //     {
-      //     case Layers::NON_MOVING:
-      //         return inObject2 ==
-      //             Layers::MOVING; // Non moving only collides with moving
-      //     case Layers::MOVING:
-      //         return true; // Moving collides with everything
-      //     default:
-      //         JPH_ASSERT(false);
-      //         return false;
-      //     }
-      // }
+      
       bool ShouldCollide(JPH::ObjectLayer a, JPH::ObjectLayer b) const override {
-        if (a == Layers::NON_MOVING && b == Layers::NON_MOVING) return false;
-        return true;
+        switch (a) {
+            case Layers::NON_MOVING: return b == Layers::MOVING || b == Layers::CHARACTER;
+            case Layers::MOVING:     return true; // collide with NM, MOVING, CHARACTER
+            case Layers::CHARACTER:  return b == Layers::NON_MOVING || b == Layers::MOVING; // (no char-char)
+            default: JPH_ASSERT(false); return false;
+        }
       }
     };
 
@@ -94,6 +79,7 @@ enum : JPH::ObjectLayer {
             // Create a mapping table from object to broad phase layer
             mObjectToBroadPhase[Layers::NON_MOVING] = BroadPhaseLayers::NON_MOVING;
             mObjectToBroadPhase[Layers::MOVING] = BroadPhaseLayers::MOVING;
+	    mObjectToBroadPhase[Layers::CHARACTER]  = BroadPhaseLayers::MOVING;
         }
 
         [[nodiscard]] JPH::uint GetNumBroadPhaseLayers() const override
@@ -135,21 +121,18 @@ enum : JPH::ObjectLayer {
         : public JPH::ObjectVsBroadPhaseLayerFilter
     {
     public:
-        [[nodiscard]] bool ShouldCollide(
-            JPH::ObjectLayer inLayer1,
-            JPH::BroadPhaseLayer inLayer2) const override
-        {
-            switch (inLayer1)
-            {
-            case Layers::NON_MOVING:
-                return inLayer2 == BroadPhaseLayers::MOVING;
-            case Layers::MOVING:
-                return true;
-            default:
-                JPH_ASSERT(false);
-                return false;
-            }
-        }
+      [[nodiscard]] bool ShouldCollide(
+				       JPH::ObjectLayer ol,
+				       JPH::BroadPhaseLayer bpl) const override
+      {
+	switch (ol) {
+	case Layers::NON_MOVING: return bpl == BroadPhaseLayers::MOVING;
+	case Layers::MOVING:     return true;
+	case Layers::CHARACTER:  return bpl == BroadPhaseLayers::NON_MOVING || bpl == BroadPhaseLayers::MOVING;
+	default: JPH_ASSERT(false); return false;
+	  
+	}
+      }
     };
 
     // An example contact listener
@@ -230,7 +213,10 @@ enum : JPH::ObjectLayer {
 
     JPH::JobSystem&       JobSystem();      // new
     JPH::TempAllocator&   TempAllocator();  // new
-    float                 FixedStep() const { return _fixedStep; }
+    float FixedStep() const { return _fixedStep; }
+
+    const ObjectVsBroadPhaseLayerFilterImpl& GetOVBPFilter() const { return *_obj_vs_bp_filter; }
+    const ObjectLayerPairFilterImpl&         GetPairFilter()  const { return *_obj_vs_obj_filter; }
   private:
     // std::unique_ptr<JPH::TempAllocatorImpl> _temp_allocator;
     // std::unique_ptr<MyBodyActivationListener> _body_activation_listener;

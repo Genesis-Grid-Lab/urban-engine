@@ -106,7 +106,6 @@ JPH_IMPLEMENT_SERIALIZABLE_NON_VIRTUAL(SoftBodySharedSettings)
 	JPH_ADD_ATTRIBUTE(SoftBodySharedSettings, mRodStretchShearConstraints)
 	JPH_ADD_ATTRIBUTE(SoftBodySharedSettings, mRodBendTwistConstraints)
 	JPH_ADD_ATTRIBUTE(SoftBodySharedSettings, mMaterials)
-	JPH_ADD_ATTRIBUTE(SoftBodySharedSettings, mVertexRadius)
 }
 
 void SoftBodySharedSettings::CalculateClosestKinematic()
@@ -455,7 +454,7 @@ void SoftBodySharedSettings::CalculateRodProperties()
 				Vec3 t1_cross_t2 = tangent1.Cross(tangent2);
 				float sin_angle = t1_cross_t2.Length();
 				Vec3 normal2 = normal1;
-				if (sin_angle > 0.0f)
+				if (sin_angle > 1.0e-6f)
 				{
 					t1_cross_t2 /= sin_angle;
 					normal2 = Quat::sRotation(t1_cross_t2, ASin(sin_angle)) * normal2;
@@ -1016,7 +1015,7 @@ void SoftBodySharedSettings::Optimize(OptimizationResults &outResults)
 		// Bilateral interleaving, see figure 4 of "Position and Orientation Based Cosserat Rods" - Kugelstadt and Schoemer - SIGGRAPH 2016
 		// Keeping the twist constraints sorted often results in an unstable simulation
 		for (Array<uint>::size_type i = 1, s = group.mRodBendTwistConstraints.size(), s2 = s >> 1; i < s2; i += 2)
-			std::swap(group.mRodBendTwistConstraints[i], group.mRodBendTwistConstraints[s - 1 - i]);
+			std::swap(group.mRodBendTwistConstraints[i], group.mRodBendTwistConstraints[s - i]);
 
 		// Sort the dihedral bend constraints
 		QuickSort(group.mDihedralBendConstraints.begin(), group.mDihedralBendConstraints.end(), [this](uint inLHS, uint inRHS)
@@ -1199,7 +1198,6 @@ Ref<SoftBodySharedSettings> SoftBodySharedSettings::Clone() const
 	clone->mRodStretchShearConstraints = mRodStretchShearConstraints;
 	clone->mRodBendTwistConstraints = mRodBendTwistConstraints;
 	clone->mMaterials = mMaterials;
-	clone->mVertexRadius = mVertexRadius;
 	clone->mUpdateGroups = mUpdateGroups;
 	return clone;
 }
@@ -1214,7 +1212,6 @@ void SoftBodySharedSettings::SaveBinaryState(StreamOut &inStream) const
 	inStream.Write(mSkinnedConstraints);
 	inStream.Write(mSkinnedConstraintNormals);
 	inStream.Write(mLRAConstraints);
-	inStream.Write(mVertexRadius);
 	inStream.Write(mUpdateGroups);
 
 	// Can't write mRodStretchShearConstraints directly because the class contains padding
@@ -1250,7 +1247,6 @@ void SoftBodySharedSettings::RestoreBinaryState(StreamIn &inStream)
 	inStream.Read(mSkinnedConstraints);
 	inStream.Read(mSkinnedConstraintNormals);
 	inStream.Read(mLRAConstraints);
-	inStream.Read(mVertexRadius);
 	inStream.Read(mUpdateGroups);
 
 	inStream.Read(mRodStretchShearConstraints, [](StreamIn &inS, RodStretchShear &outElement) {
