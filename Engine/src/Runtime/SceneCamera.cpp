@@ -1,5 +1,5 @@
 #include "uepch.h"
-#include "Scene/SceneCamera.h"
+#include "Runtime/SceneCamera.h"
 #include "Core/UE_Assert.h"
 #include <glm/gtc/matrix_transform.hpp>
 

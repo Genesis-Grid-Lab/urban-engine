@@ -4,6 +4,7 @@
 #include "Events/ApplicationEvent.h"
 #include "Events/KeyEvent.h"
 #include "Events/MouseEvent.h"
+#include "ImGuiLayerContext.h"
 
 struct ImGuiContext;
 
@@ -11,7 +12,7 @@ namespace UE {
 
     class  ImGuiLayer : public Layer {
     public:
-        ImGuiLayer();
+        ImGuiLayer(ImGuiLayerContext* context);
         ~ImGuiLayer() = default;
     
         virtual void OnAttach() override;
@@ -27,5 +28,6 @@ namespace UE {
         void SetDarkThemeColors();
     private:
         bool m_BlockEvents = true;
+        ImGuiLayerContext* m_Context;
     };
 }

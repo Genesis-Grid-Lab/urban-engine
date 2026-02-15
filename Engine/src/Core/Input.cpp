@@ -1,57 +1,62 @@
 #include "Core/Input.h"
-#include "Application.h"
 #include "Core/Log.h"
-#include <GLFW/glfw3.h>
 
 namespace UE {
 
-    bool Input::IsKeyPressed(const KeyCode key)
-    {
-        auto* window = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow());
-        auto state = glfwGetKey(window, static_cast<int32_t>(key));
-        return state == GLFW_PRESS || state == GLFW_REPEAT;
-    }
+    bool Input::s_Keys[512] = {};
+	bool Input::s_KeysLastFrame[512] = {};
+	bool Input::s_MouseButtons[32] = {};
 
-    bool Input::IsMouseButtonPressed(const MouseCode button)
-    {
-        auto* window = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow());
-        auto state = glfwGetMouseButton(window, static_cast<int32_t>(button));
-        return state == GLFW_PRESS;
-    }
+	glm::vec2 Input::s_MousePos = { 0,0 };
+	glm::vec2 Input::s_LastMousePos = { 0,0 };
+	glm::vec2 Input::s_MouseDelta = { 0,0 };
 
-    glm::vec2 Input::GetMousePosition()
-    {
-        auto* window = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow());
-        double xpos, ypos;
-        glfwGetCursorPos(window, &xpos, &ypos);
+	std::function<void(bool)>        Input::s_SetCursorVisible = nullptr;
+	std::function<void(float, float)> Input::s_SetCursorPos = nullptr;
 
-        return { (float)xpos, (float)ypos };
-    }
+	bool Input::IsKeyPressed(KeyCode key) {
+		return s_Keys[(int)key];
+	}
 
-    glm::vec2 Input::GetMouseDelta(){
-        return Application::Get().GetWindow().s_MouseDelta;
-    }
+	bool Input::IsKeyJustPressed(KeyCode key) {
+		int k = (int)key;
+		return s_Keys[k] && !s_KeysLastFrame[k];
+	}
 
-    void Input::HideCursor(bool hide){
-        auto* window = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow());
-        if(hide)            
-            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);                            
-        else
-            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-    }
+	bool Input::IsMouseButtonPressed(MouseCode button) {
+		return s_MouseButtons[(int)button];
+	}
 
-    void Input::SetCursorPos(float width, float height){
-        auto* window = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow());
-        glfwSetCursorPos(window, width, height);
-    }
+	glm::vec2 Input::GetMousePosition() {
+		return s_MousePos;
+	}
 
-    float Input::GetMouseX()
-    {
-        return GetMousePosition().x;
-    }
+	glm::vec2 Input::GetMouseDelta() {
+		return s_MouseDelta;
+	}
 
-    float Input::GetMouseY()
-    {
-        return GetMousePosition().y;
-    }
+	float Input::GetMouseX() { return s_MousePos.x; }
+	float Input::GetMouseY() { return s_MousePos.y; }
+
+	void Input::HideCursor(bool hide) {
+		if (s_SetCursorVisible)
+			s_SetCursorVisible(!hide);
+	}
+
+	void Input::SetCursorPos(float x, float y) {
+		if (s_SetCursorPos)
+			s_SetCursorPos(x, y);
+	}
+
+	void Input::SetCursorPos(const glm::vec2& pos) {
+		if (s_SetCursorPos)
+			s_SetCursorPos(pos.x, pos.y);
+	}
+
+	void Input::Update() {
+		memcpy(s_KeysLastFrame, s_Keys, sizeof(s_Keys));
+		s_MouseDelta = s_MousePos - s_LastMousePos;
+		s_LastMousePos = s_MousePos;
+	}
+
 }

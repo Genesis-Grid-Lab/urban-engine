@@ -1,7 +1,7 @@
 #pragma once
 
 // #define JPH_ENABLE_ASSERTS
-
+#include <Jolt/Jolt.h>
 #include "Core/Config.h"
 #include "Core/UE_Assert.h"
 #include "Jolt/Physics/Collision/Shape/RotatedTranslatedShape.h"

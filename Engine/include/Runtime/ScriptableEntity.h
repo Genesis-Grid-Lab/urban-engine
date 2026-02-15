@@ -31,6 +31,7 @@ namespace UE {
         Scene* m_Scene;
         JPH::BodyInterface *m_BodyInterface;
 		friend class Scene;
+		friend class RuntimeScene;
 		friend class SceneHierarchyPanel;
 	};
 

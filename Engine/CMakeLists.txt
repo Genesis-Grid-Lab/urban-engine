@@ -28,16 +28,76 @@ file(GLOB ImGuizmo ${CMAKE_SOURCE_DIR}/vendor/ImGuizmo/ImGuizmo.cpp)
 file(GLOB ImGuizmoH ${CMAKE_SOURCE_DIR}/vendor/ImGuizmo/ImGuizmo.h)
 
 file(GLOB CoreFiles ${CMAKE_CURRENT_SOURCE_DIR}/src/Core/*.cpp)
+file(GLOB WindowFiles ${CMAKE_CURRENT_SOURCE_DIR}/src/Window/*.cpp)
 file(GLOB RendererFiles ${CMAKE_CURRENT_SOURCE_DIR}/src/Renderer/*.cpp)
-file(GLOB SceneFiles ${CMAKE_CURRENT_SOURCE_DIR}/src/Scene/*.cpp)
+file(GLOB RuntimeFiles ${CMAKE_CURRENT_SOURCE_DIR}/src/Runtime/*.cpp)
 
 file(GLOB_RECURSE openGLFile ${CMAKE_CURRENT_SOURCE_DIR}/src/Platform/OpenGl/*.cpp)
 
-add_library(${PROJECT_NAME} ${source} ${CoreFiles} ${RendererFiles} ${SceneFiles} ${headers} 
-            ${windowFile} ${linuxFile} ${macFile} 
-            ${openGLFile} 
-            ${ImGuizmoH} ${ImGuizmo} 
-            ${CMAKE_SOURCE_DIR}/vendor/stb_image/stb_image.cpp ${CMAKE_SOURCE_DIR}/vendor/stb_image/stb_truetype.cpp )
+add_library(Core STATIC ${CoreFiles} ${ImGuizmoH} ${ImGuizmo} )
+
+target_precompile_headers(Core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include/uepch.h)
+
+target_include_directories(Core PUBLIC
+  ${CMAKE_CURRENT_SOURCE_DIR}/include
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/Core
+  ${CMAKE_SOURCE_DIR}/vendor/imgui
+  ${CMAKE_SOURCE_DIR}/vendor/ImGuizmo
+  ${CMAKE_SOURCE_DIR}/vendor/spdlog/include
+  ${CMAKE_SOURCE_DIR}/vendor/ImGuiFileDialog
+)
+
+# link libraries
+target_link_libraries(Core PUBLIC    
+  glm
+  spdlog
+  imgui
+  ImGuiFileDialog
+)
+
+add_library(Window STATIC ${WindowFiles} 
+    ${CMAKE_SOURCE_DIR}/vendor/stb_image/stb_image.cpp ${CMAKE_SOURCE_DIR}/vendor/stb_image/stb_truetype.cpp)
+
+target_precompile_headers(Window PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include/uepch.h)
+
+target_include_directories(Window PUBLIC
+  ${CMAKE_CURRENT_SOURCE_DIR}/include
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/Window  
+  ${CMAKE_SOURCE_DIR}/vendor/glfw/include
+  ${CMAKE_SOURCE_DIR}/vendor/stb_image
+)
+
+# link libraries
+target_link_libraries(Window PUBLIC    
+  Core
+  glfw
+  Renderer
+)
+
+
+add_library(Renderer STATIC ${RendererFiles} ${openGLFile})
+
+target_precompile_headers(Renderer PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include/uepch.h)
+
+target_include_directories(Renderer PUBLIC
+  ${CMAKE_CURRENT_SOURCE_DIR}/include
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/Renderer 
+  ${CMAKE_SOURCE_DIR}/vendor/assimp/include 
+  ${CMAKE_SOURCE_DIR}/vendor/glad/include     
+)
+
+# link libraries
+target_link_libraries(Renderer PUBLIC    
+  Core
+  Window  
+  glfw
+  glad 
+  assimp         
+)
+
+add_library(${PROJECT_NAME} ${source} ${RuntimeFiles} ${headers} 
+            ${windowFile} ${linuxFile} ${macFile}                          
+             )
 
 target_precompile_headers(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include/uepch.h)
 
@@ -51,36 +111,23 @@ target_compile_definitions(${PROJECT_NAME} PUBLIC
 # includes directories
 target_include_directories(${PROJECT_NAME} PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include  
-    ${CMAKE_CURRENT_SOURCE_DIR}/include/Core  
-    ${CMAKE_SOURCE_DIR}/vendor/glfw/include
-    ${CMAKE_SOURCE_DIR}/vendor/entt/src/entt
-    ${CMAKE_SOURCE_DIR}/vendor/glad/include    
-    ${CMAKE_SOURCE_DIR}/vendor/glm
-    ${CMAKE_SOURCE_DIR}/vendor/glfw/include
-    ${CMAKE_SOURCE_DIR}/vendor/stb
-    ${CMAKE_SOURCE_DIR}/vendor/assimp/include
-    ${CMAKE_SOURCE_DIR}/vendor/spdlog/include 
-    ${CMAKE_SOURCE_DIR}/vendor/imgui
-    ${CMAKE_SOURCE_DIR}/vendor/imgui/backends
-    ${CMAKE_SOURCE_DIR}/vendor/stb_image
-    ${CMAKE_SOURCE_DIR}/vendor/ImGuizmo
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/Core 
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/Runtime
+    ${CMAKE_SOURCE_DIR}/vendor/entt/src/entt     
+    ${CMAKE_SOURCE_DIR}/vendor/stb             
+    ${CMAKE_SOURCE_DIR}/vendor/imgui/backends        
     ${CMAKE_SOURCE_DIR}/vendor/yaml-cpp
-    ${CMAKE_SOURCE_DIR}/vendor/JoltPhysics
-    ${CMAKE_SOURCE_DIR}/vendor/ImGuiFileDialog
+    ${CMAKE_SOURCE_DIR}/vendor/JoltPhysics    
     
 )
 
 
 # link libraries
 target_link_libraries(${PROJECT_NAME} PUBLIC  
-  glfw    
-  glad    
-  glm
-  spdlog
-  imgui
-  ImGuiFileDialog
-  EnTT     
-  assimp
+  Core
+  Window      
+  Renderer  
+  EnTT       
   yaml-cpp
   Jolt
 )

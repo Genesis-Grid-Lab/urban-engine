@@ -4,10 +4,6 @@
 #include <imgui.h>
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_opengl3.h>
-
-#include "Application.h"
-
-#include <GLFW/glfw3.h>
 #include "ImGuizmo.h"
 
 #define FONT_FILE "Data/Fonts/Roboto-Medium.ttf"
@@ -19,8 +15,8 @@ namespace UE {
 
     ImGuiContext* g_CTX;
 
-    ImGuiLayer::ImGuiLayer()
-        :Layer("ImGuiLayer"){}
+    ImGuiLayer::ImGuiLayer(ImGuiLayerContext* context)
+        :Layer("ImGuiLayer"), m_Context(context){}
 
     void ImGuiLayer::OnAttach(){
         UE_PROFILE_FUNCTION();
@@ -70,20 +66,14 @@ namespace UE {
 
         SetDarkThemeColors();
 
-        Application& app = Application::Get();
-        GLFWwindow* window = static_cast<GLFWwindow*>(app.GetWindow().GetNativeWindow());
-
-        // Setup Platform/Renderer bindings
-        ImGui_ImplGlfw_InitForOpenGL(window, true);
-        ImGui_ImplOpenGL3_Init("#version 410");     
+        m_Context->Init(); 
         
         ImGui::GetIO().ConfigWindowsMoveFromTitleBarOnly = true;
     }
 
     void ImGuiLayer::OnDetach(){
         UE_PROFILE_FUNCTION();
-        ImGui_ImplOpenGL3_Shutdown();
-        ImGui_ImplGlfw_Shutdown();
+        m_Context->Shutdown();
         ImGui::DestroyContext();               
     }
 
@@ -98,8 +88,7 @@ namespace UE {
 
     void ImGuiLayer::Begin(){  
         UE_PROFILE_FUNCTION();      
-        ImGui_ImplOpenGL3_NewFrame();
-        ImGui_ImplGlfw_NewFrame();
+        m_Context->NewFrame();
         ImGui::NewFrame();  
         ImGuizmo::BeginFrame();
     }
@@ -110,21 +99,9 @@ namespace UE {
 
     void ImGuiLayer::End(){     
         UE_PROFILE_FUNCTION();   
-        ImGuiIO& io = ImGui::GetIO();
-        Application& app = Application::Get();
-        io.DisplaySize = ImVec2((float)app.GetWindow().GetWidth(), (float)app.GetWindow().GetHeight());
-
         // Rendering
         ImGui::Render();
-        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
-        if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
-        {
-            GLFWwindow* backup_current_context = glfwGetCurrentContext();
-            ImGui::UpdatePlatformWindows();
-            ImGui::RenderPlatformWindowsDefault();
-            glfwMakeContextCurrent(backup_current_context);
-        }
+        m_Context->EndFrame();
     }
 
     void ImGuiLayer::SetDarkThemeColors()

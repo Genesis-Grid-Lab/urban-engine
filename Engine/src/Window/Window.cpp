@@ -27,7 +27,7 @@ namespace UE {
 
     Window::~Window(){
         UE_PROFILE_FUNCTION();
-	UE_CORE_INFO("Shutting down window...");
+	UE_CORE_INFO("[WINDOW] Shutting down window...");
         Shutdown();
     }
 
@@ -37,11 +37,11 @@ namespace UE {
         m_Data.Width = props.m_Width;
         m_Data.Height = props.m_Height;
 
-        UE_CORE_INFO("Creating window {0} ({1}, {2})", props.m_Title, props.m_Width, props.m_Height);
+        UE_CORE_INFO("[WINDOW] Creating window {0} ({1}, {2})", props.m_Title, props.m_Width, props.m_Height);
 
         if( s_GLFWwindowCount == 0){
             int success = glfwInit();
-            UE_CORE_ASSERT(success, "Could not initialize GLFW!");
+            UE_CORE_ASSERT(success, "[WINDOW] Could not initialize GLFW!");
             glfwSetErrorCallback(GLFWErrorCallback);
         }
 
@@ -66,6 +66,13 @@ namespace UE {
         stbi_image_free(images[0].pixels);
 
         // Set GLFW callbacks
+        Input::s_SetCursorVisible = [this](bool visible) {
+            glfwSetInputMode(m_Window, GLFW_CURSOR, visible ? GLFW_CURSOR_NORMAL : GLFW_CURSOR_DISABLED);
+        };
+
+        Input::s_SetCursorPos = [this](float x, float y) {
+            glfwSetCursorPos(m_Window, x, y);
+        };
         glfwSetWindowSizeCallback(m_Window, [](GLFWwindow* window, int width, int height){
             WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
             data.Width = width;
@@ -85,6 +92,14 @@ namespace UE {
         glfwSetKeyCallback(m_Window, [](GLFWwindow* window, int key, int scancode, int action, int mods)
         {
             WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
+
+            if (key >= 0 && key < 512) {
+            if (action == GLFW_PRESS)
+                Input::s_Keys[key] = true;
+            else if (action == GLFW_RELEASE)
+                Input::s_Keys[key] = false;
+        }
+
 
             switch (action)
             {
@@ -121,6 +136,13 @@ namespace UE {
         {
             WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
 
+            if (button >= 0 && button < 32) {
+                if (action == GLFW_PRESS)
+                    Input::s_MouseButtons[button] = true;
+                else if (action == GLFW_RELEASE)
+                    Input::s_MouseButtons[button] = false;
+            }
+
             switch (action)
             {
                 case GLFW_PRESS:
@@ -149,6 +171,7 @@ namespace UE {
         glfwSetCursorPosCallback(m_Window, [](GLFWwindow* window, double xPos, double yPos)
         {
             WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
+            Input::s_MousePos = { (float)xPos, (float)yPos };
 
             MouseMovedEvent event((float)xPos, (float)yPos);
             data.EventCallback(event);

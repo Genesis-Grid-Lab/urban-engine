@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Scene.h"
-#include "Scene/Components.h"
+#include "Runtime/Components.h"
 
 namespace UE {
   static std::string RigidBody3DBodyTypeToString(BodyType bodyType)
