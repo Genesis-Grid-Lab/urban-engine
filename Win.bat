@@ -10,4 +10,4 @@ cmake -S . -B %target% -DCMAKE_BUILD_TYPE=%1 -DCMAKE_CXX_FLAGS_DEBUG="/MTd" -DCM
 
 rem compile cmake build files
 
-cmake --build %target% --config %1
+cmake --build %target% --config %1 -j %NUMBER_OF_PROCESSORS%

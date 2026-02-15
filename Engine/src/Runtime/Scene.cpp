@@ -129,7 +129,6 @@ void Scene::DestroyEntityNow(Entity entity) { m_Registry.destroy(entity); }
 
 void Scene::DestroyEntity(Entity entity) {
   // Queue for destruction; actual registry destroy happens in
-  // FlushEntityDestruction()
   m_DestroyQueue.push_back((entt::entity)entity);
 }
 
