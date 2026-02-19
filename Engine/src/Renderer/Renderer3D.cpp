@@ -254,7 +254,7 @@ void Renderer3D::BeginCamera(const EditorCamera &camera) {
 
 void Renderer3D::EndCamera() { UE_PROFILE_FUNCTION(); }
 
-void Renderer3D::RenderLight(const glm::vec3 &pos) {
+void Renderer3D::RenderLight(const glm::vec3 &pos, const glm::vec4 &color) {
   UE_PROFILE_FUNCTION();
   m_LightShader->Bind();
   m_LightPos = pos;
@@ -264,6 +264,7 @@ void Renderer3D::RenderLight(const glm::vec3 &pos) {
   imodel = glm::scale(imodel, glm::vec3(1));
 
   m_LightShader->SetMat4("u_Model", imodel);
+  m_LightShader->SetFloat4("u_Color", color);
 
   m_LightModel->Draw(m_LightShader);
 }

@@ -70,6 +70,11 @@ void EditorLayer::OnAttach() {
   FloorTC.Translation = cubePos;
   FloorTC.Scale = cubeSize;
 
+  auto light = m_EditorScene->CreateEntity("Light");
+  light.AddComponent<LightComponent>();
+  auto &lightTc = light.GetComponent<TransformComponent>();
+  lightTc.Translation = {5.5f, 5.0f, 0.3f};
+
   auto sphereEntt = m_EditorScene->CreateEntity("Sphere");
   sphereEntt.AddComponent<ModelComponent>().ModelData = sphere;
   auto &stc = sphereEntt.GetComponent<TransformComponent>();

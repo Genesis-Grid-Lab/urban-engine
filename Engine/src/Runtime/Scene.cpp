@@ -1,34 +1,12 @@
 #include "Runtime/Scene.h"
-#include "Auxiliaries/Physics.h"
 #include "Core/Log.h"
-#include "Jolt/Physics/EActivation.h"
-#include "Renderer/RenderCommand.h"
-#include "Renderer/Renderer2D.h"
-#include "Renderer/Renderer3D.h"
 #include "Runtime/Components.h"
 #include "Runtime/Entity.h"
 #include "Runtime/RuntimeScene.h"
 #include "Runtime/SceneCamera.h"
-#include "Runtime/ScriptableEntity.h"
 #include "UE_Assert.h"
 #include "entity/fwd.hpp"
 #include "uepch.h"
-#include <Jolt/Math/Math.h>
-#include <Jolt/Physics/Collision/BroadPhase/BroadPhaseLayer.h>
-#include <Jolt/Physics/Collision/CastResult.h>
-#include <Jolt/Physics/Collision/CollisionCollector.h>
-#include <Jolt/Physics/Collision/ObjectLayer.h>
-#include <Jolt/Physics/Collision/RayCast.h>
-#include <Jolt/Physics/Collision/Shape/CapsuleShape.h>
-#include <Jolt/Physics/Collision/Shape/CompoundShape.h>
-#include <Jolt/Physics/Collision/Shape/RotatedTranslatedShape.h>
-#include <Jolt/Physics/Collision/Shape/SubShapeID.h>
-#include <Jolt/Physics/Collision/ShapeCast.h>
-#include <cstdint>
-#include <glm/glm.hpp>
-
-// temp
-#include <glad/glad.h>
 
 namespace UE {
 
@@ -281,6 +259,10 @@ void Scene::OnComponentAdded<ModelComponent>(Entity entity,
 template <>
 void Scene::OnComponentAdded<CubeComponent>(Entity entity,
                                             CubeComponent &component) {}
+
+template <>
+void Scene::OnComponentAdded<LightComponent>(Entity entity,
+                                             LightComponent &component) {}
 
 template <>
 void Scene::OnComponentAdded<NativeScriptComponent>(

@@ -22,7 +22,7 @@ public:
   static void BeginCamera(const EditorCamera &camera);
   static void EndCamera();
 
-  static void RenderLight(const glm::vec3 &pos);
+  static void RenderLight(const glm::vec3 &pos, const glm::vec4 &color);
 
   static void DrawModel(const Ref<Model> &model, const glm::mat4 &transform,
                         const glm::vec3 &color = glm::vec3(1),

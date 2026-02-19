@@ -17,8 +17,6 @@ EditorScene::EditorScene(uint32_t width, uint32_t height) {
 EditorScene::~EditorScene() {}
 
 void EditorScene::OnUpdate(Timestep ts) {
-
-  UE_CORE_WARN("[OnUpdateEditor]");
   m_EditorCamera.OnUpdate(ts);
   m_EditorCamera.SetViewportSize(m_ViewportWidth, m_ViewportHeight);
   UE_PROFILE_FUNCTION();
@@ -31,19 +29,20 @@ void EditorScene::OnUpdate(Timestep ts) {
   // m_Physics3D.Simulate(ts);
   // glEnable(GL_DEPTH_TEST);
   Renderer3D::BeginCamera(m_EditorCamera);
-  // temp
-  Renderer3D::RenderLight({5.5f, 5.0f, 0.3f});
+
+  GroupEntity<LightComponent>(
+      [this](auto entity, auto &comp, auto &transform, auto id) {
+        Renderer3D::RenderLight(transform.Translation, comp.Color);
+      });
 
   GroupEntity<ModelComponent>(
       [this](auto entity, auto &comp, auto &transform, auto id) {
-        // UE_CORE_WARN("Model entity: {}", (int)id);
         Renderer3D::DrawModel(comp.ModelData, transform.GetTransform(),
                               glm::vec3(1.0f), 1.0f, (int)id);
       });
 
   GroupEntity<CubeComponent>([this](auto entity, auto &comp, auto &transform,
                                     auto id) {
-    // UE_CORE_WARN("Cube entity: {}", (int)entity);
     Renderer3D::DrawCube(transform.GetTransform(), comp.Color, 1.0f, (int)id);
   });
 

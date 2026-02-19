@@ -112,7 +112,10 @@ void RuntimeScene::OnUpdate(Timestep ts) {
     // Renderer3D::BeginCamera(*mainCamera, tc);
     Renderer3D::BeginCamera(*mainCamera);
 
-    Renderer3D::RenderLight({5.5f, 5.0f, 0.3f});
+    GroupEntity<LightComponent>(
+        [this](auto entity, auto &comp, auto &transform, auto id) {
+          Renderer3D::RenderLight(transform.Translation, comp.Color);
+        });
 
     GroupEntity<ModelComponent>(
         [this](auto entity, auto &comp, auto &transform, auto id) {

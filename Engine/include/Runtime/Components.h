@@ -98,6 +98,12 @@ struct CubeComponent {
   CubeComponent(const CubeComponent &) = default;
 };
 
+struct LightComponent {
+  glm::vec4 Color{1.0f, 1.0f, 1.0f, 1.0f};
+  LightComponent() = default;
+  LightComponent(const LightComponent &) = default;
+};
+
 struct SpriteRendererComponent {
   glm::vec4 Color{1.0f, 1.0f, 1.0f, 1.0f};
   Ref<Texture2D> Texture;
