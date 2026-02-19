@@ -52,3 +52,4 @@ add_subdirectory(vendor/ImGuiFileDialog)
 
 add_subdirectory(Engine)
 add_subdirectory(Editor)
+add_subdirectory(Sandbox)

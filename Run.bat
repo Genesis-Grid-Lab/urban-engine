@@ -1,6 +1,7 @@
 @echo off
 
 set target=Targets
+set app="%1"
 
 if exist %target%\ (
     if exist %target%\Debug\ (
@@ -16,6 +17,6 @@ if exist %target%\ (
     goto end
 )
 
-start "" /d "%target%" EbonyEditor.exe
+start "" /d "%target%" "%1.exe"
 
 :end

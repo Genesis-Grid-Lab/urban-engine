@@ -1,7 +1,6 @@
 #include "Renderer/Renderer3D.h"
 #include "Renderer/Animation/Animator.h"
 #include "Renderer/RenderCommand.h"
-#include "Renderer/Skybox.h"
 #include "uepch.h"
 // #include "Core/Application.h"
 
@@ -16,7 +15,6 @@ static Ref<Shader> m_LightShader;
 static Ref<Shader> m_SkyShader;
 static glm::vec3 m_LightPos;
 static Ref<Model> m_LightModel;
-static Ref<Skybox> m_Skybox;
 static Ref<Mesh> s_CubeMesh;
 static Ref<Mesh> s_SphereMesh;
 static Ref<Animator> s_Animator;
@@ -140,7 +138,7 @@ void Renderer3D::Init() {
       "Resources/skybox/top.jpg",   "Resources/skybox/bottom.jpg",
       "Resources/skybox/front.jpg", "Resources/skybox/back.jpg"};
 
-  m_Skybox = Skybox::Create(faces);
+  // m_Skybox = Skybox::Create(faces);
 
   s_CubeMesh = GenerateCubeMesh();
   s_SphereMesh = GenerateSphereMesh();
@@ -165,7 +163,6 @@ void Renderer3D::Shutdown() {
   m_LightShader.reset();
   m_SkyShader.reset();
   m_LightModel.reset();
-  m_Skybox.reset();
   s_CubeMesh.reset();
   s_SphereMesh.reset();
   s_Animator.reset();
@@ -189,10 +186,6 @@ void Renderer3D::BeginCamera(const Camera &camera) {
   m_ShaderSimple->SetFloat3("u_ViewPos", camera.GetPosition());
 
   m_ShaderSimple->SetFloat3("u_LightPos", m_LightPos);
-
-  m_SkyShader->Bind();
-  m_Skybox->Draw(m_SkyShader, camera.GetViewMatrix(),
-                 camera.GetProjectionMatrix());
 }
 
 // void Renderer3D::BeginCamera(const Camera& camera, const TransformComponent&
@@ -246,10 +239,6 @@ void Renderer3D::BeginCamera(const EditorCamera &camera) {
 
   m_ShaderSimple->SetFloat3("u_LightPos", m_LightPos);
   m_ShaderSimple->SetInt("u_EntityID", -1);
-
-  m_SkyShader->Bind();
-  m_Skybox->Draw(m_SkyShader, camera.GetViewMatrix(),
-                 camera.GetProjectionMatrix());
 }
 
 void Renderer3D::EndCamera() { UE_PROFILE_FUNCTION(); }
@@ -267,6 +256,13 @@ void Renderer3D::RenderLight(const glm::vec3 &pos, const glm::vec4 &color) {
   m_LightShader->SetFloat4("u_Color", color);
 
   m_LightModel->Draw(m_LightShader);
+}
+
+void Renderer3D::DrawSkybox(const Ref<Skybox> skybox, const Camera &camera) {
+
+  m_SkyShader->Bind();
+  skybox->Draw(m_SkyShader, camera.GetViewMatrix(),
+               camera.GetProjectionMatrix());
 }
 
 void Renderer3D::DrawModel(const Ref<Model> &model, const glm::mat4 &transform,

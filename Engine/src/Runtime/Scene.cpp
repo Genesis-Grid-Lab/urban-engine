@@ -3,7 +3,6 @@
 #include "Runtime/Components.h"
 #include "Runtime/Entity.h"
 #include "Runtime/RuntimeScene.h"
-#include "Runtime/SceneCamera.h"
 #include "UE_Assert.h"
 #include "entity/fwd.hpp"
 #include "uepch.h"
@@ -115,7 +114,7 @@ void Scene::ReadPixelEntity(int &mouseX, int &mouseY, glm::vec2 &viewportSize) {
       mouseY < (int)viewportSize.y) {
     int pixelData = m_Framebuffer->ReadPixel(1, mouseX, mouseY);
     // UE_INFO("mx: {0}, my: {1}", Input::GetMouseX(), Input::GetMouseY());
-    if (pixelData < -1 || pixelData >= 99036831949)
+    if (pixelData < -1 || pixelData >= (int)99036831949)
       pixelData = -1;
     // UE_INFO("Pixel {0}", pixelData);
     GlobHovered =
@@ -274,4 +273,12 @@ void Scene::OnComponentAdded<CameraComponent>(Entity entity,
   if (m_ViewportWidth > 0 && m_ViewportHeight > 0)
     component.Camera.SetViewportSize(m_ViewportWidth, m_ViewportHeight);
 }
+
+template <>
+void Scene::OnComponentAdded<SkyboxComponent>(Entity entity,
+                                              SkyboxComponent &component) {}
+
+template <>
+void Scene::OnComponentAdded<CircleComponent>(Entity entity,
+                                              CircleComponent &component) {}
 } // namespace UE

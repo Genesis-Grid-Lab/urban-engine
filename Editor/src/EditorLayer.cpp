@@ -1,6 +1,7 @@
 #include "EditorLayer.h"
 #include "Runtime/Components.h"
 #include "ScriptTest.h"
+#include "Skybox.h"
 #include "uepch.h"
 #include <ImGuiFileDialog.h>
 #include <glm/gtc/matrix_transform.hpp>
@@ -44,6 +45,7 @@ void EditorLayer::OnAttach() {
   auto camEntt = m_EditorScene->CreateEntity("Cam");
   auto &sceneCam = camEntt.AddComponent<CameraComponent>();
   auto &camTC = camEntt.GetComponent<TransformComponent>();
+  sceneCam.Camera.SetOrthographic(100, 0.5, 2);
   camTC.Translation = {0.0f, 2.7f, 5.5f};
   // camTC.Rotation = {0,0,0};
 
@@ -62,6 +64,16 @@ void EditorLayer::OnAttach() {
 
   camEntt.AddComponent<NativeScriptComponent>().Bind<CameraController>();
   UE_CORE_WARN("DONE CAM");
+
+  std::vector<std::string> faces = {
+      "Resources/skybox/right.jpg", "Resources/skybox/left.jpg",
+      "Resources/skybox/top.jpg",   "Resources/skybox/bottom.jpg",
+      "Resources/skybox/front.jpg", "Resources/skybox/back.jpg"};
+  auto sky = m_EditorScene->CreateEntity("Skybox");
+  auto &skyComp = sky.AddComponent<SkyboxComponent>();
+  skyComp.skybox = Skybox::Create(faces);
+  skyComp.Cam = &sceneCam.Camera;
+
   glm::vec3 cubePos = {0.0f, 0.0f, 0.0f};
   glm::vec3 cubeSize = {50, 1, 50};
   auto floorEntity = m_EditorScene->CreateEntity("Floor");

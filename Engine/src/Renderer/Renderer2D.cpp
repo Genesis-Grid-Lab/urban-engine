@@ -130,6 +130,7 @@ void Renderer2D::Shutdown() {
 
 void Renderer2D::BeginCamera(const Camera &camera) {
   UE_PROFILE_FUNCTION();
+  glDisable(GL_DEPTH_TEST);
   s_Data->CameraBuffer.ViewProjection = camera.GetViewProjectionMatrix();
   s_Data->CameraUniformBuffer->SetData(&s_Data->CameraBuffer,
                                        sizeof(Renderer2DData::CameraData));
@@ -139,7 +140,7 @@ void Renderer2D::BeginCamera(const Camera &camera) {
 
 void Renderer2D::BeginCamera(const EditorCamera &camera) {
   UE_PROFILE_FUNCTION();
-
+  glDisable(GL_DEPTH_TEST);
   s_Data->CameraBuffer.ViewProjection = camera.GetViewProjection();
   s_Data->CameraUniformBuffer->SetData(&s_Data->CameraBuffer,
                                        sizeof(Renderer2DData::CameraData));
@@ -150,6 +151,7 @@ void Renderer2D::BeginCamera(const EditorCamera &camera) {
 void Renderer2D::EndCamera() {
   UE_PROFILE_FUNCTION();
   Flush();
+  glEnable(GL_DEPTH_TEST);
 }
 
 void Renderer2D::StartBatch() {
@@ -179,6 +181,7 @@ void Renderer2D::Flush() {
     s_Data->TextureSlots[i]->Bind(i);
 
   s_Data->TextureShader->Bind();
+  s_Data->QuadVertexArray->Bind();
   RenderCommand::DrawIndexed(s_Data->QuadVertexArray, s_Data->QuadIndexCount);
   s_Data->Stats.DrawCalls++;
 }
@@ -332,6 +335,15 @@ void Renderer2D::DrawRotatedQuad(const glm::vec3 &position,
       glm::scale(glm::mat4(1.0f), {size.x, size.y, 1.0f});
 
   DrawQuad(transform, texture, tilingFactor, tintColor);
+}
+
+void Renderer2D::DrawCircle(const glm::vec2 &center, float radius,
+                            const glm::vec4 &color, int entityID, float order) {
+  glm::mat4 transform =
+      glm::translate(glm::mat4(1.0f), {center.x, center.y, 0.0f}) *
+      glm::scale(glm::mat4(1.0f), {radius * 2.0f, radius * 2.0f, 1.0f});
+
+  DrawQuad(transform, color, entityID);
 }
 
 void Renderer2D::DrawGlyph(const glm::mat4 &transform, const glm::vec2 &uv0,

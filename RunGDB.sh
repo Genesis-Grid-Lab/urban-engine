@@ -1,6 +1,7 @@
 #!/bin/bash
 
 target="Targets"
+app="$1"
 
 if [[ -d "$target" ]]; then
     if [[ -d "$target/Debug/bin" ]]; then
@@ -21,4 +22,4 @@ fi
 
 # Launch the editor
 cd "$target"
-gdb ./EbonyEditor
+gdb ./"$app"

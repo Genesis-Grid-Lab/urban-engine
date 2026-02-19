@@ -12,6 +12,7 @@
 #include "Renderer/Camera.h"
 #include "Renderer/Font.h"
 #include "Renderer/Model.h"
+#include "Renderer/Skybox.h"
 #include "Renderer/Texture.h"
 #include "SceneCamera.h"
 #include <glm/gtx/quaternion.hpp>
@@ -59,11 +60,18 @@ struct TransformComponent {
 
 struct CameraComponent {
   SceneCamera Camera;
-  bool Primary = true; // TODO: think about moving to Scene
+  bool Primary = false; // TODO: think about moving to Scene
   bool FixedAspectRatio = false;
 
   CameraComponent() = default;
   CameraComponent(const CameraComponent &) = default;
+};
+
+struct SkyboxComponent {
+  Ref<Skybox> skybox;
+  Camera *Cam;
+  SkyboxComponent() = default;
+  SkyboxComponent(const SkyboxComponent &) = default;
 };
 
 class ScriptableEntity;
@@ -112,6 +120,13 @@ struct SpriteRendererComponent {
   SpriteRendererComponent() = default;
   SpriteRendererComponent(const SpriteRendererComponent &) = default;
   SpriteRendererComponent(const glm::vec4 &color) : Color(color) {}
+};
+
+struct CircleComponent {
+  glm::vec4 Color{1.0f};
+  float Radius = 0.0f;
+  CircleComponent() = default;
+  CircleComponent(const CircleComponent &) = default;
 };
 
 // physics 3d

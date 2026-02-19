@@ -7,6 +7,7 @@
 #include "Model.h"
 #include "Shader.h"
 // #include "Runtime/Components.h"
+#include "Renderer/Skybox.h"
 #include "Runtime/SceneCamera.h"
 
 namespace UE {
@@ -23,6 +24,8 @@ public:
   static void EndCamera();
 
   static void RenderLight(const glm::vec3 &pos, const glm::vec4 &color);
+
+  static void DrawSkybox(const Ref<Skybox> skybox, const Camera &camera);
 
   static void DrawModel(const Ref<Model> &model, const glm::mat4 &transform,
                         const glm::vec3 &color = glm::vec3(1),

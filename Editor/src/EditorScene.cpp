@@ -27,8 +27,12 @@ void EditorScene::OnUpdate(Timestep ts) {
   RenderCommand::Clear();
 
   // m_Physics3D.Simulate(ts);
-  // glEnable(GL_DEPTH_TEST);
+
   Renderer3D::BeginCamera(m_EditorCamera);
+  GroupEntity<SkyboxComponent>(
+      [this](auto entity, auto &comp, auto &transform, auto id) {
+        Renderer3D::DrawSkybox(comp.skybox, *comp.Cam);
+      });
 
   GroupEntity<LightComponent>(
       [this](auto entity, auto &comp, auto &transform, auto id) {
@@ -48,7 +52,7 @@ void EditorScene::OnUpdate(Timestep ts) {
 
   GroupEntity<CameraComponent>([this](auto entity, auto &comp, auto &transform,
                                       auto id) {
-    comp.Camera.m_Position = &transform.Translation;
+    comp.Camera.SetPosition(transform.Translation);
     // CamComp.Camera.m_Rotation2 = &transform.Rotation;
     if (ShowCams)
       Renderer3D::DrawCube(transform.GetTransform(), {1, 0, 0}, 1.0f, (int)id);
@@ -58,7 +62,7 @@ void EditorScene::OnUpdate(Timestep ts) {
   });
 
   Renderer3D::EndCamera();
-  // glDisable(GL_DEPTH_TEST);
+
   Renderer2D::BeginCamera(m_EditorCamera);
   ViewEntity<Entity, UIElement>([this](auto entity, auto &comp) {
     auto &transform = entity.template GetComponent<TransformComponent>();

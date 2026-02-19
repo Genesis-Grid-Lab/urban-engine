@@ -8,7 +8,19 @@
 
 namespace UE {
 
-RuntimeScene::RuntimeScene() {}
+RuntimeScene::RuntimeScene(uint32_t width, uint32_t height) {
+  UE_PROFILE_FUNCTION();
+  m_ViewportWidth = width;
+  m_ViewportHeight = height;
+
+  FramebufferSpecification fbSpec;
+  fbSpec.Attachments = {FramebufferTextureFormat::RGBA8,
+                        FramebufferTextureFormat::RED_INTEGER,
+                        FramebufferTextureFormat::Depth};
+  fbSpec.Width = width;
+  fbSpec.Height = height;
+  m_Framebuffer = Framebuffer::Create(fbSpec);
+}
 RuntimeScene::~RuntimeScene() {}
 
 // ------------------------------
@@ -97,7 +109,7 @@ void RuntimeScene::OnUpdate(Timestep ts) {
     ViewEntity<Entity, CameraComponent>(
         [this, &mainCamera, &pos, &tc](auto entity, auto &comp) {
           auto &transform = entity.template GetComponent<TransformComponent>();
-          comp.Camera.m_Position = &transform.Translation;
+          comp.Camera.SetPosition(transform.Translation);
           // comp.Camera.m_Rotation2 = &transform.Rotation;
           if (comp.Primary) {
             mainCamera = &comp.Camera;
@@ -111,6 +123,11 @@ void RuntimeScene::OnUpdate(Timestep ts) {
 
     // Renderer3D::BeginCamera(*mainCamera, tc);
     Renderer3D::BeginCamera(*mainCamera);
+
+    GroupEntity<SkyboxComponent>(
+        [this](auto entity, auto &comp, auto &transform, auto id) {
+          Renderer3D::DrawSkybox(comp.skybox, *comp.Cam);
+        });
 
     GroupEntity<LightComponent>(
         [this](auto entity, auto &comp, auto &transform, auto id) {
@@ -162,6 +179,12 @@ void RuntimeScene::OnUpdate(Timestep ts) {
           Spritegroup.get<TransformComponent, SpriteRendererComponent>(entity);
       // Renderer2D::DrawSprite(transform.GetTransform(), sprite, (int)entity);
     }
+
+    GroupEntity<CircleComponent>([this](auto entity, auto &comp,
+                                        auto &transform, auto id) {
+      Renderer2D::DrawCircle({transform.Translation.x, transform.Translation.y},
+                             comp.Radius, comp.Color, 1, 1);
+    });
 
     // ViewEntity<Entity, SpriteRendererComponent>([this] (auto entity, auto&
     // comp){
