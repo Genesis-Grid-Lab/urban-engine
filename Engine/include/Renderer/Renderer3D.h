@@ -18,9 +18,6 @@ public:
   static void Shutdown();
 
   static void BeginCamera(const Camera &camera);
-  // static void BeginCamera(const Camera& camera, const TransformComponent&
-  // tc);
-  static void BeginCamera(const EditorCamera &camera);
   static void EndCamera();
 
   static void RenderLight(const glm::vec3 &pos, const glm::vec4 &color);

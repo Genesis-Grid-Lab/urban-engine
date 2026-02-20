@@ -130,18 +130,8 @@ void Renderer2D::Shutdown() {
 
 void Renderer2D::BeginCamera(const Camera &camera) {
   UE_PROFILE_FUNCTION();
-  glDisable(GL_DEPTH_TEST);
+  // glDisable(GL_DEPTH_TEST);
   s_Data->CameraBuffer.ViewProjection = camera.GetViewProjectionMatrix();
-  s_Data->CameraUniformBuffer->SetData(&s_Data->CameraBuffer,
-                                       sizeof(Renderer2DData::CameraData));
-
-  StartBatch();
-}
-
-void Renderer2D::BeginCamera(const EditorCamera &camera) {
-  UE_PROFILE_FUNCTION();
-  glDisable(GL_DEPTH_TEST);
-  s_Data->CameraBuffer.ViewProjection = camera.GetViewProjection();
   s_Data->CameraUniformBuffer->SetData(&s_Data->CameraBuffer,
                                        sizeof(Renderer2DData::CameraData));
 
@@ -151,7 +141,7 @@ void Renderer2D::BeginCamera(const EditorCamera &camera) {
 void Renderer2D::EndCamera() {
   UE_PROFILE_FUNCTION();
   Flush();
-  glEnable(GL_DEPTH_TEST);
+  // glEnable(GL_DEPTH_TEST);
 }
 
 void Renderer2D::StartBatch() {

@@ -68,7 +68,7 @@ void RuntimeScene::OnUpdate(Timestep ts) {
   m_Framebuffer->Bind();
   // Clear our entity ID attachment to -1
   m_Framebuffer->ClearAttachment(1, -1);
-  RenderCommand::SetClearColor({0.1f, 0.1f, 0.1f, 1});
+  RenderCommand::SetClearColor({1.0f, 0.1f, 0.1f, 1});
   RenderCommand::Clear();
 
   // Update scripts
@@ -102,19 +102,15 @@ void RuntimeScene::OnUpdate(Timestep ts) {
   // Render 3D
   Camera *mainCamera = nullptr;
   glm::mat4 cameraTransform;
-  glm::vec3 pos;
-  TransformComponent tc;
   {
 
     ViewEntity<Entity, CameraComponent>(
-        [this, &mainCamera, &pos, &tc](auto entity, auto &comp) {
+        [this, &mainCamera](auto entity, auto &comp) {
           auto &transform = entity.template GetComponent<TransformComponent>();
           comp.Camera.SetPosition(transform.Translation);
           // comp.Camera.m_Rotation2 = &transform.Rotation;
           if (comp.Primary) {
             mainCamera = &comp.Camera;
-            pos = transform.Translation;
-            tc = transform;
           }
         });
   }
@@ -192,6 +188,8 @@ void RuntimeScene::OnUpdate(Timestep ts) {
     // 	auto& transform = entity.template GetComponent<TransformComponent>();
     // 	Renderer2D::DrawSprite(transform.GetTransform(), comp, (int)entity);
     // });
+
+    // Renderer2D::DrawQuad({10, 100}, {10, 30}, {1, 0, 0, 1});
 
     Renderer2D::EndCamera();
   }

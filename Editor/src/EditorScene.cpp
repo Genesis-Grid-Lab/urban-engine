@@ -1,4 +1,5 @@
 #include "EditorScene.h"
+#include "Renderer2D.h"
 
 EditorScene::EditorScene(uint32_t width, uint32_t height) {
   m_EditorCamera = EditorCamera(30.0f, 1.778f, 0.1f, 2000.0f);
@@ -31,7 +32,7 @@ void EditorScene::OnUpdate(Timestep ts) {
   Renderer3D::BeginCamera(m_EditorCamera);
   GroupEntity<SkyboxComponent>(
       [this](auto entity, auto &comp, auto &transform, auto id) {
-        Renderer3D::DrawSkybox(comp.skybox, *comp.Cam);
+        Renderer3D::DrawSkybox(comp.skybox, m_EditorCamera);
       });
 
   GroupEntity<LightComponent>(

@@ -14,7 +14,6 @@ public:
   static void Shutdown();
 
   static void BeginCamera(const Camera &camera);
-  static void BeginCamera(const EditorCamera &camera);
   static void EndCamera();
   static void Flush();
 

@@ -188,59 +188,6 @@ void Renderer3D::BeginCamera(const Camera &camera) {
   m_ShaderSimple->SetFloat3("u_LightPos", m_LightPos);
 }
 
-// void Renderer3D::BeginCamera(const Camera& camera, const TransformComponent&
-// tc){
-//     UE_PROFILE_FUNCTION();
-//     glm::mat4 transform = glm::translate(glm::mat4(1.0f), tc.Translation);
-//     transform = glm::rotate(transform, tc.Rotation.x, glm::vec3(1, 0, 0)); //
-//     Pitch transform = glm::rotate(transform, tc.Rotation.y, glm::vec3(0, 1,
-//     0)); // Yaw transform = glm::rotate(transform, tc.Rotation.z,
-//     glm::vec3(0, 0, 1)); // Roll
-
-//     m_Shader->Bind();
-//     m_Shader->SetMat4("u_View", glm::inverse(transform));
-//     m_Shader->SetMat4("u_Projection", camera.GetProjectionMatrix());
-//     m_Shader->SetFloat3("u_ViewPos", tc.Translation);
-
-//     m_Shader->SetFloat3("u_LightPos", m_LightPos);
-//     m_LightShader->Bind();
-//     m_LightShader->SetMat4("u_View", glm::inverse(transform));
-//     m_LightShader->SetMat4("u_Projection", camera.GetProjectionMatrix());
-
-//     m_ShaderSimple->Bind();
-//     m_ShaderSimple->SetMat4("u_View", glm::inverse(transform));
-//     m_ShaderSimple->SetMat4("u_Projection", camera.GetProjectionMatrix());
-//     m_ShaderSimple->SetFloat3("u_ViewPos", tc.Translation);
-
-//     m_ShaderSimple->SetFloat3("u_LightPos", m_LightPos);
-
-//     m_SkyShader->Bind();
-//     m_Skybox->Draw(m_SkyShader, glm::inverse(transform),
-//     camera.GetProjectionMatrix());
-// }
-
-void Renderer3D::BeginCamera(const EditorCamera &camera) {
-  UE_PROFILE_FUNCTION();
-  m_Shader->Bind();
-  m_Shader->SetMat4("u_View", camera.GetViewMatrix());
-  m_Shader->SetMat4("u_Projection", camera.GetProjectionMatrix());
-  m_Shader->SetFloat3("u_ViewPos", camera.GetPosition());
-
-  m_Shader->SetFloat3("u_LightPos", m_LightPos);
-  m_Shader->SetInt("u_EntityID", -1);
-  m_LightShader->Bind();
-  m_LightShader->SetMat4("u_View", camera.GetViewMatrix());
-  m_LightShader->SetMat4("u_Projection", camera.GetProjectionMatrix());
-
-  m_ShaderSimple->Bind();
-  m_ShaderSimple->SetMat4("u_View", camera.GetViewMatrix());
-  m_ShaderSimple->SetMat4("u_Projection", camera.GetProjectionMatrix());
-  m_ShaderSimple->SetFloat3("u_ViewPos", camera.GetPosition());
-
-  m_ShaderSimple->SetFloat3("u_LightPos", m_LightPos);
-  m_ShaderSimple->SetInt("u_EntityID", -1);
-}
-
 void Renderer3D::EndCamera() { UE_PROFILE_FUNCTION(); }
 
 void Renderer3D::RenderLight(const glm::vec3 &pos, const glm::vec4 &color) {

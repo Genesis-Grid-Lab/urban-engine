@@ -204,6 +204,13 @@ int OpenGLFramebuffer::ReadPixel(uint32_t attachmentIndex, int x, int y) {
   return pixelData;
 }
 
+void OpenGLFramebuffer::DrawBuffer(uint32_t index) {
+  glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_RendererID);
+
+  glDrawBuffer(GL_COLOR_ATTACHMENT0 + index);
+  glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+}
+
 void OpenGLFramebuffer::ClearAttachment(uint32_t attachmentIndex, int value) {
   UE_CORE_ASSERT(attachmentIndex < m_ColorAttachments.size());
 

@@ -84,6 +84,9 @@ Ref<RuntimeScene> Scene::Copy(const Ref<Scene> &other) {
   CopyComponent<CubeComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
   CopyComponent<NativeScriptComponent>(dstSceneRegistry, srcSceneRegistry,
                                        enttMap);
+  CopyComponent<CircleComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
+  CopyComponent<LightComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
+  CopyComponent<SkyboxComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
 
   return newScene;
   // return nullptr;

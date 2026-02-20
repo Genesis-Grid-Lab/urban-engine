@@ -45,7 +45,8 @@ void EditorLayer::OnAttach() {
   auto camEntt = m_EditorScene->CreateEntity("Cam");
   auto &sceneCam = camEntt.AddComponent<CameraComponent>();
   auto &camTC = camEntt.GetComponent<TransformComponent>();
-  sceneCam.Camera.SetOrthographic(100, 0.5, 2);
+  sceneCam.Camera.SetOrthographic(10, -1.0f, 1.0f);
+  sceneCam.Camera.SetMode(CameraMode::Mode2D);
   camTC.Translation = {0.0f, 2.7f, 5.5f};
   // camTC.Rotation = {0,0,0};
 
@@ -73,6 +74,11 @@ void EditorLayer::OnAttach() {
   auto &skyComp = sky.AddComponent<SkyboxComponent>();
   skyComp.skybox = Skybox::Create(faces);
   skyComp.Cam = &sceneCam.Camera;
+
+  // auto circle = m_EditorScene->CreateEntity("Circle");
+  // auto circleComp = circle.AddComponent<CircleComponent>();
+  // circleComp.Color = {0.5059f, 0.8000f, 0.7216f, 1.0f};
+  // circleComp.Radius = 150;
 
   glm::vec3 cubePos = {0.0f, 0.0f, 0.0f};
   glm::vec3 cubeSize = {50, 1, 50};

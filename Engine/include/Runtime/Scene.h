@@ -32,6 +32,8 @@ public:
   void DestroyEntityNow(Entity entity); // immediate (use with care)
   void FlushEntityDestruction();        // call at end of update/frame
 
+  void Draw() { m_Framebuffer->DrawBuffer(); }
+
   template <typename Entt, typename Comp, typename Task>
   void ViewEntity(Task &&task) {
     // UE_CORE_ASSERT(std::is_base_of<Entity, Entt>::value, "error viewing

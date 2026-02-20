@@ -54,36 +54,59 @@ void SceneCamera::RecalculateProjection() {
 
 void SceneCamera::RecalculateView() {
   UE_PROFILE_FUNCTION();
-  glm::vec3 position;
   glm::vec3 direction;
 
   switch (m_Mode) {
   case CameraMode::ThirdPerson: {
     glm::vec3 behind = glm::normalize(m_Target - (m_Target + m_Offset));
-    position = m_Target + m_Offset;
-    direction = glm::normalize(m_Target - position);
+    m_Position = m_Target + m_Offset;
+    direction = glm::normalize(m_Target - m_Position);
+
+    m_ViewMatrix =
+        glm::lookAt(m_Position, m_Position + direction, glm::vec3(0, 1, 0));
+    // m_Position = position;
+    m_ViewProjectionMatrix = m_ProjectionMatrix * m_ViewMatrix;
     break;
   }
 
   case CameraMode::FirstPerson: {
-    position = m_Target;
+    m_Position = m_Target;
     direction = glm::normalize(
         glm::vec3(cos(m_Rotation2.y) * cos(m_Rotation2.x), sin(m_Rotation2.x),
                   sin(m_Rotation2.y) * cos(m_Rotation2.x)));
+
+    m_ViewMatrix =
+        glm::lookAt(m_Position, m_Position + direction, glm::vec3(0, 1, 0));
+    // m_Position = position;
+    m_ViewProjectionMatrix = m_ProjectionMatrix * m_ViewMatrix;
     break;
   }
 
   case CameraMode::TopDown: {
-    position = m_Target + glm::vec3(0.0f, m_Offset.y, 0.0f);
+    m_Position = m_Target + glm::vec3(0.0f, m_Offset.y, 0.0f);
     direction = glm::vec3(0.0f, -1.0f, 0.0f); // looking straight down
+
+    m_ViewMatrix =
+        glm::lookAt(m_Position, m_Position + direction, glm::vec3(0, 1, 0));
+    // m_Position = position;
+    m_ViewProjectionMatrix = m_ProjectionMatrix * m_ViewMatrix;
     break;
   }
-  }
 
-  m_ViewMatrix =
-      glm::lookAt(position, position + direction, glm::vec3(0, 1, 0));
-  m_Position = position;
-  m_ViewProjectionMatrix = m_ProjectionMatrix * m_ViewMatrix;
+  case CameraMode::Mode2D: {
+    m_Position = glm::vec3(m_Target.x, m_Target.y, 0.0f);
+
+    glm::mat4 transform = glm::translate(glm::mat4(1.0f), m_Position);
+
+    // Optional rotation around Z if you want camera rotation
+    // transform = glm::rotate(transform, m_RotationZ, glm::vec3(0,0,1));
+
+    m_ViewMatrix = glm::inverse(transform);
+
+    m_ViewProjectionMatrix = m_ProjectionMatrix * m_ViewMatrix;
+    return;
+  }
+  }
 }
 
 } // namespace UE

@@ -12,7 +12,8 @@ void PingPong::OnAttach() {
   auto &CameraComp = Camera.AddComponent<CameraComponent>();
   auto &CameraTC = Camera.GetComponent<TransformComponent>();
   CameraComp.Primary = true;
-  CameraComp.Camera.SetOrthographic(100, 0.5, 2);
+  CameraComp.Camera.SetOrthographic(100, -1.0f, 1.0f);
+  CameraComp.Camera.SetMode(CameraMode::Mode2D);
   CameraTC.Translation = {0.0f, 2.7f, 5.5f};
 
   auto circle = m_RuntimeScene->CreateEntity("Circle");
@@ -32,6 +33,7 @@ void PingPong::OnUpdate(Timestep ts) {
   }
 
   m_RuntimeScene->OnUpdate(ts);
+  m_RuntimeScene->Draw();
 }
 
 void PingPong::OnEvent(Event &e) {}
