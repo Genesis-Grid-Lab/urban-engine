@@ -6,7 +6,7 @@
 class SandboxApp : public Application {
 public:
   SandboxApp(ApplicationCommandLineArgs args)
-      : Application("SandBox", {now_width, now_height}, args) {
+      : Application("SandBox", {now_width, now_height}, false, args) {
     PushLayer(new PingPong());
   }
 };

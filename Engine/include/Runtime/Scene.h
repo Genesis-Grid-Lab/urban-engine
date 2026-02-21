@@ -32,7 +32,7 @@ public:
   void DestroyEntityNow(Entity entity); // immediate (use with care)
   void FlushEntityDestruction();        // call at end of update/frame
 
-  void Draw() { m_Framebuffer->DrawBuffer(); }
+  void Draw() { m_Framebuffer->DrawBuffer(m_ViewportWidth, m_ViewportHeight); }
 
   template <typename Entt, typename Comp, typename Task>
   void ViewEntity(Task &&task) {

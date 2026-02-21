@@ -29,6 +29,11 @@ RuntimeScene::~RuntimeScene() {}
 
 void RuntimeScene::OnRuntimeStart() {
 
+  size_t count = m_Registry.alive();
+  UE_CORE_INFO("Alive entities: {}", count);
+
+  FindPrimaryCamera();
+
   ViewEntity<Entity, NativeScriptComponent>([=](auto entity, auto &nsc) {
     // JPH::BodyInterface &body_interface = m_Physics3D.Bodies();
 
@@ -62,6 +67,33 @@ void RuntimeScene::OnRuntimeStop() { UE_PROFILE_FUNCTION(); }
 // ------------------------------
 
 void RuntimeScene::PhysicsUpdate(float dt) { UE_PROFILE_FUNCTION(); }
+
+void RuntimeScene::FindPrimaryCamera()
+{
+  auto view = m_Registry.view<CameraComponent>();
+  for (auto entity : view)
+  {
+      if (view.get<CameraComponent>(entity).Primary)
+      {
+          m_PrimaryCameraEntity = entity;
+          return;
+      }
+  }
+
+  m_PrimaryCameraEntity = entt::null;
+}
+
+Camera& RuntimeScene::GetMainCamera(){
+
+  UE_CORE_ASSERT(m_PrimaryCameraEntity != entt::null, "No Primary Camera!");
+
+    auto& camComp = m_Registry.get<CameraComponent>(m_PrimaryCameraEntity);
+    auto& transform = m_Registry.get<TransformComponent>(m_PrimaryCameraEntity);
+
+    camComp.Camera.SetPosition(transform.Translation);
+
+    return camComp.Camera;
+}
 
 void RuntimeScene::OnUpdate(Timestep ts) {
   UE_PROFILE_FUNCTION();
@@ -99,100 +131,83 @@ void RuntimeScene::OnUpdate(Timestep ts) {
 
   PhysicsUpdate(ts);
 
-  // Render 3D
-  Camera *mainCamera = nullptr;
-  glm::mat4 cameraTransform;
-  {
+  // Render 3D    
 
-    ViewEntity<Entity, CameraComponent>(
-        [this, &mainCamera](auto entity, auto &comp) {
-          auto &transform = entity.template GetComponent<TransformComponent>();
-          comp.Camera.SetPosition(transform.Translation);
-          // comp.Camera.m_Rotation2 = &transform.Rotation;
-          if (comp.Primary) {
-            mainCamera = &comp.Camera;
-          }
-        });
+  Renderer3D::BeginCamera(GetMainCamera());
+
+  GroupEntity<SkyboxComponent>(
+      [this](auto entity, auto &comp, auto &transform, auto id) {
+        Renderer3D::DrawSkybox(comp.skybox, *comp.Cam);
+      });
+
+  GroupEntity<LightComponent>(
+      [this](auto entity, auto &comp, auto &transform, auto id) {
+        Renderer3D::RenderLight(transform.Translation, comp.Color);
+      });
+
+  GroupEntity<ModelComponent>(
+      [this](auto entity, auto &comp, auto &transform, auto id) {
+        Renderer3D::DrawModel(comp.ModelData, transform.GetTransform(),
+                              glm::vec3(1.0f), (int)id);
+      });
+
+  auto CubeGroup =
+      m_Registry.group<CubeComponent>(entt::get<TransformComponent>);
+  for (auto entity : CubeGroup) {
+    auto [transform, CubeComp] =
+        CubeGroup.get<TransformComponent, CubeComponent>(entity);
+
+    Renderer3D::DrawCube(transform.GetTransform(), CubeComp.Color,
+                          (int)entity);
   }
 
-  if (mainCamera) {
+  Renderer3D::EndCamera();
 
-    // Renderer3D::BeginCamera(*mainCamera, tc);
-    Renderer3D::BeginCamera(*mainCamera);
+  Renderer2D::BeginCamera(GetMainCamera());
+  ViewEntity<Entity, UIElement>([this](auto entity, auto &comp) {
+    auto &transform = entity.template GetComponent<TransformComponent>();
+    // Renderer2D::DrawUI(transform.GetTransform(), comp);
+  });
 
-    GroupEntity<SkyboxComponent>(
-        [this](auto entity, auto &comp, auto &transform, auto id) {
-          Renderer3D::DrawSkybox(comp.skybox, *comp.Cam);
-        });
+  auto group1 =
+      m_Registry.group<ButtonComponent>(entt::get<TransformComponent>);
+  for (auto entity : group1) {
 
-    GroupEntity<LightComponent>(
-        [this](auto entity, auto &comp, auto &transform, auto id) {
-          Renderer3D::RenderLight(transform.Translation, comp.Color);
-        });
-
-    GroupEntity<ModelComponent>(
-        [this](auto entity, auto &comp, auto &transform, auto id) {
-          Renderer3D::DrawModel(comp.ModelData, transform.GetTransform(),
-                                glm::vec3(1.0f), (int)id);
-        });
-
-    auto CubeGroup =
-        m_Registry.group<CubeComponent>(entt::get<TransformComponent>);
-    for (auto entity : CubeGroup) {
-      auto [transform, CubeComp] =
-          CubeGroup.get<TransformComponent, CubeComponent>(entity);
-
-      Renderer3D::DrawCube(transform.GetTransform(), CubeComp.Color,
-                           (int)entity);
-    }
-
-    Renderer3D::EndCamera();
-
-    Renderer2D::BeginCamera(*mainCamera);
-    ViewEntity<Entity, UIElement>([this](auto entity, auto &comp) {
-      auto &transform = entity.template GetComponent<TransformComponent>();
-      // Renderer2D::DrawUI(transform.GetTransform(), comp);
-    });
-
-    auto group1 =
-        m_Registry.group<ButtonComponent>(entt::get<TransformComponent>);
-    for (auto entity : group1) {
-
-      auto [transform, ui] =
-          group1.get<TransformComponent, ButtonComponent>(entity);
-      // Renderer2D::DrawUI(transform.GetTransform(), ui, (int)entity);
-    }
-
-    ViewEntity<Entity, TextUIComponent>([this](auto entity, auto &comp) {
-      auto &transform = entity.template GetComponent<TransformComponent>();
-      // Renderer2D::DrawUI(transform.Translation, comp);
-    });
-
-    auto Spritegroup = m_Registry.group<SpriteRendererComponent>(
-        entt::get<TransformComponent>);
-    for (auto entity : Spritegroup) {
-      auto [transform, sprite] =
-          Spritegroup.get<TransformComponent, SpriteRendererComponent>(entity);
-      // Renderer2D::DrawSprite(transform.GetTransform(), sprite, (int)entity);
-    }
-
-    GroupEntity<CircleComponent>([this](auto entity, auto &comp,
-                                        auto &transform, auto id) {
-      Renderer2D::DrawCircle({transform.Translation.x, transform.Translation.y},
-                             comp.Radius, comp.Color, 1, 1);
-    });
-
-    // ViewEntity<Entity, SpriteRendererComponent>([this] (auto entity, auto&
-    // comp){
-
-    // 	auto& transform = entity.template GetComponent<TransformComponent>();
-    // 	Renderer2D::DrawSprite(transform.GetTransform(), comp, (int)entity);
-    // });
-
-    // Renderer2D::DrawQuad({10, 100}, {10, 30}, {1, 0, 0, 1});
-
-    Renderer2D::EndCamera();
+    auto [transform, ui] =
+        group1.get<TransformComponent, ButtonComponent>(entity);
+    // Renderer2D::DrawUI(transform.GetTransform(), ui, (int)entity);
   }
+
+  ViewEntity<Entity, TextUIComponent>([this](auto entity, auto &comp) {
+    auto &transform = entity.template GetComponent<TransformComponent>();
+    // Renderer2D::DrawUI(transform.Translation, comp);
+  });
+
+  auto Spritegroup = m_Registry.group<SpriteRendererComponent>(
+      entt::get<TransformComponent>);
+  for (auto entity : Spritegroup) {
+    auto [transform, sprite] =
+        Spritegroup.get<TransformComponent, SpriteRendererComponent>(entity);
+    // Renderer2D::DrawSprite(transform.GetTransform(), sprite, (int)entity);
+  }
+
+  GroupEntity<CircleComponent>([this](auto entity, auto &comp,
+                                      auto &transform, auto id) {
+    Renderer2D::DrawCircle({transform.Translation.x, transform.Translation.y},
+                            comp.Radius, comp.Color, 1, 1);
+  });
+
+  // ViewEntity<Entity, SpriteRendererComponent>([this] (auto entity, auto&
+  // comp){
+
+  // 	auto& transform = entity.template GetComponent<TransformComponent>();
+  // 	Renderer2D::DrawSprite(transform.GetTransform(), comp, (int)entity);
+  // });
+
+  Renderer2D::DrawQuad({0, 0}, {10, 30}, {0, 1, 0, 1});
+
+  Renderer2D::EndCamera();
+
 
   // ReadPixelEntity(mouseX, mouseY, viewportSize);
 

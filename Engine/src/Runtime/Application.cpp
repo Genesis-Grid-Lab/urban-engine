@@ -8,7 +8,7 @@ namespace UE {
 
 Application *Application::s_Instance = nullptr;
 
-Application::Application(const std::string &name, const glm::vec2 &size,
+Application::Application(const std::string &name, const glm::vec2 &size, bool resize,
                          ApplicationCommandLineArgs args)
     : m_CommandLineArgs(args) {
 
@@ -16,7 +16,7 @@ Application::Application(const std::string &name, const glm::vec2 &size,
   UE_CORE_ASSERT(!s_Instance, "Application already exists!");
 
   s_Instance = this;
-  m_Window = CreateScope<Window>(WindowProps(name, size.x, size.y));
+  m_Window = CreateScope<Window>(WindowProps(name, size.x, size.y, resize));
   m_Window->SetEventCallback(BIND_EVENT_FN(Application::OnEvent));
 
   UE::Renderer::Init();

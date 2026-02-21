@@ -204,11 +204,16 @@ int OpenGLFramebuffer::ReadPixel(uint32_t attachmentIndex, int x, int y) {
   return pixelData;
 }
 
-void OpenGLFramebuffer::DrawBuffer(uint32_t index) {
-  glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_RendererID);
-
-  glDrawBuffer(GL_COLOR_ATTACHMENT0 + index);
+void OpenGLFramebuffer::DrawBuffer(uint32_t width, uint32_t height) {
+  glBindFramebuffer(GL_READ_FRAMEBUFFER, m_RendererID);
   glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+
+  glBlitFramebuffer(
+      0, 0, width, height,
+      0, 0, width, height,
+      GL_COLOR_BUFFER_BIT,
+      GL_NEAREST
+  );
 }
 
 void OpenGLFramebuffer::ClearAttachment(uint32_t attachmentIndex, int value) {

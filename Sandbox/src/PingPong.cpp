@@ -1,6 +1,5 @@
 #include "PingPong.h"
 #include "Components.h"
-#include "Log.h"
 #include "Runtime/RuntimeScene.h"
 
 PingPong::PingPong() {}
@@ -14,12 +13,14 @@ void PingPong::OnAttach() {
   CameraComp.Primary = true;
   CameraComp.Camera.SetOrthographic(100, -1.0f, 1.0f);
   CameraComp.Camera.SetMode(CameraMode::Mode2D);
-  CameraTC.Translation = {0.0f, 2.7f, 5.5f};
+  // CameraTC.Translation = {0.0f, 2.7f, 5.5f};
 
-  auto circle = m_RuntimeScene->CreateEntity("Circle");
-  auto circleComp = circle.AddComponent<CircleComponent>();
-  circleComp.Color = Light_green;
-  circleComp.Radius = 150;
+  // auto circle = m_RuntimeScene->CreateEntity("Circle");
+  // auto circleComp = circle.AddComponent<CircleComponent>();
+  // circleComp.Color = Light_green;
+  // circleComp.Radius = 150;
+
+  m_RuntimeScene->OnRuntimeStart();
 }
 
 void PingPong::OnUpdate(Timestep ts) {
@@ -40,14 +41,15 @@ void PingPong::OnEvent(Event &e) {}
 
 void PingPong::OnImGuiRender() {
 
-  ImGui::Begin("Viewport");
+//  ImGui::Begin("PlayView");
 
-  ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
-  glm::vec2 m_ViewportSize = {viewportPanelSize.x, viewportPanelSize.y};
+//   ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
+//   glm::vec2 m_ViewportSize = {viewportPanelSize.x, viewportPanelSize.y};
 
-  ImTextureID textureID =
-      m_RuntimeScene->m_Framebuffer->GetColorAttachmentRendererID();
-  ImGui::Image(textureID, ImVec2{m_ViewportSize.x, m_ViewportSize.y},
-               ImVec2{0, 1}, ImVec2{1, 0});
-  ImGui::End();
+//   ImTextureID textureID =
+//       m_RuntimeScene->m_Framebuffer->GetColorAttachmentRendererID();
+//   ImGui::Image(textureID, ImVec2{m_ViewportSize.x, m_ViewportSize.y},
+//                ImVec2{0, 1}, ImVec2{1, 0});
+//   ImGui::End();
+
 }

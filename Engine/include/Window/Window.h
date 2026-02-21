@@ -13,11 +13,12 @@ namespace UE {
         std::string m_Title;
         uint32_t m_Width;
         uint32_t m_Height;
+        bool m_Resize;
     
         WindowProps(const std::string& title = "Urban engine", 
                               uint32_t width = 1600,
-                            uint32_t height = 900)
-            : m_Title(title), m_Width(width), m_Height(height){
+                            uint32_t height = 900, bool resize = true)
+            : m_Title(title), m_Width(width), m_Height(height), m_Resize(resize){
     
             }
     };

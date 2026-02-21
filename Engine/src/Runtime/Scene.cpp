@@ -11,22 +11,6 @@ namespace UE {
 
 Entity GlobHovered;
 
-// Scene::Scene(uint32_t width, uint32_t height){
-//   UE_PROFILE_FUNCTION();
-//   m_ViewportWidth = width;
-//   m_ViewportHeight = height;
-
-//   FramebufferSpecification fbSpec;
-//   fbSpec.Attachments = { FramebufferTextureFormat::RGBA8,
-//   FramebufferTextureFormat::RED_INTEGER, FramebufferTextureFormat::Depth };
-//   fbSpec.Width = width;
-//   fbSpec.Height = height;
-//   m_Framebuffer = Framebuffer::Create(fbSpec);
-
-//   m_Physics3D.Init();
-
-// }
-
 template <typename Component>
 static void
 CopyComponent(entt::registry &dst, entt::registry &src,
@@ -49,8 +33,8 @@ static void CopyComponentIfExists(Entity dst, Entity src) {
 }
 
 Ref<RuntimeScene> Scene::Copy(const Ref<Scene> &other) {
-  // UE_CORE_INFO("[COPY]: scene={}", (const void*)&other);
-  UE_CORE_INFO("[COPY]: scene={}");
+  UE_CORE_INFO("[COPY]: scene={}", (const void*)&other);
+  // UE_CORE_INFO("[COPY]: scene={}");
   // Ref<Scene> newScene = CreateRef<Scene>(other->m_ViewportWidth,
   // other->m_ViewportHeight);
   Ref<RuntimeScene> newScene = CreateRef<RuntimeScene>();

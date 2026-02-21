@@ -94,9 +94,10 @@ void SceneCamera::RecalculateView() {
   }
 
   case CameraMode::Mode2D: {
-    m_Position = glm::vec3(m_Target.x, m_Target.y, 0.0f);
+    m_Target = m_Position;
+    auto Position = glm::vec3(m_Target.x, m_Target.y, 0.0f);
 
-    glm::mat4 transform = glm::translate(glm::mat4(1.0f), m_Position);
+    glm::mat4 transform = glm::translate(glm::mat4(1.0f), Position);
 
     // Optional rotation around Z if you want camera rotation
     // transform = glm::rotate(transform, m_RotationZ, glm::vec3(0,0,1));

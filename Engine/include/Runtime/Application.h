@@ -36,6 +36,7 @@ class Application {
 public:
   Application(const std::string &name = "Application Name",
               const glm::vec2 &size = glm::vec2(0),
+              bool resize = true,
               ApplicationCommandLineArgs args = ApplicationCommandLineArgs());
   virtual ~Application();
 

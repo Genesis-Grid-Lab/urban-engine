@@ -45,7 +45,7 @@ namespace UE {
             glfwSetErrorCallback(GLFWErrorCallback);
         }
 
-        glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
+        glfwWindowHint(GLFW_RESIZABLE, props.m_Resize);
 
         #if defined(UE_DEBUG)
             if (Renderer::GetAPI() == RendererAPI::API::OpenGL)

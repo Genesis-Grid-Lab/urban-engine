@@ -7,6 +7,8 @@
 #include <entt.hpp>
 
 namespace UE {
+  
+  using EntityNull = entt::null_t;
 
   class  Entity{
   public:

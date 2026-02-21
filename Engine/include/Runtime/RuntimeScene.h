@@ -1,10 +1,9 @@
 #pragma once
 #include "Auxiliaries/Physics.h"
 #include "Components.h"
-#include "Config.h"
+#include "Entity.h"
 #include "Scene.h"
 #include "Timestep.h"
-#include "UUID.h"
 
 namespace UE {
 
@@ -19,6 +18,13 @@ public:
   void PhysicsUpdate(float dt);
   virtual void OnUpdate(Timestep ts) override;
 
+  private:
+  Camera& GetMainCamera();
+  void FindPrimaryCamera();
+
   PhysicsEngine m_Physics3D;
+
+  // Entity m_PrimaryCameraEntity;
+  entt::entity m_PrimaryCameraEntity = entt::null;
 };
 } // namespace UE

@@ -27,8 +27,6 @@ void EditorScene::OnUpdate(Timestep ts) {
   RenderCommand::SetClearColor({0.1f, 0.1f, 0.1f, 1});
   RenderCommand::Clear();
 
-  // m_Physics3D.Simulate(ts);
-
   Renderer3D::BeginCamera(m_EditorCamera);
   GroupEntity<SkyboxComponent>(
       [this](auto entity, auto &comp, auto &transform, auto id) {
@@ -97,7 +95,7 @@ void EditorScene::OnUpdate(Timestep ts) {
 
   // 	auto& transform = entity.template GetComponent<TransformComponent>();
   // 	Renderer2D::DrawSprite(transform.GetTransform(), comp, (int)entity);
-  // });
+  // });  
 
   Renderer2D::EndCamera();
 

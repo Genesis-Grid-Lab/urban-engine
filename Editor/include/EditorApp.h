@@ -9,7 +9,7 @@ using namespace UE;
 class EditorApp : public Application {
 public:
     EditorApp(ApplicationCommandLineArgs args)
-        :Application("EbonyEditor",{now_width, now_height}, args){
+        :Application("EbonyEditor",{now_width, now_height}, true, args){
             PushLayer(new EditorLayer({now_width, now_height}));
         }
 

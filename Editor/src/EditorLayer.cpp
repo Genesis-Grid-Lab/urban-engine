@@ -1,8 +1,8 @@
+#include "uepch.h"
 #include "EditorLayer.h"
 #include "Runtime/Components.h"
 #include "ScriptTest.h"
 #include "Skybox.h"
-#include "uepch.h"
 #include <ImGuiFileDialog.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -45,9 +45,10 @@ void EditorLayer::OnAttach() {
   auto camEntt = m_EditorScene->CreateEntity("Cam");
   auto &sceneCam = camEntt.AddComponent<CameraComponent>();
   auto &camTC = camEntt.GetComponent<TransformComponent>();
+  sceneCam.Primary = true;
   sceneCam.Camera.SetOrthographic(10, -1.0f, 1.0f);
   sceneCam.Camera.SetMode(CameraMode::Mode2D);
-  camTC.Translation = {0.0f, 2.7f, 5.5f};
+  // camTC.Translation = {0.0f, 2.7f, 5.5f};
   // camTC.Rotation = {0,0,0};
 
   class CameraController : public ScriptableEntity {
@@ -59,7 +60,10 @@ void EditorLayer::OnAttach() {
     virtual void OnUpdate(Timestep ts) override {
       auto &translation = GetComponent<TransformComponent>().Translation;
 
-      float speed = 5.0f;
+      float speed = 0.5f;
+
+      translation.x += speed;
+      UE_TRACE("speed {}", translation.x);
     }
   };
 
@@ -185,23 +189,23 @@ bool EditorLayer::OnKeyPressed(KeyPressedEvent &e) {
 
   switch (e.GetKeyCode()) {
   case Key::N: {
-    // if (control)
-    //     NewScene();
+    if (control)
+        NewScene();
 
     return true;
   }
   case Key::O: {
-    // if (control)
-    //     OpenScene();
+    if (control)
+        OpenScene();
 
     return true;
   }
   case Key::S: {
     if (control) {
-      // if (shift)
-      //     SaveSceneAs();
-      // else
-      //     SaveScene();
+      if (shift)
+          SaveSceneAs();
+      else
+          SaveScene();
     }
 
     return true;
@@ -209,10 +213,17 @@ bool EditorLayer::OnKeyPressed(KeyPressedEvent &e) {
 
   // Scene Commands
   case Key::D: {
-    // if (control)
-    //     OnDuplicateEntity();
+    if (control)
+        OnDuplicateEntity();
 
     return true;
+  }
+
+  case Key::F5:{
+    if (m_SceneState == SceneState::Edit)
+      OnScenePlay();
+    else if (m_SceneState == SceneState::Play)
+      OnSceneStop();
   }
 
   // Gizmos
