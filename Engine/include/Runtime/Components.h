@@ -129,6 +129,21 @@ struct CircleComponent {
   CircleComponent(const CircleComponent &) = default;
 };
 
+struct RectangleComponent {
+  glm::vec4 Color{1.0f};
+  RectangleComponent() = default;
+  RectangleComponent(const RectangleComponent &) = default;
+};
+
+struct LineComponent {
+  glm::vec4 Color;
+  float Thickness;
+  glm::vec2 p0, p1;
+  float Order = -1;
+  LineComponent() = default;
+  LineComponent(const LineComponent &) = default;
+};
+
 // physics 3d
 
 /// UI

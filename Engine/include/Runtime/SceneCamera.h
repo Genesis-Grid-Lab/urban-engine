@@ -105,8 +105,6 @@ private:
   float m_OrthographicSize = 10.0f;
   float m_OrthographicNear = -1.0f, m_OrthographicFar = 1.0f;
 
-  float m_AspectRatio = 0.0f;
-
   CameraMode m_Mode = CameraMode::ThirdPerson;
 
   glm::vec3 m_Target = glm::vec3(0.0f);             // Entity to follow

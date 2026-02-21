@@ -47,8 +47,8 @@ public:
   template <typename Comp, typename Task> void GroupEntity(Task &&task) {
     auto group = m_Registry.group<Comp>(entt::get<TransformComponent>);
     for (auto entity : group) {
-      const auto &[transform, comp] =
-          group.template get<TransformComponent, Comp>(entity);
+      auto &comp = group.template get<Comp>(entity);
+      auto &transform = group.template get<TransformComponent>(entity);
       task(std::move(Entity(entity, this)), comp, transform, entity);
     }
   }

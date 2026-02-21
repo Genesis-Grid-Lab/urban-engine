@@ -30,7 +30,7 @@ public:
                        const glm::vec4 &tintColor = glm::vec4(1.0f));
 
   static void DrawQuad(const glm::mat4 &transform, const glm::vec4 &color,
-                       int entityID = -1);
+                       int entityID = -1, float shape = 0);
   static void DrawQuad(const glm::mat4 &transform,
                        const Ref<Texture2D> &texture, float tilingFactor = 1.0f,
                        const glm::vec4 &tintColor = glm::vec4(1.0f),
@@ -52,10 +52,14 @@ public:
   static void DrawCircle(const glm::vec2 &center, float radius,
                          const glm::vec4 &color, int entityID, float order);
 
-  // static void DrawSprite(const glm::mat4& transform, SpriteRendererComponent&
-  // src, int entityID = -1); static void DrawUI(const glm::mat4& transform,
-  // UIElement& src, int entityID = -1); static void DrawUI(const glm::vec3&
-  // position, TextUIComponent& src, int entityID = -1); static void
+  static void DrawLine(const glm::vec2 &p0, const glm::vec2 &p1,
+                       float thickness, const glm::vec4 &color, int entityID);
+
+  // static void DrawSprite(const glm::mat4& transform,
+  // SpriteRendererComponent& src, int entityID = -1); static void
+  // DrawUI(const glm::mat4& transform, UIElement& src, int entityID = -1);
+  // static void DrawUI(const glm::vec3& position, TextUIComponent& src, int
+  // entityID = -1); static void
   static void DrawGlyph(const glm::mat4 &transform, const glm::vec2 &uv0,
                         const glm::vec2 &uv1, const Ref<Texture2D> &texture,
                         float tilingFactor = 1.0f,

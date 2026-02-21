@@ -19,7 +19,7 @@ struct QuadVertex {
   glm::vec2 TexCoord;
   float TexIndex;
   float TilingFactor;
-
+  float Shape;
   // Editor-only
   int EntityID;
 };
@@ -75,6 +75,7 @@ void Renderer2D::Init() {
        {ShaderDataType::Float2, "a_TexCoord"},
        {ShaderDataType::Float, "a_TexIndex"},
        {ShaderDataType::Float, "a_TilingFactor"},
+       {ShaderDataType::Float, "a_Shape"},
        {ShaderDataType::Int, "a_EntityID"}});
   s_Data->QuadVertexArray->AddVertexBuffer(s_Data->QuadVertexBuffer);
 
@@ -130,7 +131,7 @@ void Renderer2D::Shutdown() {
 
 void Renderer2D::BeginCamera(const Camera &camera) {
   UE_PROFILE_FUNCTION();
-  glDisable(GL_DEPTH_TEST);
+  // glDisable(GL_DEPTH_TEST);
   s_Data->CameraBuffer.ViewProjection = camera.GetViewProjectionMatrix();
   s_Data->CameraUniformBuffer->SetData(&s_Data->CameraBuffer,
                                        sizeof(Renderer2DData::CameraData));
@@ -141,7 +142,7 @@ void Renderer2D::BeginCamera(const Camera &camera) {
 void Renderer2D::EndCamera() {
   UE_PROFILE_FUNCTION();
   Flush();
-  glEnable(GL_DEPTH_TEST);
+  // glEnable(GL_DEPTH_TEST);
 }
 
 void Renderer2D::StartBatch() {
@@ -213,7 +214,7 @@ void Renderer2D::DrawQuad(const glm::vec3 &position, const glm::vec2 &size,
 }
 
 void Renderer2D::DrawQuad(const glm::mat4 &transform, const glm::vec4 &color,
-                          int entityID) {
+                          int entityID, float shape) {
   UE_PROFILE_FUNCTION();
 
   constexpr size_t quadVertexCount = 4;
@@ -232,6 +233,7 @@ void Renderer2D::DrawQuad(const glm::mat4 &transform, const glm::vec4 &color,
     s_Data->QuadVertexBufferPtr->TexCoord = textureCoords[i];
     s_Data->QuadVertexBufferPtr->TexIndex = textureIndex;
     s_Data->QuadVertexBufferPtr->TilingFactor = tilingFactor;
+    s_Data->QuadVertexBufferPtr->Shape = shape;
     s_Data->QuadVertexBufferPtr->EntityID = entityID;
     s_Data->QuadVertexBufferPtr++;
   }
@@ -332,6 +334,25 @@ void Renderer2D::DrawCircle(const glm::vec2 &center, float radius,
   glm::mat4 transform =
       glm::translate(glm::mat4(1.0f), {center.x, center.y, 0.0f}) *
       glm::scale(glm::mat4(1.0f), {radius * 2.0f, radius * 2.0f, 1.0f});
+
+  DrawQuad(transform, color, entityID, 1);
+}
+
+void Renderer2D::DrawLine(const glm::vec2 &p0, const glm::vec2 &p1,
+                          float thickness, const glm::vec4 &color,
+                          int entityID) {
+  glm::vec2 dir = p1 - p0;
+  float length = glm::length(dir);
+  if (length <= 0.0001f)
+    return;
+
+  glm::vec2 center = (p0 + p1) * 0.5f;
+  float angle = atan2(dir.y, dir.x);
+
+  glm::mat4 transform =
+      glm::translate(glm::mat4(1.0f), {center.x, center.y, 0.0f}) *
+      glm::rotate(glm::mat4(1.0f), angle, {0, 0, 1}) *
+      glm::scale(glm::mat4(1.0f), {length, thickness, 1.0f});
 
   DrawQuad(transform, color, entityID);
 }

@@ -90,12 +90,28 @@ void EditorScene::OnUpdate(Timestep ts) {
     // Renderer2D::DrawSprite(transform.GetTransform(), sprite, (int)entity);
   }
 
+  GroupEntity<CircleComponent>([this](auto entity, auto &comp, auto &transform,
+                                      auto id) {
+    Renderer2D::DrawCircle({transform.Translation.x, transform.Translation.y},
+                           comp.Radius, comp.Color, entity, 1);
+  });
+
+  GroupEntity<RectangleComponent>(
+      [this](auto entity, auto &comp, auto &transform, auto id) {
+        Renderer2D::DrawQuad(transform.GetTransform(), comp.Color, entity);
+      });
+
+  GroupEntity<LineComponent>([this](auto entity, auto &comp, auto &transform,
+                                    auto id) {
+    Renderer2D::DrawLine(comp.p0, comp.p1, comp.Thickness, comp.Color, entity);
+  });
+
   // ViewEntity<Entity, SpriteRendererComponent>([this] (auto entity, auto&
   // comp){
 
   // 	auto& transform = entity.template GetComponent<TransformComponent>();
   // 	Renderer2D::DrawSprite(transform.GetTransform(), comp, (int)entity);
-  // });  
+  // });
 
   Renderer2D::EndCamera();
 

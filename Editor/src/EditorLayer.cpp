@@ -1,8 +1,8 @@
-#include "uepch.h"
 #include "EditorLayer.h"
 #include "Runtime/Components.h"
 #include "ScriptTest.h"
 #include "Skybox.h"
+#include "uepch.h"
 #include <ImGuiFileDialog.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -46,7 +46,7 @@ void EditorLayer::OnAttach() {
   auto &sceneCam = camEntt.AddComponent<CameraComponent>();
   auto &camTC = camEntt.GetComponent<TransformComponent>();
   sceneCam.Primary = true;
-  sceneCam.Camera.SetOrthographic(10, -1.0f, 1.0f);
+  sceneCam.Camera.SetOrthographic(1000, -1.0f, 1.0f);
   sceneCam.Camera.SetMode(CameraMode::Mode2D);
   // camTC.Translation = {0.0f, 2.7f, 5.5f};
   // camTC.Rotation = {0,0,0};
@@ -79,10 +79,10 @@ void EditorLayer::OnAttach() {
   skyComp.skybox = Skybox::Create(faces);
   skyComp.Cam = &sceneCam.Camera;
 
-  // auto circle = m_EditorScene->CreateEntity("Circle");
-  // auto circleComp = circle.AddComponent<CircleComponent>();
-  // circleComp.Color = {0.5059f, 0.8000f, 0.7216f, 1.0f};
-  // circleComp.Radius = 150;
+  auto circle = m_EditorScene->CreateEntity("Circle");
+  auto &circleComp = circle.AddComponent<CircleComponent>();
+  circleComp.Color = {0.5059f, 0.8000f, 0.7216f, 1.0f};
+  circleComp.Radius = 150;
 
   glm::vec3 cubePos = {0.0f, 0.0f, 0.0f};
   glm::vec3 cubeSize = {50, 1, 50};
@@ -190,22 +190,22 @@ bool EditorLayer::OnKeyPressed(KeyPressedEvent &e) {
   switch (e.GetKeyCode()) {
   case Key::N: {
     if (control)
-        NewScene();
+      NewScene();
 
     return true;
   }
   case Key::O: {
     if (control)
-        OpenScene();
+      OpenScene();
 
     return true;
   }
   case Key::S: {
     if (control) {
       if (shift)
-          SaveSceneAs();
+        SaveSceneAs();
       else
-          SaveScene();
+        SaveScene();
     }
 
     return true;
@@ -214,12 +214,12 @@ bool EditorLayer::OnKeyPressed(KeyPressedEvent &e) {
   // Scene Commands
   case Key::D: {
     if (control)
-        OnDuplicateEntity();
+      OnDuplicateEntity();
 
     return true;
   }
 
-  case Key::F5:{
+  case Key::F5: {
     if (m_SceneState == SceneState::Edit)
       OnScenePlay();
     else if (m_SceneState == SceneState::Play)

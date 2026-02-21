@@ -33,7 +33,7 @@ static void CopyComponentIfExists(Entity dst, Entity src) {
 }
 
 Ref<RuntimeScene> Scene::Copy(const Ref<Scene> &other) {
-  UE_CORE_INFO("[COPY]: scene={}", (const void*)&other);
+  UE_CORE_INFO("[COPY]: scene={}", (const void *)&other);
   // UE_CORE_INFO("[COPY]: scene={}");
   // Ref<Scene> newScene = CreateRef<Scene>(other->m_ViewportWidth,
   // other->m_ViewportHeight);
@@ -69,6 +69,9 @@ Ref<RuntimeScene> Scene::Copy(const Ref<Scene> &other) {
   CopyComponent<NativeScriptComponent>(dstSceneRegistry, srcSceneRegistry,
                                        enttMap);
   CopyComponent<CircleComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
+  CopyComponent<RectangleComponent>(dstSceneRegistry, srcSceneRegistry,
+                                    enttMap);
+  CopyComponent<LineComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
   CopyComponent<LightComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
   CopyComponent<SkyboxComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
 
@@ -268,4 +271,12 @@ void Scene::OnComponentAdded<SkyboxComponent>(Entity entity,
 template <>
 void Scene::OnComponentAdded<CircleComponent>(Entity entity,
                                               CircleComponent &component) {}
+
+template <>
+void Scene::OnComponentAdded<RectangleComponent>(
+    Entity entity, RectangleComponent &component) {}
+
+template <>
+void Scene::OnComponentAdded<LineComponent>(Entity entity,
+                                            LineComponent &component) {}
 } // namespace UE

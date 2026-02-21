@@ -68,31 +68,28 @@ void RuntimeScene::OnRuntimeStop() { UE_PROFILE_FUNCTION(); }
 
 void RuntimeScene::PhysicsUpdate(float dt) { UE_PROFILE_FUNCTION(); }
 
-void RuntimeScene::FindPrimaryCamera()
-{
+void RuntimeScene::FindPrimaryCamera() {
   auto view = m_Registry.view<CameraComponent>();
-  for (auto entity : view)
-  {
-      if (view.get<CameraComponent>(entity).Primary)
-      {
-          m_PrimaryCameraEntity = entity;
-          return;
-      }
+  for (auto entity : view) {
+    if (view.get<CameraComponent>(entity).Primary) {
+      m_PrimaryCameraEntity = entity;
+      return;
+    }
   }
 
   m_PrimaryCameraEntity = entt::null;
 }
 
-Camera& RuntimeScene::GetMainCamera(){
+Camera &RuntimeScene::GetMainCamera() {
 
   UE_CORE_ASSERT(m_PrimaryCameraEntity != entt::null, "No Primary Camera!");
 
-    auto& camComp = m_Registry.get<CameraComponent>(m_PrimaryCameraEntity);
-    auto& transform = m_Registry.get<TransformComponent>(m_PrimaryCameraEntity);
+  auto &camComp = m_Registry.get<CameraComponent>(m_PrimaryCameraEntity);
+  auto &transform = m_Registry.get<TransformComponent>(m_PrimaryCameraEntity);
 
-    camComp.Camera.SetPosition(transform.Translation);
+  camComp.Camera.SetPosition(transform.Translation);
 
-    return camComp.Camera;
+  return camComp.Camera;
 }
 
 void RuntimeScene::OnUpdate(Timestep ts) {
@@ -100,7 +97,7 @@ void RuntimeScene::OnUpdate(Timestep ts) {
   m_Framebuffer->Bind();
   // Clear our entity ID attachment to -1
   m_Framebuffer->ClearAttachment(1, -1);
-  RenderCommand::SetClearColor({1.0f, 0.1f, 0.1f, 1});
+  RenderCommand::SetClearColor({0.1f, 0.1f, 0.1f, 1});
   RenderCommand::Clear();
 
   // Update scripts
@@ -131,7 +128,7 @@ void RuntimeScene::OnUpdate(Timestep ts) {
 
   PhysicsUpdate(ts);
 
-  // Render 3D    
+  // Render 3D
 
   Renderer3D::BeginCamera(GetMainCamera());
 
@@ -157,8 +154,7 @@ void RuntimeScene::OnUpdate(Timestep ts) {
     auto [transform, CubeComp] =
         CubeGroup.get<TransformComponent, CubeComponent>(entity);
 
-    Renderer3D::DrawCube(transform.GetTransform(), CubeComp.Color,
-                          (int)entity);
+    Renderer3D::DrawCube(transform.GetTransform(), CubeComp.Color, (int)entity);
   }
 
   Renderer3D::EndCamera();
@@ -183,18 +179,29 @@ void RuntimeScene::OnUpdate(Timestep ts) {
     // Renderer2D::DrawUI(transform.Translation, comp);
   });
 
-  auto Spritegroup = m_Registry.group<SpriteRendererComponent>(
-      entt::get<TransformComponent>);
+  auto Spritegroup =
+      m_Registry.group<SpriteRendererComponent>(entt::get<TransformComponent>);
   for (auto entity : Spritegroup) {
     auto [transform, sprite] =
         Spritegroup.get<TransformComponent, SpriteRendererComponent>(entity);
     // Renderer2D::DrawSprite(transform.GetTransform(), sprite, (int)entity);
   }
 
-  GroupEntity<CircleComponent>([this](auto entity, auto &comp,
-                                      auto &transform, auto id) {
+  GroupEntity<CircleComponent>([this](auto entity, auto &comp, auto &transform,
+                                      auto id) {
+    UE_CORE_TRACE("entity: {}, id: {}", (uint32_t)entity, (uint32_t)id);
     Renderer2D::DrawCircle({transform.Translation.x, transform.Translation.y},
-                            comp.Radius, comp.Color, 1, 1);
+                           comp.Radius, comp.Color, entity, 1);
+  });
+
+  GroupEntity<RectangleComponent>(
+      [this](auto entity, auto &comp, auto &transform, auto id) {
+        Renderer2D::DrawQuad(transform.GetTransform(), comp.Color, entity);
+      });
+
+  GroupEntity<LineComponent>([this](auto entity, auto &comp, auto &transform,
+                                    auto id) {
+    Renderer2D::DrawLine(comp.p0, comp.p1, comp.Thickness, comp.Color, entity);
   });
 
   // ViewEntity<Entity, SpriteRendererComponent>([this] (auto entity, auto&
@@ -204,10 +211,9 @@ void RuntimeScene::OnUpdate(Timestep ts) {
   // 	Renderer2D::DrawSprite(transform.GetTransform(), comp, (int)entity);
   // });
 
-  Renderer2D::DrawQuad({0, 0}, {10, 30}, {0, 1, 0, 1});
+  // Renderer2D::DrawQuad({0, 0}, {10, 10}, {0, 1, 0, 1});
 
   Renderer2D::EndCamera();
-
 
   // ReadPixelEntity(mouseX, mouseY, viewportSize);
 
