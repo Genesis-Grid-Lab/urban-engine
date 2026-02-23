@@ -26,6 +26,7 @@
 #include "Runtime/Components.h"
 #include "Runtime/Entity.h"
 #include "Runtime/ScriptableEntity.h"
+#include "Runtime/RuntimeEvent.h"
 #include "Math/UEMath.h"
 #include "Auxiliaries/PlatformUtils.h"
 //TO DO: remove

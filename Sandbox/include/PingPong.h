@@ -19,6 +19,7 @@ private:
   void BallLogic();
   void PlayerLogic();
   void CpuLogic();  
+  void GameLogic();
 
 private:
   Ref<RuntimeScene> m_RuntimeScene;

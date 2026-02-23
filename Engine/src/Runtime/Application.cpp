@@ -21,6 +21,8 @@ Application::Application(const std::string &name, const glm::vec2 &size, bool re
 
   UE::Renderer::Init();
 
+  m_SceneManager = CreateRef<SceneManager>(size.x, size.y);
+
 #if UE_DEBUG
   m_ImGuiLayer = new ImGuiLayer(new OpenGLImGuiLayerContext);
   PushOverlay(m_ImGuiLayer);
@@ -75,6 +77,8 @@ void Application::Run() {
     float time = (float)glfwGetTime();
     Timestep timestep = time - m_LastFrameTime;
     m_LastFrameTime = time;
+
+    // m_SceneManager->Update(timestep);
 
     if (!m_Minimized) {
       {

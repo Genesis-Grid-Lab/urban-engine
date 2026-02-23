@@ -1,4 +1,5 @@
 #include "EditorLayer.h"
+#include "Application.h"
 #include "Runtime/Components.h"
 #include "ScriptTest.h"
 #include "Skybox.h"
@@ -140,9 +141,9 @@ void EditorLayer::OnUpdate(Timestep ts) {
       (spec.Width != m_ViewportSize.x || spec.Height != m_ViewportSize.y)) {
     m_EditorScene->OnViewportResize((uint32_t)m_ViewportSize.x,
                                     (uint32_t)m_ViewportSize.y);
-    if (m_RuntimeScene)
-      m_RuntimeScene->OnViewportResize((uint32_t)m_ViewportSize.x,
-                                       (uint32_t)m_ViewportSize.y);
+
+    Application::Get().GetSceneManager().Resize((uint32_t)m_ViewportSize.x,
+                                                (uint32_t)m_ViewportSize.y);
   }
 
   auto [mx, my] = ImGui::GetMousePos();
@@ -170,7 +171,7 @@ void EditorLayer::OnUpdate(Timestep ts) {
       break;
     }
     case SceneState::Play: {
-      m_RuntimeScene->OnUpdate(ts);
+      Application::Get().GetSceneManager().Update(ts);
       break;
     }
     }
@@ -634,7 +635,7 @@ void EditorLayer::OnScenePlay() {
 
   m_RuntimeScene = Scene::Copy(m_EditorScene);
 
-  m_RuntimeScene->OnRuntimeStart();
+  Application::Get().GetSceneManager().LoadScene(m_RuntimeScene);
 
   m_SceneHierarchyPanel.SetContext(m_RuntimeScene);
 }

@@ -7,6 +7,7 @@
 #include "Layer.h"
 #include "LayerStack.h"
 #include "Renderer/Shader.h"
+#include "SceneManager.h"
 #include "UE_Assert.h"
 #include "Window.h"
 #include <Timestep.h>
@@ -35,8 +36,7 @@ struct LayerAction {
 class Application {
 public:
   Application(const std::string &name = "Application Name",
-              const glm::vec2 &size = glm::vec2(0),
-              bool resize = true,
+              const glm::vec2 &size = glm::vec2(0), bool resize = true,
               ApplicationCommandLineArgs args = ApplicationCommandLineArgs());
   virtual ~Application();
 
@@ -48,6 +48,8 @@ public:
   ImGuiLayer *GetImGuiLayer() { return m_ImGuiLayer; }
 
   void Close();
+
+  SceneManager &GetSceneManager() { return *m_SceneManager; }
 
   Window &GetWindow() { return *m_Window; }
   static Application &Get() { return *s_Instance; }
@@ -68,6 +70,7 @@ private:
 private:
   ApplicationCommandLineArgs m_CommandLineArgs;
   Scope<Window> m_Window;
+  Ref<SceneManager> m_SceneManager;
   ImGuiLayer *m_ImGuiLayer;
   bool m_Running = true;
   bool m_Minimized = false;
