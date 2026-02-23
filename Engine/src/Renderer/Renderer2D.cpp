@@ -329,10 +329,10 @@ void Renderer2D::DrawRotatedQuad(const glm::vec3 &position,
   DrawQuad(transform, texture, tilingFactor, tintColor);
 }
 
-void Renderer2D::DrawCircle(const glm::vec2 &center, float radius,
+void Renderer2D::DrawCircle(const glm::vec3 &center, float radius,
                             const glm::vec4 &color, int entityID, float order) {
   glm::mat4 transform =
-      glm::translate(glm::mat4(1.0f), {center.x, center.y, 0.0f}) *
+      glm::translate(glm::mat4(1.0f), center) *
       glm::scale(glm::mat4(1.0f), {radius * 2.0f, radius * 2.0f, 1.0f});
 
   DrawQuad(transform, color, entityID, 1);

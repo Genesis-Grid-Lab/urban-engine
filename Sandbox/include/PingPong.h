@@ -16,10 +16,25 @@ public:
   virtual void OnImGuiRender() override;
 
 private:
+  void BallLogic();
+  void PlayerLogic();
+  void CpuLogic();  
+
+private:
   Ref<RuntimeScene> m_RuntimeScene;
+  Ref<RuntimeScene> m_MainMenu;
   
   Entity Camera;
-  Entity Player, Cpu, Ball;
+  Entity Player, Cpu, Ball, backPlayer;
+
+  int Player_score = 0;
+  int Cpu_score = 0;
+  bool Game_started = false;
+  bool Game_over = false;
+
+  glm::vec2 ball_speed;
+  int player_speed;
+  int cpu_speed;
 
   glm::vec4 yellow = {0.9529f, 0.8353f, 0.3569f, 1.0f};
   glm::vec4 Light_green = {0.5059f, 0.8000f, 0.7216f, 1.0f};

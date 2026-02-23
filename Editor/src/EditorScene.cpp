@@ -92,7 +92,7 @@ void EditorScene::OnUpdate(Timestep ts) {
 
   GroupEntity<CircleComponent>([this](auto entity, auto &comp, auto &transform,
                                       auto id) {
-    Renderer2D::DrawCircle({transform.Translation.x, transform.Translation.y},
+    Renderer2D::DrawCircle(transform.Translation,
                            comp.Radius, comp.Color, entity, 1);
   });
 

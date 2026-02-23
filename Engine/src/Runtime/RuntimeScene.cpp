@@ -97,7 +97,7 @@ void RuntimeScene::OnUpdate(Timestep ts) {
   m_Framebuffer->Bind();
   // Clear our entity ID attachment to -1
   m_Framebuffer->ClearAttachment(1, -1);
-  RenderCommand::SetClearColor({0.1f, 0.1f, 0.1f, 1});
+  RenderCommand::SetClearColor(m_ClearColor);
   RenderCommand::Clear();
 
   // Update scripts
@@ -190,7 +190,7 @@ void RuntimeScene::OnUpdate(Timestep ts) {
   GroupEntity<CircleComponent>([this](auto entity, auto &comp, auto &transform,
                                       auto id) {
     UE_CORE_TRACE("entity: {}, id: {}", (uint32_t)entity, (uint32_t)id);
-    Renderer2D::DrawCircle({transform.Translation.x, transform.Translation.y},
+    Renderer2D::DrawCircle(transform.Translation,
                            comp.Radius, comp.Color, entity, 1);
   });
 

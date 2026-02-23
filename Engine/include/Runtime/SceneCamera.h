@@ -20,6 +20,7 @@ public:
 
   void SetPerspective(float verticalFOV, float nearClip, float farClip);
   void SetOrthographic(float size, float nearClip, float farClip);
+  void SetOrthographic(float left, float right, float bottom, float top);
 
   void SetViewportSize(uint32_t width, uint32_t height);
 

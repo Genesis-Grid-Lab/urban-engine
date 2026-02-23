@@ -49,7 +49,7 @@ public:
                               float tilingFactor = 1.0f,
                               const glm::vec4 &tintColor = glm::vec4(1.0f));
 
-  static void DrawCircle(const glm::vec2 &center, float radius,
+  static void DrawCircle(const glm::vec3 &center, float radius,
                          const glm::vec4 &color, int entityID, float order);
 
   static void DrawLine(const glm::vec2 &p0, const glm::vec2 &p1,

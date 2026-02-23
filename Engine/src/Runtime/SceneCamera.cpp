@@ -26,6 +26,14 @@ void SceneCamera::SetOrthographic(float size, float nearClip, float farClip) {
   RecalculateProjection();
 }
 
+void SceneCamera::SetOrthographic(float left, float right, float bottom, float top){
+  UE_PROFILE_FUNCTION();
+  m_ProjectionType = ProjectionType::Orthographic;
+   m_ProjectionMatrix = glm::ortho(left, right, bottom, top, -10.0f, 10.0f);
+    m_ViewMatrix = glm::mat4(1.0f);
+    m_ViewProjectionMatrix = m_ProjectionMatrix * m_ViewMatrix;
+}
+
 void SceneCamera::SetViewportSize(uint32_t width, uint32_t height) {
   UE_PROFILE_FUNCTION();
   UE_CORE_ASSERT(width > 0 && height > 0);
