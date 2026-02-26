@@ -187,12 +187,12 @@ void RuntimeScene::OnUpdate(Timestep ts) {
     // Renderer2D::DrawSprite(transform.GetTransform(), sprite, (int)entity);
   }
 
-  GroupEntity<CircleComponent>([this](auto entity, auto &comp, auto &transform,
-                                      auto id) {
-    UE_CORE_TRACE("entity: {}, id: {}", (uint32_t)entity, (uint32_t)id);
-    Renderer2D::DrawCircle(transform.Translation,
-                           comp.Radius, comp.Color, entity, 1);
-  });
+  GroupEntity<CircleComponent>(
+      [this](auto entity, auto &comp, auto &transform, auto id) {
+        UE_CORE_TRACE("entity: {}, id: {}", (uint32_t)entity, (uint32_t)id);
+        Renderer2D::DrawCircle(transform.Translation, comp.Radius, comp.Color,
+                               entity, 1);
+      });
 
   GroupEntity<RectangleComponent>(
       [this](auto entity, auto &comp, auto &transform, auto id) {

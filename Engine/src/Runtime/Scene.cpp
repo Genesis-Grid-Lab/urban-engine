@@ -56,6 +56,9 @@ Ref<RuntimeScene> Scene::Copy(const Ref<Scene> &other) {
     const auto &name = srcSceneRegistry.get<TagComponent>(e).Tag;
     Entity newEntity = newScene->CreateEntityWithUUID(uuid, name);
     enttMap[uuid] = (entt::entity)newEntity;
+    auto &srcT = srcSceneRegistry.get<TransformComponent>(e);
+    auto &dstT =
+        dstSceneRegistry.get<TransformComponent>((entt::entity)newEntity);
   }
 
   // Copy components (except IDComponent and TagComponent)

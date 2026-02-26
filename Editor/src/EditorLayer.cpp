@@ -46,8 +46,8 @@ void EditorLayer::OnAttach() {
   auto camEntt = m_EditorScene->CreateEntity("Cam");
   auto &sceneCam = camEntt.AddComponent<CameraComponent>();
   auto &camTC = camEntt.GetComponent<TransformComponent>();
-  sceneCam.Primary = true;  
-  // camTC.Translation = {0.0f, 2.7f, 5.5f};
+  sceneCam.Primary = true;
+  camTC.Translation = {0.0f, 2.7f, 5.5f};
   // camTC.Rotation = {0,0,0};
 
   class CameraController : public ScriptableEntity {
@@ -57,12 +57,12 @@ void EditorLayer::OnAttach() {
     virtual void OnDestroy() override {}
 
     virtual void OnUpdate(Timestep ts) override {
-      auto &translation = GetComponent<TransformComponent>().Translation;
+      // auto &translation = GetComponent<TransformComponent>().Translation;
 
-      float speed = 0.5f;
+      // float speed = 0.5f;
 
-      translation.x += speed;
-      UE_TRACE("speed {}", translation.x);
+      // translation.x += speed;
+      // UE_TRACE("speed {}", translation.x);
     }
   };
 
@@ -112,7 +112,7 @@ void EditorLayer::OnAttach() {
   manModel.AnimationData["run"] = runAnim;
   manModel.AnimationData["jump"] = jumpAnim;
 
-  manEntt.AddComponent<NativeScriptComponent>().Bind<PlayerController>();
+  // manEntt.AddComponent<NativeScriptComponent>().Bind<PlayerController>();
 
   // auto& castleEntt = m_EditorScene->CreateEntity("Castle");
   // castleEntt.AddComponent<ModelComponent>().ModelData = castle;
@@ -150,9 +150,6 @@ void EditorLayer::OnUpdate(Timestep ts) {
     UE_PROFILE_SCOPE("Scene::Update");
     switch (m_SceneState) {
     case SceneState::Edit: {
-      // m_EditorScene->OnUpdateRuntime(ts, mouseX, mouseY, viewportSize);
-      // m_EditorScene->OnUpdateEditor(ts, m_EditorCamera, mouseX, mouseY,
-      // viewportSize); if(m_ViewportFocused && m_ViewportHovered)
 
       m_EditorScene->ReadPixelEntity(mouseX, mouseY, viewportSize);
 
@@ -164,6 +161,16 @@ void EditorLayer::OnUpdate(Timestep ts) {
       break;
     }
     case SceneState::Play: {
+      Application::Get().GetSceneManager().GetActiveScene()->ReadPixelEntity(
+          mouseX, mouseY, viewportSize);
+
+      if (m_ViewportFocused && m_ViewportHovered)
+        Application::Get().GetSceneManager().GetActiveScene()->OnMouseInput(
+            Input::GetMouseX(), Input::GetMouseY(),
+            Input::IsMouseButtonPressed(0), ts);
+
+      Application::Get().GetSceneManager().GetActiveScene()->OnUpdate(ts);
+
       Application::Get().GetSceneManager().Update(ts);
       break;
     }
@@ -249,9 +256,18 @@ bool EditorLayer::OnKeyPressed(KeyPressedEvent &e) {
 bool EditorLayer::OnMouseButtonPressed(MouseButtonPressedEvent &e) {
   if (e.GetMouseButton() == Mouse::ButtonLeft) {
     if (m_ViewportHovered && !ImGuizmo::IsOver() &&
-        !Input::IsKeyPressed(Key::LeftAlt))
-      m_SceneHierarchyPanel.SetSelectedEntity(
-          m_EditorScene->GetHoveredEntity());
+        !Input::IsKeyPressed(Key::LeftAlt)) {
+      if (m_SceneState == SceneState::Edit) {
+        m_SceneHierarchyPanel.SetSelectedEntity(
+            m_EditorScene->GetHoveredEntity());
+      } else if (m_SceneState == SceneState::Play) {
+
+        m_SceneHierarchyPanel.SetSelectedEntity(Application::Get()
+                                                    .GetSceneManager()
+                                                    .GetActiveScene()
+                                                    ->GetHoveredEntity());
+      }
+    }
   }
   return false;
 }
@@ -412,8 +428,17 @@ void EditorLayer::OnImGuiRender() {
   ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
   m_ViewportSize = {viewportPanelSize.x, viewportPanelSize.y};
 
+  Ref<Scene> activeScene =
+      (m_SceneState == SceneState::Edit)
+          ? std::static_pointer_cast<Scene>(m_EditorScene)
+          : std::static_pointer_cast<Scene>(
+                Application::Get().GetSceneManager().GetActiveScene());
+
   ImTextureID textureID =
-      m_EditorScene->m_Framebuffer->GetColorAttachmentRendererID();
+      activeScene->m_Framebuffer->GetColorAttachmentRendererID();
+
+  // ImTextureID textureID =
+  //     m_EditorScene->m_Framebuffer->GetColorAttachmentRendererID();
   ImGui::Image(textureID, ImVec2{m_ViewportSize.x, m_ViewportSize.y},
                ImVec2{0, 1}, ImVec2{1, 0});
 
@@ -459,19 +484,22 @@ void EditorLayer::OnImGuiRender() {
 
     float snapValues[3] = {snapValue, snapValue, snapValue};
 
-    ImGuizmo::Manipulate(
-        glm::value_ptr(cameraView), glm::value_ptr(cameraProjection),
-        (ImGuizmo::OPERATION)m_GizmoType, ImGuizmo::LOCAL,
-        glm::value_ptr(transform), nullptr, snap ? snapValues : nullptr);
+    if (m_SceneState == SceneState::Edit) {
 
-    if (ImGuizmo::IsUsing()) {
-      glm::vec3 translation, rotation, scale;
-      Math::DecomposeTransform(transform, translation, rotation, scale);
+      ImGuizmo::Manipulate(
+          glm::value_ptr(cameraView), glm::value_ptr(cameraProjection),
+          (ImGuizmo::OPERATION)m_GizmoType, ImGuizmo::LOCAL,
+          glm::value_ptr(transform), nullptr, snap ? snapValues : nullptr);
 
-      glm::vec3 deltaRotation = rotation - tc.Rotation;
-      tc.Translation = translation;
-      tc.Rotation += deltaRotation;
-      tc.Scale = scale;
+      if (ImGuizmo::IsUsing()) {
+        glm::vec3 translation, rotation, scale;
+        Math::DecomposeTransform(transform, translation, rotation, scale);
+
+        glm::vec3 deltaRotation = rotation - tc.Rotation;
+        tc.Translation = translation;
+        tc.Rotation += deltaRotation;
+        tc.Scale = scale;
+      }
     }
   }
 

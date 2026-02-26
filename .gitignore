@@ -3,6 +3,8 @@ Build/
 build/
 .cache/
 
+.log
+
 compile_commands.json
 
 # Prerequisites
