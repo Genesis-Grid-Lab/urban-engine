@@ -1,6 +1,10 @@
 #pragma once
 
+#include "Animation/OzzAnimationAsset.h"
 #include "UUID.h"
+#include "ozz/animation/runtime/sampling_job.h"
+#include "ozz/base/maths/simd_math.h"
+#include "ozz/base/maths/soa_transform.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -95,7 +99,7 @@ struct NativeScriptComponent {
 
 struct ModelComponent {
   Ref<Model> ModelData;
-  std::map<std::string, Ref<Animation>> AnimationData;
+
   ModelComponent() = default;
   ModelComponent(const ModelComponent &) = default;
 };
@@ -142,6 +146,23 @@ struct LineComponent {
   float Order = -1;
   LineComponent() = default;
   LineComponent(const LineComponent &) = default;
+};
+
+// Animation 3D
+struct AnimatorComponent {
+  Ref<OzzSkeleton> Skeleton;
+  Ref<OzzAnimationClip> CurrentAnimation;
+
+  float Time = 0.0f;
+  bool Loop = true;
+
+  ozz::animation::SamplingJob::Context Context;
+
+  std::vector<ozz::math::SoaTransform> LocalTransform;
+  std::vector<ozz::math::Float4x4> ModelMatrices;
+
+  AnimatorComponent() = default;
+  AnimatorComponent(const AnimatorComponent &) = default;
 };
 
 // physics 3d

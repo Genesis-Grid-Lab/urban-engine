@@ -108,9 +108,6 @@ void EditorLayer::OnAttach() {
   manTC.Rotation = {0, glm::radians(180.0f), 0};
   auto &manModel = manEntt.AddComponent<ModelComponent>();
   manModel.ModelData = Man;
-  manModel.AnimationData["idle"] = ManAnim;
-  manModel.AnimationData["run"] = runAnim;
-  manModel.AnimationData["jump"] = jumpAnim;
 
   // manEntt.AddComponent<NativeScriptComponent>().Bind<PlayerController>();
 

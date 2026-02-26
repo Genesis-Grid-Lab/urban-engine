@@ -46,7 +46,7 @@ public:
 
     // Optional: animation data (if present)
     auto &model = GetComponent<ModelComponent>().ModelData;
-    auto &modelAnim = GetComponent<ModelComponent>().AnimationData;
+    // auto &modelAnim = GetComponent<ModelComponent>().AnimationData;
 
     const float dt = (float)ts;
     const bool rmb = Input::IsMouseButtonPressed(Mouse::ButtonRight);

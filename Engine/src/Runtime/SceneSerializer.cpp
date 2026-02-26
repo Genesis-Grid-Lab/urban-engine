@@ -105,19 +105,11 @@ static void SerializeEntity(YAML::Emitter &out, Entity entity) {
 
     auto &modelComponent = entity.GetComponent<ModelComponent>();
     auto &model = modelComponent.ModelData;
-    auto &modelAnimation = modelComponent.AnimationData;
 
     out << YAML::Key << "Model" << YAML::Value;
     out << YAML::BeginMap; // Model
     out << YAML::Key << "Path" << YAML::Value << model->m_Path;
     out << YAML::EndMap; // Model
-
-    // if(modelAnimation){
-    // 	out << YAML::Key << "ModelAnimation" << YAML::Value;
-    // 	out << YAML::BeginMap; // ModelAnimation
-    // 	// out << YAML::Key << "Path" << YAML::Value << modelAnimation->m_Path;
-    // 	out << YAML::EndMap; // ModelAnimation
-    // }
 
     out << YAML::EndMap; // ModelComponent
   }
