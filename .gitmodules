@@ -1,0 +1,3 @@
+[submodule "vendor/ozz"]
+	path = vendor/ozz
+	url = https://github.com/guillaumeblanc/ozz-animation.git
