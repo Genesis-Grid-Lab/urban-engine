@@ -1,4 +1,5 @@
 #include "EditorScene.h"
+#include "Animation/AnimationSystem.h"
 #include "Renderer2D.h"
 
 EditorScene::EditorScene(uint32_t width, uint32_t height) {
@@ -27,6 +28,8 @@ void EditorScene::OnUpdate(Timestep ts) {
   RenderCommand::SetClearColor({0.1f, 0.1f, 0.1f, 1});
   RenderCommand::Clear();
 
+  AnimationSystem::Update(this, ts);
+
   Renderer3D::BeginCamera(m_EditorCamera);
   GroupEntity<SkyboxComponent>(
       [this](auto entity, auto &comp, auto &transform, auto id) {
@@ -40,8 +43,15 @@ void EditorScene::OnUpdate(Timestep ts) {
 
   GroupEntity<ModelComponent>(
       [this](auto entity, auto &comp, auto &transform, auto id) {
-        Renderer3D::DrawModel(comp.ModelData, transform.GetTransform(),
-                              glm::vec3(1.0f), 1.0f, (int)id);
+        
+        std::vector<ozz::math::Float4x4>* bones = nullptr;
+
+        if(entity.template HasComponent<AnimatorComponent>()){
+          auto& animator = entity.template GetComponent<AnimatorComponent>();
+          bones = &animator.ModelMatrices;
+        }
+
+        Renderer3D::DrawModel(comp.ModelData, transform.GetTransform(), bones, (int)id);
       });
 
   GroupEntity<CubeComponent>([this](auto entity, auto &comp, auto &transform,

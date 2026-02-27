@@ -9,6 +9,7 @@
 // #include "Runtime/Components.h"
 #include "Renderer/Skybox.h"
 #include "Runtime/SceneCamera.h"
+#include "ozz/base/maths/simd_math.h"
 
 namespace UE {
 
@@ -23,14 +24,8 @@ public:
   static void RenderLight(const glm::vec3 &pos, const glm::vec4 &color);
 
   static void DrawSkybox(const Ref<Skybox> skybox, const Camera &camera);
-
-  static void DrawModel(const Ref<Model> &model, const glm::mat4 &transform,
-                        const glm::vec3 &color = glm::vec3(1),
-                        const float transparancy = 1.0f, int entityID = -1);
-  static void DrawModel(const Ref<Model> &model, const glm::vec3 &position,
-                        const glm::vec3 &size = glm::vec3(1.0f),
-                        const glm::vec3 &color = glm::vec3(1),
-                        const float transparancy = 1.0f);
+  
+  static void DrawModel(const Ref<Model> &model, const glm::mat4& transform, const std::vector<ozz::math::Float4x4>* bones, int entityID);
 
   static void DrawCube(const glm::mat4 &transform,
                        const glm::vec3 &color = glm::vec3(1),
@@ -59,8 +54,6 @@ public:
   static void DrawCameraFrustum(const SceneCamera &cam);
 
   static Ref<Mesh> GetCubeMesh();
-
-  static void RunAnimation(Ref<Animation> animation, float ts);
 
   static Ref<Shader> &GetShader();
 

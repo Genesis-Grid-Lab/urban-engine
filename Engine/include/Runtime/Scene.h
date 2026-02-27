@@ -1,6 +1,5 @@
 #pragma once
 
-#include "Auxiliaries/Physics.h"
 #include "Components.h"
 #include "Config.h"
 #include "Renderer/Camera.h"

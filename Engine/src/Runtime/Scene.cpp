@@ -34,9 +34,7 @@ static void CopyComponentIfExists(Entity dst, Entity src) {
 
 Ref<RuntimeScene> Scene::Copy(const Ref<Scene> &other) {
   UE_CORE_INFO("[COPY]: scene={}", (const void *)&other);
-  // UE_CORE_INFO("[COPY]: scene={}");
-  // Ref<Scene> newScene = CreateRef<Scene>(other->m_ViewportWidth,
-  // other->m_ViewportHeight);
+  
   Ref<RuntimeScene> newScene = CreateRef<RuntimeScene>();
 
   //   newScene->ShowBoxes = other->ShowBoxes;
@@ -282,4 +280,7 @@ void Scene::OnComponentAdded<RectangleComponent>(
 template <>
 void Scene::OnComponentAdded<LineComponent>(Entity entity,
                                             LineComponent &component) {}
+
+template <>
+void Scene::OnComponentAdded<AnimatorComponent>(Entity entity, AnimatorComponent &component){}                                            
 } // namespace UE

@@ -38,22 +38,34 @@ void main()
     vs_out.TexCoords = a_TexCoord;
     // v_EntityID = a_EntityID;
     v_EntityID = u_EntityID;
+
+    vec4 skinnedPosition = vec4(0.0);
+    vec3 skinnedNormal = vec3(0.0);
+
+    for(int i = 0; i < MAX_BONE_INFLUENCE; i++)
+    {
+        if(a_BoneIds[i] < 0) continue;
+        if(a_BoneIds[i] >= MAX_BONES) break;
+
+        mat4 boneMatrix = u_FinalBonesMatrices[a_BoneIds[i]];
+
+        skinnedPosition += boneMatrix * vec4(a_Position, 1.0) * a_Weights[i];
+        skinnedNormal += mat3(boneMatrix) * a_Normal * a_Weights[i];
+    }
+
+    if (length(skinnedPosition.xyz) < 0.0001)
+    {
+        skinnedPosition = vec4(a_Position, 1.0);
+        skinnedNormal = a_Normal;
+    }
+
+    vec4 worldPos = u_Model * skinnedPosition;
+
+    vs_out.FragPos = worldPos.xyz;
     
-    // vec3 skinnedNormal = vec3(0.0);
-    // vec3 skinnedTangent = vec3(0.0);
-    // for(int i = 0; i < MAX_BONE_INFLUENCE; i++)
-    // {
-    //     if (a_BoneIds[i] == -1) continue;
-    //     if (a_BoneIds[i] >= MAX_BONES) break;
-    //     mat4 boneMatrix = u_FinalBonesMatrices[a_BoneIds[i]];
-    //     skinnedNormal += mat3(boneMatrix) * a_Normal * a_Weights[i];
-    //     skinnedTangent += mat3(boneMatrix) * a_Tangent * a_Weights[i];
-    // }
-    // vec3 N = normalize(skinnedNormal);
-    // vec3 T = normalize(skinnedTangent - dot(skinnedTangent, N) * N);
     mat3 normalMatrix = transpose(inverse(mat3(u_Model)));
-    vec3 T = normalize(normalMatrix * a_Tangent);
-    vec3 N = normalize(normalMatrix * a_Normal);
+    vec3 N = normalize(normalMatrix * skinnedNormal);
+    vec3 T = normalize(normalMatrix * a_Tangent);    
     T = normalize(T - dot(T, N) * N);
     vec3 B = cross(N, T);
     
@@ -61,26 +73,9 @@ void main()
     vs_out.TangentLightPos = TBN * u_LightPos;
     vs_out.TangentViewPos  = TBN * u_ViewPos;
     vs_out.TangentFragPos  = TBN * vs_out.FragPos;
-
-     vec4 totalPosition = vec4(0.0f);
-    for(int i = 0 ; i < MAX_BONE_INFLUENCE ; i++)
-    {
-        if(a_BoneIds[i] == -1) 
-            continue;
-        if(a_BoneIds[i] >=MAX_BONES) 
-        {
-            totalPosition = vec4(a_Position,1.0f);
-            break;
-        }
-        vec4 localPosition = u_FinalBonesMatrices[a_BoneIds[i]] * vec4(a_Position,1.0f);
-        totalPosition += localPosition * a_Weights[i];
-        vec3 localNormal = mat3(u_FinalBonesMatrices[a_BoneIds[i]]) * a_Normal;
-   }
-
-    if (length(totalPosition.xyz) < 0.001)
-        totalPosition = vec4(a_Position, 1.0);
         
-    gl_Position = u_Projection * u_View * u_Model * totalPosition;
+    //gl_Position = u_Projection * u_View * u_Model * totalPosition;
+    gl_Position = u_Projection * u_View * worldPos;
 }
 
 #type fragment

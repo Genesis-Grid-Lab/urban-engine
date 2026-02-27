@@ -144,8 +144,15 @@ void RuntimeScene::OnUpdate(Timestep ts) {
 
   GroupEntity<ModelComponent>(
       [this](auto entity, auto &comp, auto &transform, auto id) {
-        Renderer3D::DrawModel(comp.ModelData, transform.GetTransform(),
-                              glm::vec3(1.0f), (int)id);
+        
+        std::vector<ozz::math::Float4x4>* bones = nullptr;
+
+        if(entity.template HasComponent<AnimatorComponent>()){
+          auto& animator = entity.template GetComponent<AnimatorComponent>();
+          bones = &animator.ModelMatrices;
+        }
+
+        Renderer3D::DrawModel(comp.ModelData, transform.GetTransform(), bones, (int)id);
       });
 
   auto CubeGroup =

@@ -10,7 +10,6 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 #define GLM_ENABLE_EXPERIMENTAL
-#include "Auxiliaries/Physics.h"
 #include "Config.h"
 #include "Renderer/Animation/Animation.h"
 #include "Renderer/Camera.h"
@@ -160,6 +159,15 @@ struct AnimatorComponent {
 
   std::vector<ozz::math::SoaTransform> LocalTransform;
   std::vector<ozz::math::Float4x4> ModelMatrices;
+
+  void Init() {
+    int numSoaJoints = Skeleton->Skeleton.num_soa_joints();
+    LocalTransform.resize(numSoaJoints);
+
+    Context.Resize(Skeleton->Skeleton.num_joints());
+
+    ModelMatrices.resize(Skeleton->Skeleton.num_joints());
+  }
 
   AnimatorComponent() = default;
   AnimatorComponent(const AnimatorComponent &) = default;

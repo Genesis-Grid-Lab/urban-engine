@@ -55,6 +55,7 @@ add_subdirectory(vendor/ImGuiFileDialog)
 set(ozz_build_samples OFF)
 set(ozz_build_howtos OFF)
 set(ozz_build_tests OFF)
+set(ozz_build_fbx ON)
 add_subdirectory(vendor/ozz)
 
 add_subdirectory(Engine)

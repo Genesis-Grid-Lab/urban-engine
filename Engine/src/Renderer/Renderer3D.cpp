@@ -2,6 +2,8 @@
 #include "Renderer/Animation/Animator.h"
 #include "Renderer/RenderCommand.h"
 #include "uepch.h"
+#include <glm/gtc/type_ptr.hpp>
+#include <ozz/base/maths/simd_math.h>
 // #include "Core/Application.h"
 
 // temp
@@ -17,7 +19,6 @@ static glm::vec3 m_LightPos;
 static Ref<Model> m_LightModel;
 static Ref<Mesh> s_CubeMesh;
 static Ref<Mesh> s_SphereMesh;
-static Ref<Animator> s_Animator;
 
 // TODO: remove
 static GLuint lineVAO = 0, lineVBO = 0;
@@ -143,8 +144,6 @@ void Renderer3D::Init() {
   s_CubeMesh = GenerateCubeMesh();
   s_SphereMesh = GenerateSphereMesh();
 
-  s_Animator = CreateRef<Animator>();
-
   glGenVertexArrays(1, &lineVAO);
   glGenBuffers(1, &lineVBO);
   glBindVertexArray(lineVAO);
@@ -165,7 +164,6 @@ void Renderer3D::Shutdown() {
   m_LightModel.reset();
   s_CubeMesh.reset();
   s_SphereMesh.reset();
-  s_Animator.reset();
 }
 
 void Renderer3D::BeginCamera(const Camera &camera) {
@@ -212,40 +210,64 @@ void Renderer3D::DrawSkybox(const Ref<Skybox> skybox, const Camera &camera) {
                camera.GetProjectionMatrix());
 }
 
-void Renderer3D::DrawModel(const Ref<Model> &model, const glm::mat4 &transform,
-                           const glm::vec3 &color, const float transparancy,
-                           int entityID) {
-  UE_PROFILE_FUNCTION();
-  m_Shader->Bind();
-  m_Shader->SetFloat3("u_Color", color);
-  m_Shader->SetMat4("u_Model", transform);
-  m_Shader->SetFloat("u_Transparancy", 1.0f);
-  for (auto &mesh : model->GetMeshes()) {
-    for (auto &vertex : mesh->m_Vertices) {
-      vertex.EntityID = entityID;
-    }
-  }
-
-  m_Shader->SetInt("u_EntityID", entityID);
-  model->Draw(m_Shader);
-  m_Shader->Unbind();
-}
-
 void Renderer3D::SetEntity(int entityID) {
   m_Shader->Bind();
   m_Shader->SetInt("u_EntityID", entityID);
   m_Shader->Unbind();
 }
 
-void Renderer3D::DrawModel(const Ref<Model> &model, const glm::vec3 &position,
-                           const glm::vec3 &size, const glm::vec3 &color,
-                           const float transparancy) {
-  glm::mat4 imodel = glm::mat4(1.0f);
-  imodel = glm::translate(imodel, position);
-  imodel = glm::rotate(imodel, glm::radians(0.0f), glm::vec3(0, 1, 0));
-  imodel = glm::scale(imodel, size);
+void Renderer3D::DrawModel(const Ref<Model> &model, const glm::mat4& transform, const std::vector<ozz::math::Float4x4>* bones, int entityID){
+  UE_PROFILE_FUNCTION();
 
-  DrawModel(model, imodel, color, transparancy);
+    m_Shader->Bind();
+    m_Shader->SetMat4("u_Model", transform);
+    m_Shader->SetInt("u_EntityID", entityID);
+
+    // ---- Upload bones if available ----
+    if (bones && bones->size() > 0)
+    {
+        const int maxBones = 100;
+        int count = std::min((int)bones->size(), maxBones);
+
+        for (int i = 0; i < count; i++)
+        {
+            // glm::mat4 mat = glm::make_mat4(&(*bones)[i].cols[0].x);
+            glm::mat4 mat(1.0f);
+
+            alignas(16) float tmp[16];
+
+            // Store 4 SIMD columns into memory
+            ozz::math::StorePtr(bones->at(i).cols[0], tmp + 0);
+            ozz::math::StorePtr(bones->at(i).cols[1], tmp + 4);
+            ozz::math::StorePtr(bones->at(i).cols[2], tmp + 8);
+            ozz::math::StorePtr(bones->at(i).cols[3], tmp + 12);
+
+            mat = glm::make_mat4(tmp);
+
+            std::string uniform =
+                "u_FinalBonesMatrices[" + std::to_string(i) + "]";
+
+            m_Shader->SetMat4(uniform, mat);
+        }
+    }
+    else
+    {
+        // Identity fallback
+        for (int i = 0; i < 100; i++)
+        {
+            std::string uniform =
+                "u_FinalBonesMatrices[" + std::to_string(i) + "]";
+
+            m_Shader->SetMat4(uniform, glm::mat4(1.0f));
+        }
+    }
+
+    m_ShaderSimple->SetFloat("u_Transparancy", 1.0f);
+    m_ShaderSimple->SetFloat3("u_Color", glm::vec3(1.0f));
+
+    model->Draw(m_Shader);
+
+    m_Shader->Unbind();
 }
 
 void Renderer3D::DrawCube(const glm::mat4 &transform, const glm::vec3 &color,
@@ -385,22 +407,4 @@ void Renderer3D::DrawCameraFrustum(const UE::SceneCamera &cam) {
   Renderer3D::DrawLine(nbl, fbl, color);
 }
 
-void Renderer3D::RunAnimation(Ref<Animation> animation, float ts) {
-  UE_PROFILE_FUNCTION();
-  m_Shader->Bind();
-  if (s_Animator->GetCurrentAnimation() != animation) {
-    s_Animator->PlayAnimation(animation);
-    UE_CORE_INFO("[renderer3d]: Running");
-  }
-
-  s_Animator->UpdateAnimation(ts);
-
-  auto finalBones = s_Animator->GetFinalBoneMatrices();
-  for (int i = 0; i < finalBones.size(); ++i) {
-    std::string uniformName = "u_FinalBonesMatrices[" + std::to_string(i) + "]";
-    m_Shader->SetMat4(uniformName, finalBones[i]);
-  }
-
-  m_Shader->Unbind();
-}
 } // namespace UE

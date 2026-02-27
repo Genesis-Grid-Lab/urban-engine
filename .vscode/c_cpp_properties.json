@@ -16,6 +16,7 @@
                 "${workspaceFolder}/vendor/ImGuizmo",
                 "${workspaceFolder}/vendor/ImGuiFileDialog",
                 "${workspaceFolder}/vendor/JoltPhysics",
+                "${workspaceFolder}/vendor/ozz/include",
                 "${workspaceFolder}/vendor/yaml-cpp/include"                                
             ],
             "configurationProvider": "ms-vscode.cmake-tools",

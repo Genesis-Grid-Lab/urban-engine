@@ -1,4 +1,5 @@
 #include "EditorLayer.h"
+#include "Animation/AnimationSystem.h"
 #include "Application.h"
 #include "Runtime/Components.h"
 #include "ScriptTest.h"
@@ -34,7 +35,7 @@ void EditorLayer::OnAttach() {
   // CreateRef<Model>("Resources/sponza2/source/glTF/Sponza.gltf");
   Ref<Model> sphere = CreateRef<Model>("Resources/sphere.fbx");
   Ref<Model> cube = CreateRef<Model>("Resources/cube.fbx");
-  Ref<Model> Man = CreateRef<Model>("Resources/Animations/Idle.fbx");
+  Ref<Model> Man = CreateRef<Model>("Resources/Animations/man/Sitting Laughing.gltf");
   Ref<Animation> ManAnim =
       CreateRef<Animation>("Resources/Animations/Idle.fbx", Man);
   Ref<Animation> runAnim =
@@ -108,6 +109,9 @@ void EditorLayer::OnAttach() {
   manTC.Rotation = {0, glm::radians(180.0f), 0};
   auto &manModel = manEntt.AddComponent<ModelComponent>();
   manModel.ModelData = Man;
+  auto& anim = manEntt.AddComponent<AnimatorComponent>();
+  anim.Skeleton = AnimationSystem::LoadSkeleton("Resources/Animations/man/skeleton.ozz");
+  anim.CurrentAnimation = AnimationSystem::LoadAnimation("Resources/Animations/man/mixamo.com.ozz");
 
   // manEntt.AddComponent<NativeScriptComponent>().Bind<PlayerController>();
 
