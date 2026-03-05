@@ -54,19 +54,38 @@ void RuntimeScene::OnRuntimeStart() {
       // nsc.Instance->m_BodyInterface = &body_interface;
     }
   });
+
+  Physics::Init();
+
+  auto view = m_Registry.view<RigidbodyComponent, BoxColliderComponent>();
+
+  for (auto entity : view) {
+    Physics::CreateBody(entity, this);
+  }
+
+  GroupEntity<BoxColliderComponent>(
+      [this](auto entity, auto &comp, auto &transform, auto id) {
+        // UE_CORE_TRACE("[runtime] ");
+      });
 }
 
 // ------------------------------
 // Scene::OnRuntimeStop
 // ------------------------------
 
-void RuntimeScene::OnRuntimeStop() { UE_PROFILE_FUNCTION(); }
+void RuntimeScene::OnRuntimeStop() {
+  UE_PROFILE_FUNCTION();
+  Physics::Shutdown();
+}
 
 // ------------------------------
 // Scene::PhysicsUpdate
 // ------------------------------
 
-void RuntimeScene::PhysicsUpdate(float dt) { UE_PROFILE_FUNCTION(); }
+void RuntimeScene::PhysicsUpdate(float dt) {
+  UE_PROFILE_FUNCTION();
+  Physics::Step(this, dt);
+}
 
 void RuntimeScene::FindPrimaryCamera() {
   auto view = m_Registry.view<CameraComponent>();
@@ -144,15 +163,15 @@ void RuntimeScene::OnUpdate(Timestep ts) {
 
   GroupEntity<ModelComponent>(
       [this](auto entity, auto &comp, auto &transform, auto id) {
-        
-        std::vector<ozz::math::Float4x4>* bones = nullptr;
+        std::vector<ozz::math::Float4x4> *bones = nullptr;
 
-        if(entity.template HasComponent<AnimatorComponent>()){
-          auto& animator = entity.template GetComponent<AnimatorComponent>();
+        if (entity.template HasComponent<AnimatorComponent>()) {
+          auto &animator = entity.template GetComponent<AnimatorComponent>();
           bones = &animator.ModelMatrices;
         }
 
-        Renderer3D::DrawModel(comp.ModelData, transform.GetTransform(), bones, (int)id);
+        Renderer3D::DrawModel(comp.ModelData, transform.GetTransform(), bones,
+                              (int)id);
       });
 
   auto CubeGroup =

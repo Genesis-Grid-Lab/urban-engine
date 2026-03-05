@@ -1,6 +1,7 @@
 #include "Renderer/Renderer3D.h"
-#include "Renderer/Animation/Animator.h"
 #include "Renderer/RenderCommand.h"
+#include "Shader.h"
+#include "glm/fwd.hpp"
 #include "uepch.h"
 #include <glm/gtc/type_ptr.hpp>
 #include <ozz/base/maths/simd_math.h>
@@ -13,6 +14,7 @@
 namespace UE {
 static Ref<Shader> m_Shader;
 static Ref<Shader> m_ShaderSimple;
+static Ref<Shader> m_LineShader;
 static Ref<Shader> m_LightShader;
 static Ref<Shader> m_SkyShader;
 static glm::vec3 m_LightPos;
@@ -131,6 +133,7 @@ void Renderer3D::Init() {
 
   m_Shader = Shader::Create("Data/Shaders/model.glsl");
   m_ShaderSimple = Shader::Create("Data/Shaders/Simplemodel.glsl");
+  m_LineShader = Shader::Create("Data/Shaders/LineShader.glsl");
   m_LightShader = Shader::Create("Data/Shaders/BasicLight.glsl");
   m_SkyShader = Shader::Create("Data/Shaders/skybox.glsl");
   m_LightModel = CreateRef<Model>("Resources/cube.fbx");
@@ -159,6 +162,7 @@ void Renderer3D::Shutdown() {
   UE_PROFILE_FUNCTION();
   m_Shader.reset();
   m_ShaderSimple.reset();
+  m_LineShader.reset();
   m_LightShader.reset();
   m_SkyShader.reset();
   m_LightModel.reset();
@@ -184,6 +188,10 @@ void Renderer3D::BeginCamera(const Camera &camera) {
   m_ShaderSimple->SetFloat3("u_ViewPos", camera.GetPosition());
 
   m_ShaderSimple->SetFloat3("u_LightPos", m_LightPos);
+
+  m_LineShader->Bind();
+  m_LineShader->SetMat4("u_View", camera.GetViewMatrix());
+  m_LineShader->SetMat4("u_Projection", camera.GetProjectionMatrix());
 }
 
 void Renderer3D::EndCamera() { UE_PROFILE_FUNCTION(); }
@@ -216,58 +224,53 @@ void Renderer3D::SetEntity(int entityID) {
   m_Shader->Unbind();
 }
 
-void Renderer3D::DrawModel(const Ref<Model> &model, const glm::mat4& transform, const std::vector<ozz::math::Float4x4>* bones, int entityID){
+void Renderer3D::DrawModel(const Ref<Model> &model, const glm::mat4 &transform,
+                           const std::vector<ozz::math::Float4x4> *bones,
+                           int entityID) {
   UE_PROFILE_FUNCTION();
 
-    m_Shader->Bind();
-    m_Shader->SetMat4("u_Model", transform);
-    m_Shader->SetInt("u_EntityID", entityID);
+  m_Shader->Bind();
+  m_Shader->SetMat4("u_Model", transform);
+  m_Shader->SetInt("u_EntityID", entityID);
 
-    // ---- Upload bones if available ----
-    if (bones && bones->size() > 0)
-    {
-        const int maxBones = 100;
-        int count = std::min((int)bones->size(), maxBones);
+  // ---- Upload bones if available ----
+  if (bones && bones->size() > 0) {
+    const int maxBones = 100;
+    int count = std::min((int)bones->size(), maxBones);
 
-        for (int i = 0; i < count; i++)
-        {
-            // glm::mat4 mat = glm::make_mat4(&(*bones)[i].cols[0].x);
-            glm::mat4 mat(1.0f);
+    for (int i = 0; i < count; i++) {
+      // glm::mat4 mat = glm::make_mat4(&(*bones)[i].cols[0].x);
+      glm::mat4 mat(1.0f);
 
-            alignas(16) float tmp[16];
+      alignas(16) float tmp[16];
 
-            // Store 4 SIMD columns into memory
-            ozz::math::StorePtr(bones->at(i).cols[0], tmp + 0);
-            ozz::math::StorePtr(bones->at(i).cols[1], tmp + 4);
-            ozz::math::StorePtr(bones->at(i).cols[2], tmp + 8);
-            ozz::math::StorePtr(bones->at(i).cols[3], tmp + 12);
+      // Store 4 SIMD columns into memory
+      ozz::math::StorePtr(bones->at(i).cols[0], tmp + 0);
+      ozz::math::StorePtr(bones->at(i).cols[1], tmp + 4);
+      ozz::math::StorePtr(bones->at(i).cols[2], tmp + 8);
+      ozz::math::StorePtr(bones->at(i).cols[3], tmp + 12);
 
-            mat = glm::make_mat4(tmp);
+      mat = glm::make_mat4(tmp);
 
-            std::string uniform =
-                "u_FinalBonesMatrices[" + std::to_string(i) + "]";
+      std::string uniform = "u_FinalBonesMatrices[" + std::to_string(i) + "]";
 
-            m_Shader->SetMat4(uniform, mat);
-        }
+      m_Shader->SetMat4(uniform, mat);
     }
-    else
-    {
-        // Identity fallback
-        for (int i = 0; i < 100; i++)
-        {
-            std::string uniform =
-                "u_FinalBonesMatrices[" + std::to_string(i) + "]";
+  } else {
+    // Identity fallback
+    for (int i = 0; i < 100; i++) {
+      std::string uniform = "u_FinalBonesMatrices[" + std::to_string(i) + "]";
 
-            m_Shader->SetMat4(uniform, glm::mat4(1.0f));
-        }
+      m_Shader->SetMat4(uniform, glm::mat4(1.0f));
     }
+  }
 
-    m_ShaderSimple->SetFloat("u_Transparancy", 1.0f);
-    m_ShaderSimple->SetFloat3("u_Color", glm::vec3(1.0f));
+  m_ShaderSimple->SetFloat3("u_Color", glm::vec3(1.0f));
+  m_ShaderSimple->SetFloat("u_Transparancy", 1.0f);
 
-    model->Draw(m_Shader);
+  model->Draw(m_Shader);
 
-    m_Shader->Unbind();
+  m_Shader->Unbind();
 }
 
 void Renderer3D::DrawCube(const glm::mat4 &transform, const glm::vec3 &color,
@@ -339,21 +342,57 @@ void Renderer3D::DrawWireSphere(const glm::vec3 &position,
   glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 }
 
+void Renderer3D::DrawSkeleton(
+    const ozz::animation::Skeleton &skeleton,
+    const std::vector<ozz::math::Float4x4> &modelMatrices,
+    const glm::mat4 &modelTransform) {
+
+  UE_CORE_TRACE("joints: {}", skeleton.num_joints());
+  UE_CORE_TRACE("model matrices: {}", modelMatrices.size());
+  for (int i = 0; i < skeleton.num_joints(); i++) {
+    int parent = skeleton.joint_parents()[i];
+    if (parent < 0)
+      continue;
+
+    alignas(16) float childM[16];
+    alignas(16) float parentM[16];
+
+    ozz::math::StorePtr(modelMatrices[i].cols[0], childM + 0);
+    ozz::math::StorePtr(modelMatrices[i].cols[1], childM + 4);
+    ozz::math::StorePtr(modelMatrices[i].cols[2], childM + 8);
+    ozz::math::StorePtr(modelMatrices[i].cols[3], childM + 12);
+
+    ozz::math::StorePtr(modelMatrices[parent].cols[0], parentM + 0);
+    ozz::math::StorePtr(modelMatrices[parent].cols[1], parentM + 4);
+    ozz::math::StorePtr(modelMatrices[parent].cols[2], parentM + 8);
+    ozz::math::StorePtr(modelMatrices[parent].cols[3], parentM + 12);
+
+    glm::vec3 childPos = glm::vec3(glm::make_mat4(childM)[3]);
+    glm::vec3 parentPos = glm::vec3(glm::make_mat4(parentM)[3]);
+
+    childPos = glm::vec3(modelTransform * glm::vec4(childPos, 1));
+    parentPos = glm::vec3(modelTransform * glm::vec4(parentPos, 1));
+
+    DrawLine(parentPos, childPos, {1, 0, 0, 1});
+    Renderer3D::DrawSphere(childPos, 0.02f, {0, 1, 0});
+  }
+}
+
 void Renderer3D::DrawLine(const glm::vec3 &p0, const glm::vec3 &p1,
                           const glm::vec4 &color) {
   UE_PROFILE_FUNCTION();
   glm::vec3 points[2] = {p0, p1};
-  glBindBuffer(GL_ARRAY_BUFFER, lineVBO);
-  glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(points), points);
 
   glBindVertexArray(lineVAO);
 
-  m_ShaderSimple->Bind();
-  // m_ShaderSimple->SetMat4("u_Model", glm::mat4(1.0f));
-  m_ShaderSimple->SetFloat4("u_Color", color);
+  glBindBuffer(GL_ARRAY_BUFFER, lineVBO);
+  glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(points), points);
+
+  m_LineShader->Bind();
+  m_LineShader->SetFloat4("u_Color", color);
 
   glDrawArrays(GL_LINES, 0, 2);
-  glBindVertexArray(0);
+  // glBindVertexArray(0);
 }
 
 void Renderer3D::DrawCameraFrustum(const UE::SceneCamera &cam) {

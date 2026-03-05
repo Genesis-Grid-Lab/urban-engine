@@ -1,106 +1,74 @@
-#include "uepch.h"
-#include "Renderer/Animation/Animation.h"
-#include <assimp/Importer.hpp>
-#include <assimp/postprocess.h>
+
+#include "Animation/Animation.h"
+#include "AssimpToOzzBuilder.h"
+#include "Renderer/AssimpToGlm.h"
+#include "assimp/Importer.hpp"
+#include "assimp/anim.h"
+#include "assimp/postprocess.h"
 
 namespace UE {
+static float ToSecond(double t, double ticks) { return float(t / ticks); }
 
-    Animation::Animation(const std::string& animationPath, Ref<Model> model):m_AssimpAnimation(nullptr), m_Model(model),m_Path(animationPath){
-		UE_PROFILE_FUNCTION();
-        Assimp::Importer importer;
-		const aiScene* scene = importer.ReadFile(animationPath, aiProcess_Triangulate);
-        if(scene == nullptr){
-            UE_CORE_ERROR("Failed to load {}", animationPath);
-        }        
-        		
-		m_AssimpAnimation = scene->mAnimations[0];
-        for (int i = 0; i < m_AssimpAnimation->mNumChannels; i++) {
-            auto channel = m_AssimpAnimation->mChannels[i];
-            UE_CORE_INFO("Animation Channel: {}", channel->mNodeName.C_Str());
-        }  
-              
-		m_Duration = m_AssimpAnimation->mDuration;
-		m_TicksPerSecond = m_AssimpAnimation->mTicksPerSecond;
-        UE_CORE_INFO("Loaded animation: {} | Duration: {} | TicksPerSecond: {}", animationPath, m_Duration, m_TicksPerSecond);
-		// aiMatrix4x4 globalTransformation = scene->mRootNode->mTransformation;
-		// globalTransformation = globalTransformation.Inverse();
-		ReadHierarchyData(m_RootNode, scene->mRootNode);
-		// ReadMissingBones(animation, *model);        
-        if (m_Model) {
-            SetModel(m_Model); // safe call
-        } else {
-            UE_CORE_WARN("Animation constructed without model. Call SetModel(model) before playing.");
-        }
+void Animation::ProcessMesh(aiMesh *mesh, const aiScene *scene) {
+
+  auto &boneInfoMap = m_BoneInfoMap;
+  int &boneCount = m_BoneCounter;
+
+  for (int boneIndex = 0; boneIndex < mesh->mNumBones; ++boneIndex) {
+    int boneID = -1;
+    std::string boneName = mesh->mBones[boneIndex]->mName.C_Str();
+
+    if (boneInfoMap.find(boneName) == boneInfoMap.end()) {
+
+      BoneInfo newBoneInfo;
+      newBoneInfo.id = boneCount;
+      newBoneInfo.offset = AssimpGLMHelpers::ConvertMatrixToGLMFormat(
+          mesh->mBones[boneIndex]->mOffsetMatrix);
+      boneInfoMap[boneName] = newBoneInfo;
+      boneID = boneCount;
+      boneCount++;
+    } else {
+      boneID = boneInfoMap[boneName].id;
     }
-
-    void Animation::SetModel(Ref<Model> model) {
-		UE_PROFILE_FUNCTION();
-        if (!m_AssimpAnimation || m_Bones.size() > 0) {
-            UE_CORE_ERROR("Cannot bind model: No animation loaded.");
-            return;
-        }
-        if (!model) {
-            UE_CORE_ERROR("Cannot bind null model.");
-            return;
-        }
-
-        m_Model = model;        
-        ReadMissingBones(m_AssimpAnimation, m_Model);
-    }
-
-    Bone* Animation::FindBone(const std::string& name)
-	{
-		UE_PROFILE_FUNCTION();
-		auto iter = std::find_if(m_Bones.begin(), m_Bones.end(),
-			[&](const Bone& Bone)
-			{
-				return Bone.GetBoneName() == name;
-			}
-		);
-		if (iter == m_Bones.end()) return nullptr;
-		else return &(*iter);
-	}
-
-    void Animation::ReadMissingBones(const aiAnimation* animation, Ref<Model>& model)
-	{        
-		UE_PROFILE_FUNCTION();
-		int size = animation->mNumChannels;
-
-		auto& boneInfoMap = model->GetBoneInfoMap();//getting m_BoneInfoMap from Model class
-		int& boneCount = model->GetBoneCount(); //getting the m_BoneCounter from Model class
-
-		//reading channels(bones engaged in an animation and their keyframes)
-		for (int i = 0; i < size; i++)
-		{
-			auto channel = animation->mChannels[i];
-			std::string boneName = channel->mNodeName.data;
-
-			if (boneInfoMap.find(boneName) == boneInfoMap.end())
-			{
-				boneInfoMap[boneName].id = boneCount;
-				boneCount++;
-			}
-			m_Bones.push_back(Bone(channel->mNodeName.data,
-				boneInfoMap[channel->mNodeName.data].id, channel));
-		}
-
-		m_BoneInfoMap = boneInfoMap;
-	}
-
-    void Animation::ReadHierarchyData(AssimpNodeData& dest, const aiNode* src)
-	{
-		UE_PROFILE_FUNCTION();
-		assert(src);
-
-		dest.Name = src->mName.data;
-		dest.Transformation = AssimpGLMHelpers::ConvertMatrixToGLMFormat(src->mTransformation);
-		dest.ChildrenCount = src->mNumChildren;
-
-		for (int i = 0; i < src->mNumChildren; i++)
-		{
-			AssimpNodeData newData;
-			ReadHierarchyData(newData, src->mChildren[i]);
-			dest.Children.push_back(newData);
-		}
-	}
+    assert(boneID != -1);
+  }
 }
+
+void Animation::ProcessNode(aiNode *node, const aiScene *scene) {
+  UE_PROFILE_FUNCTION();
+  for (unsigned int i = 0; i < node->mNumMeshes; i++) {
+    aiMesh *mesh = scene->mMeshes[node->mMeshes[i]];
+    ProcessMesh(mesh, scene);
+  }
+
+  for (unsigned int i = 0; i < node->mNumChildren; i++) {
+    ProcessNode(node->mChildren[i], scene);
+  }
+}
+
+Animation::Animation(const std::string &path,
+                     const ozz::animation::Skeleton *skel) {
+
+  m_Skel = skel;
+  LoadFromFile(path);
+}
+
+void Animation::LoadFromFile(const std::string &path) {
+  Assimp::Importer importer;
+  importer.SetPropertyBool(AI_CONFIG_IMPORT_FBX_PRESERVE_PIVOTS, false);
+  const aiScene *scene = importer.ReadFile(
+      path, aiProcess_Triangulate | aiProcess_GenSmoothNormals |
+                aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
+  // error checking
+  if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE ||
+      !scene->mRootNode || !scene->HasAnimations()) {
+    UE_CORE_ERROR("Assimp Error: {0} {1}", importer.GetErrorString(), path);
+    return;
+  }
+
+  ProcessNode(scene->mRootNode, scene);
+  // Build skeleton from same file
+
+  m_Animation = AssimpAnimationBuilder::Build(scene, *m_Skel, 0);
+}
+} // namespace UE

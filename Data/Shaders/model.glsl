@@ -33,10 +33,8 @@ layout (location = 4) out flat int v_EntityID;
 uniform int u_EntityID;
 
 void main()
-{
-    vs_out.FragPos = vec3(u_Model * vec4(a_Position, 1.0));   
-    vs_out.TexCoords = a_TexCoord;
-    // v_EntityID = a_EntityID;
+{    
+    vs_out.TexCoords = a_TexCoord;    
     v_EntityID = u_EntityID;
 
     vec4 skinnedPosition = vec4(0.0);
@@ -59,6 +57,8 @@ void main()
         skinnedNormal = a_Normal;
     }
 
+    skinnedNormal = normalize(skinnedNormal);
+
     vec4 worldPos = u_Model * skinnedPosition;
 
     vs_out.FragPos = worldPos.xyz;
@@ -73,8 +73,7 @@ void main()
     vs_out.TangentLightPos = TBN * u_LightPos;
     vs_out.TangentViewPos  = TBN * u_ViewPos;
     vs_out.TangentFragPos  = TBN * vs_out.FragPos;
-        
-    //gl_Position = u_Projection * u_View * u_Model * totalPosition;
+            
     gl_Position = u_Projection * u_View * worldPos;
 }
 

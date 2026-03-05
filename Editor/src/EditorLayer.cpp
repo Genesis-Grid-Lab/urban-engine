@@ -35,13 +35,7 @@ void EditorLayer::OnAttach() {
   // CreateRef<Model>("Resources/sponza2/source/glTF/Sponza.gltf");
   Ref<Model> sphere = CreateRef<Model>("Resources/sphere.fbx");
   Ref<Model> cube = CreateRef<Model>("Resources/cube.fbx");
-  Ref<Model> Man = CreateRef<Model>("Resources/Animations/man/Sitting Laughing.gltf");
-  Ref<Animation> ManAnim =
-      CreateRef<Animation>("Resources/Animations/Idle.fbx", Man);
-  Ref<Animation> runAnim =
-      CreateRef<Animation>("Resources/Animations/Running.fbx", Man);
-  Ref<Animation> jumpAnim =
-      CreateRef<Animation>("Resources/Animations/Jump.fbx", Man);
+  Ref<Model> Man = CreateRef<Model>("Resources/Animations/Idle.fbx");
 
   console.AddLog("Creating entity");
   auto camEntt = m_EditorScene->CreateEntity("Cam");
@@ -101,6 +95,9 @@ void EditorLayer::OnAttach() {
   cubeEntt.AddComponent<ModelComponent>().ModelData = cube;
   auto &ctc = cubeEntt.GetComponent<TransformComponent>();
   ctc.Translation = {-1.0f, 2.0f, 2.0f};
+  cubeEntt.AddComponent<RigidbodyComponent>().Type =
+      RigidbodyComponent::BodyType::Dynamic;
+  cubeEntt.AddComponent<BoxColliderComponent>();
 
   auto manEntt = m_EditorScene->CreateEntity("Man");
   auto &manTC = manEntt.GetComponent<TransformComponent>();
@@ -109,9 +106,9 @@ void EditorLayer::OnAttach() {
   manTC.Rotation = {0, glm::radians(180.0f), 0};
   auto &manModel = manEntt.AddComponent<ModelComponent>();
   manModel.ModelData = Man;
-  auto& anim = manEntt.AddComponent<AnimatorComponent>();
-  anim.Skeleton = AnimationSystem::LoadSkeleton("Resources/Animations/man/skeleton.ozz");
-  anim.CurrentAnimation = AnimationSystem::LoadAnimation("Resources/Animations/man/mixamo.com.ozz");
+  // auto &anim = manEntt.AddComponent<AnimatorComponent>();
+  // anim.InitFromModel(Man.get());
+  // anim.Play(Animation("Resources/Animations/Idle.fbx", Man->GetSkeleton()));
 
   // manEntt.AddComponent<NativeScriptComponent>().Bind<PlayerController>();
 

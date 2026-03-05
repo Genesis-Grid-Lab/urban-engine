@@ -34,7 +34,7 @@ static void CopyComponentIfExists(Entity dst, Entity src) {
 
 Ref<RuntimeScene> Scene::Copy(const Ref<Scene> &other) {
   UE_CORE_INFO("[COPY]: scene={}", (const void *)&other);
-  
+
   Ref<RuntimeScene> newScene = CreateRef<RuntimeScene>();
 
   //   newScene->ShowBoxes = other->ShowBoxes;
@@ -75,6 +75,10 @@ Ref<RuntimeScene> Scene::Copy(const Ref<Scene> &other) {
   CopyComponent<LineComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
   CopyComponent<LightComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
   CopyComponent<SkyboxComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
+  CopyComponent<RigidbodyComponent>(dstSceneRegistry, srcSceneRegistry,
+                                    enttMap);
+  CopyComponent<BoxColliderComponent>(dstSceneRegistry, srcSceneRegistry,
+                                      enttMap);
 
   return newScene;
   // return nullptr;
@@ -282,5 +286,14 @@ void Scene::OnComponentAdded<LineComponent>(Entity entity,
                                             LineComponent &component) {}
 
 template <>
-void Scene::OnComponentAdded<AnimatorComponent>(Entity entity, AnimatorComponent &component){}                                            
+void Scene::OnComponentAdded<AnimatorComponent>(Entity entity,
+                                                AnimatorComponent &component) {}
+
+template <>
+void Scene::OnComponentAdded<BoxColliderComponent>(
+    Entity entity, BoxColliderComponent &component) {}
+
+template <>
+void Scene::OnComponentAdded<RigidbodyComponent>(
+    Entity entity, RigidbodyComponent &component) {}
 } // namespace UE

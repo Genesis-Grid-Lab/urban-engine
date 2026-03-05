@@ -1,17 +1,18 @@
 #pragma once
 
-#include "Animation/OzzAnimationAsset.h"
+#include "Animation/Animation.h"
+#include "Log.h"
 #include "UUID.h"
 #include "ozz/animation/runtime/sampling_job.h"
 #include "ozz/base/maths/simd_math.h"
-#include "ozz/base/maths/soa_transform.h"
+#include <ozz/base/maths/soa_float4x4.h>
+#include <ozz/base/maths/soa_transform.h>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include "Config.h"
-#include "Renderer/Animation/Animation.h"
 #include "Renderer/Camera.h"
 #include "Renderer/Font.h"
 #include "Renderer/Model.h"
@@ -149,31 +150,83 @@ struct LineComponent {
 
 // Animation 3D
 struct AnimatorComponent {
-  Ref<OzzSkeleton> Skeleton;
-  Ref<OzzAnimationClip> CurrentAnimation;
 
+  Model *ModelRef = nullptr;
+  Animation CurrentAnimation;
+
+  // Playback
   float Time = 0.0f;
   bool Loop = true;
 
-  ozz::animation::SamplingJob::Context Context;
+  // Ozz Runtime Buffers
+  ozz::unique_ptr<ozz::animation::SamplingJob::Context> Context;
+  // ozz::animation::SamplingJob::Context Context;
 
-  std::vector<ozz::math::SoaTransform> LocalTransform;
+  std::vector<ozz::math::SoaTransform> LocalTransforms;
   std::vector<ozz::math::Float4x4> ModelMatrices;
+  std::vector<ozz::math::Float4x4> FinalMatrices;
 
-  void Init() {
-    int numSoaJoints = Skeleton->Skeleton.num_soa_joints();
-    LocalTransform.resize(numSoaJoints);
+  void InitFromModel(Model *model) {
+    ModelRef = model;
 
-    Context.Resize(Skeleton->Skeleton.num_joints());
+    int joints = model->GetSkeleton()->num_joints();
+    ModelMatrices.resize(joints);
+    FinalMatrices.resize(joints);
+  }
 
-    ModelMatrices.resize(Skeleton->Skeleton.num_joints());
+  void Play(Animation &&animation) {
+    CurrentAnimation = std::move(animation);
+    Time = 0.0f;
+
+    auto *anim = CurrentAnimation.Get();
+
+    int soaTracks = anim->num_soa_tracks();
+    int joints = ModelRef->GetSkeleton()->num_joints();
+
+    if (anim->num_tracks() != joints) {
+      UE_CORE_ERROR("anim->num_tracks() != joints");
+    }
+
+    LocalTransforms.resize(soaTracks);
+    ModelMatrices.resize(joints);
+    FinalMatrices.resize(joints);
+
+    Context = ozz::make_unique<ozz::animation::SamplingJob::Context>(joints);
+    // Context.Resize(joints);
+
+    UE_CORE_WARN("Animation SoA tracks: {}", soaTracks);
+    UE_CORE_WARN("LocalTransforms size: {}", LocalTransforms.size());
   }
 
   AnimatorComponent() = default;
-  AnimatorComponent(const AnimatorComponent &) = default;
+  // AnimatorComponent(const AnimatorComponent &) = default;
 };
 
 // physics 3d
+
+struct BoxColliderComponent {
+  glm::vec3 HalfSize = {0.5f, 0.5f, 0.5f};
+
+  float Friction = 0.5f;
+  float Restitution = 0.0f;
+
+  bool IsTrigger = false;
+};
+
+struct RigidbodyComponent {
+  enum class BodyType { Static = 0, Dynamic, Kinematic };
+
+  BodyType Type = BodyType::Static;
+
+  float Mass = 1.0f;
+  float LinearDamping = 0.0f;
+  float AngularDamping = 0.05f;
+
+  bool UseGravity = true;
+
+  int32_t BodyID;
+  bool RuntimeCreated = false;
+};
 
 /// UI
 struct UIElement {

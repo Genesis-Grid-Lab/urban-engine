@@ -1,6 +1,4 @@
 #pragma once
-#include "Auxiliaries/Physics.h"
-#include "Components.h"
 #include "Entity.h"
 #include "Scene.h"
 #include "Timestep.h"
@@ -18,13 +16,11 @@ public:
   void PhysicsUpdate(float dt);
   virtual void OnUpdate(Timestep ts) override;
 
-  void ClearColor(const glm::vec4& color) { m_ClearColor = color;}
+  void ClearColor(const glm::vec4 &color) { m_ClearColor = color; }
 
-  private:
-  Camera& GetMainCamera();
+private:
+  Camera &GetMainCamera();
   void FindPrimaryCamera();
-
-  PhysicsEngine m_Physics3D;
 
   glm::vec4 m_ClearColor = {0.1f, 0.1f, 0.1f, 1};
 

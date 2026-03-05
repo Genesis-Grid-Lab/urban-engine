@@ -238,13 +238,7 @@ bool SceneSerializer::Deserialize(const std::string &filepath) {
         const auto &modelAnimProps = modelComponent["ModelAnimation"];
         Ref<Model> tempModel =
             CreateRef<Model>(modelProps["Path"].as<std::string>());
-        Ref<Animation> tempModelAnim;
         mc.ModelData = tempModel;
-        if (modelAnimProps) {
-          // tempModelAnim =
-          // CreateRef<Animation>(modelAnimProps["Path"].as<std::string>(),
-          // tempModel); mc.AnimationData = tempModelAnim;
-        }
       }
 
       auto spriteRendererComponent = entity["SpriteRendererComponent"];

@@ -1,6 +1,5 @@
 #pragma once
 
-#include "Animation/Animation.h"
 #include "Camera.h"
 #include "Core/Config.h"
 #include "EditorCamera.h"
@@ -24,8 +23,15 @@ public:
   static void RenderLight(const glm::vec3 &pos, const glm::vec4 &color);
 
   static void DrawSkybox(const Ref<Skybox> skybox, const Camera &camera);
-  
-  static void DrawModel(const Ref<Model> &model, const glm::mat4& transform, const std::vector<ozz::math::Float4x4>* bones, int entityID);
+
+  static void DrawModel(const Ref<Model> &model, const glm::mat4 &transform,
+                        const std::vector<ozz::math::Float4x4> *bones,
+                        int entityID);
+
+  static void
+  DrawSkeleton(const ozz::animation::Skeleton &skeleton,
+               const std::vector<ozz::math::Float4x4> &modelMatrices,
+               const glm::mat4 &modelTransform);
 
   static void DrawCube(const glm::mat4 &transform,
                        const glm::vec3 &color = glm::vec3(1),

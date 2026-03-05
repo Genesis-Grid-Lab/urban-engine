@@ -1,5 +1,9 @@
 project(UrbanEngine)
 
+if (CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64")
+    add_compile_options(-msse4.1)
+endif()
+
 # gather all source files
 if(WIN32)
     file(GLOB_RECURSE windowFile ${CMAKE_CURRENT_SOURCE_DIR}/src/Platform/Windows/*.cpp)
@@ -96,7 +100,9 @@ target_link_libraries(Renderer PUBLIC
   glfw
   glad 
   assimp  
-  ozz_animation       
+  ozz_animation   
+  ozz_base
+  ozz_animation_offline    
 )
 
 add_library(${PROJECT_NAME} ${source} ${RuntimeFiles} ${headers} 

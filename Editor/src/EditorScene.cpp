@@ -1,6 +1,9 @@
 #include "EditorScene.h"
 #include "Animation/AnimationSystem.h"
+#include "Components.h"
+#include "Log.h"
 #include "Renderer2D.h"
+#include "Renderer3D.h"
 
 EditorScene::EditorScene(uint32_t width, uint32_t height) {
   m_EditorCamera = EditorCamera(30.0f, 1.778f, 0.1f, 2000.0f);
@@ -43,15 +46,26 @@ void EditorScene::OnUpdate(Timestep ts) {
 
   GroupEntity<ModelComponent>(
       [this](auto entity, auto &comp, auto &transform, auto id) {
-        
-        std::vector<ozz::math::Float4x4>* bones = nullptr;
+        std::vector<ozz::math::Float4x4> *bones = nullptr;
 
-        if(entity.template HasComponent<AnimatorComponent>()){
-          auto& animator = entity.template GetComponent<AnimatorComponent>();
-          bones = &animator.ModelMatrices;
+        if (entity.template HasComponent<AnimatorComponent>()) {
+          auto &animator = entity.template GetComponent<AnimatorComponent>();
+          bones = &animator.FinalMatrices;
+
+          Renderer3D::DrawSkeleton(*animator.ModelRef->GetSkeleton(),
+                                   animator.ModelMatrices,
+                                   transform.GetTransform());
         }
 
-        Renderer3D::DrawModel(comp.ModelData, transform.GetTransform(), bones, (int)id);
+        Renderer3D::DrawModel(comp.ModelData, transform.GetTransform(), bones,
+                              (int)id);
+      });
+
+  GroupEntity<BoxColliderComponent>(
+      [this](auto entity, auto &comp, auto &transform, auto id) {
+        Renderer3D::DrawCube({transform.Translation.x, transform.Translation.y,
+                              transform.Translation.z},
+                             comp.HalfSize * 2.0f);
       });
 
   GroupEntity<CubeComponent>([this](auto entity, auto &comp, auto &transform,
@@ -100,11 +114,11 @@ void EditorScene::OnUpdate(Timestep ts) {
     // Renderer2D::DrawSprite(transform.GetTransform(), sprite, (int)entity);
   }
 
-  GroupEntity<CircleComponent>([this](auto entity, auto &comp, auto &transform,
-                                      auto id) {
-    Renderer2D::DrawCircle(transform.Translation,
-                           comp.Radius, comp.Color, entity, 1);
-  });
+  GroupEntity<CircleComponent>(
+      [this](auto entity, auto &comp, auto &transform, auto id) {
+        Renderer2D::DrawCircle(transform.Translation, comp.Radius, comp.Color,
+                               entity, 1);
+      });
 
   GroupEntity<RectangleComponent>(
       [this](auto entity, auto &comp, auto &transform, auto id) {
